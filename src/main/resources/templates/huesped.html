@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head ('Listado de Huéspedes')"></head>
+<body class="d-flex flex-column min-vh-100">
+<header th:replace="fragments/header :: header"></header>
+
+<main class="container mt-4 mb-4">
+    <h2>Huéspedes</h2>
+
+    <div th:if="${mensaje}" class="alert alert-success" th:text="${mensaje}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <table class="table table-bordered table-striped mt-3 shadow-sm">
+        <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>DNI</th>
+            <th>Nombre Completo</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="h : ${listHuespedes}">
+            <td th:text="${h.id}"></td>
+            <td th:text="${h.dni}"></td>
+            <td th:text="${h.nombre} + ' ' + ${h.apellidos}"></td>
+            <td th:text="${h.email}"></td>
+            <td th:text="${h.telefono}"></td>
+            <td>
+                <a th:href="@{/huespedes/edit(id=${h.id})}" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i></a>
+                <a th:href="@{/huespedes/delete(id=${h.id})}" class="btn btn-danger btn-sm"
+                   onclick="return confirm('¿Borrar huésped?');"><i class="bi bi-trash"></i></a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <a th:href="@{/huespedes/new}" class="btn btn-success">Nuevo Huésped</a>
+</main>
+<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head ('Listado de Casas')"></head>
+<body class="d-flex flex-column min-vh-100">
+<header th:replace="fragments/header :: header"></header>
+
+<main class="container mt-4 mb-4">
+    <h2>Casas Rurales</h2>
+
+    <div th:if="${mensaje}" class="alert alert-success" th:text="${mensaje}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <table class="table table-bordered table-striped mt-3 shadow-sm">
+        <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Dirección</th>
+            <th>Precio</th>
+            <th>Capac.</th>
+            <th>Propietario</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="c : ${listCasaRural}">
+            <td th:text="${c.id}"></td>
+            <td th:text="${c.nombre}"></td>
+            <td th:text="${c.direccion}"></td>
+            <td th:text="${c.precioNoche} + ' €'"></td>
+            <td th:text="${c.capacidadPersonas}"></td>
+            <td th:text="${c.propietario.nombre} + ' ' + ${c.propietario.apellidos}"></td>
+            <td>
+                <a th:href="@{/casas/edit(id=${c.id})}" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i></a>
+                <a th:href="@{/casas/delete(id=${c.id})}" class="btn btn-danger btn-sm"
+                   onclick="return confirm('¿Borrar casa?');"><i class="bi bi-trash"></i></a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <a th:href="@{/casas/new}" class="btn btn-success">Nueva Casa</a>
+</main>
+<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>

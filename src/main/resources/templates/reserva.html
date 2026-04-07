@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head ('Listado de Reservas')"></head>
+<body class="d-flex flex-column min-vh-100">
+<header th:replace="fragments/header :: header"></header>
+
+<main class="container mt-4 mb-4">
+    <h2>Reservas</h2>
+
+    <div th:if="${mensaje}" class="alert alert-success" th:text="${mensaje}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <table class="table table-bordered table-striped mt-3 shadow-sm">
+        <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Casa Rural</th>
+            <th>Huésped</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Total</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="r : ${listReservas}">
+            <td th:text="${r.id}"></td>
+            <td th:text="${r.casaRural.nombre}"></td>
+            <td th:text="${r.huesped.nombre} + ' ' + ${r.huesped.apellidos}"></td>
+            <td th:text="${r.fechaEntrada}"></td>
+            <td th:text="${r.fechaSalida}"></td>
+            <td th:text="${r.importeTotal} + ' €'" class="fw-bold text-success"></td>
+            <td>
+                <a th:href="@{/reservas/edit(id=${r.id})}" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i></a>
+                <a th:href="@{/reservas/delete(id=${r.id})}" class="btn btn-danger btn-sm"
+                   onclick="return confirm('¿Cancelar reserva?');"><i class="bi bi-trash"></i></a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <a th:href="@{/reservas/new}" class="btn btn-success">Nueva Reserva</a>
+</main>
+<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>
