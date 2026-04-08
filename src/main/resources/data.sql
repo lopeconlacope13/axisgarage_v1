@@ -14,15 +14,15 @@ INSERT INTO huesped (id, dni, nombre, apellidos, email, telefono) VALUES
 (5, '99887766E', 'Miguel', 'Aventurero', 'miguel@gmail.com', '611000555');
 
 
-INSERT INTO casa_rural (id, nombre, direccion, precio_noche, capacidad_personas, propietario_id) VALUES
-(1, 'Cortijo El Olivo', 'Ctra. Sierra Nevada km 4', 120.00, 6, 1),
-(2, 'Casa La Encina', 'Plaza del Pueblo 1, Cazorla', 85.00, 4, 1),
-(3, 'Villa Relax', 'Camino del Río s/n, Grazalema', 200.00, 10, 2),
-(4, 'Cabaña del Bosque', 'Sendero Perdido 7, Pirineos', 150.00, 5, 2),
-(5, 'Finca Los Almendros', 'Calle Mayor 23, Toledo', 95.00, 8, 3),
-(6, 'Apartamento Rural Sol', 'Costa de la Luz 12, Cádiz', 110.00, 3, 3),
-(7, 'El Mirador de Gredos', 'Alto de la Montaña, Ávila', 180.00, 12, 4),
-(8, 'Caserío Vasco', 'Barrio Verde 4, San Sebastián', 250.00, 15, 4);
+INSERT INTO casa_rural (id, nombre, direccion, precio_noche, capacidad_personas, propietario_id, imagen) VALUES
+(1, 'Cortijo El Olivo', 'Ctra. Sierra Nevada km 4', 120.00, 6, 1, NULL),
+(2, 'Casa La Encina', 'Plaza del Pueblo 1, Cazorla', 85.00, 4, 1, NULL),
+(3, 'Villa Relax', 'Camino del Río s/n, Grazalema', 200.00, 10, 2, NULL),
+(4, 'Cabaña del Bosque', 'Sendero Perdido 7, Pirineos', 150.00, 5, 2, NULL),
+(5, 'Finca Los Almendros', 'Calle Mayor 23, Toledo', 95.00, 8, 3, NULL),
+(6, 'Apartamento Rural Sol', 'Costa de la Luz 12, Cádiz', 110.00, 3, 3, NULL),
+(7, 'El Mirador de Gredos', 'Alto de la Montaña, Ávila', 180.00, 12, 4, NULL),
+(8, 'Caserío Vasco', 'Barrio Verde 4, San Sebastián', 250.00, 15, 4, NULL);
 
 -- Reservas Pasadas ¡
 INSERT INTO reserva (fecha_entrada, fecha_salida, importe_total, casa_rural_id, huesped_id) VALUES

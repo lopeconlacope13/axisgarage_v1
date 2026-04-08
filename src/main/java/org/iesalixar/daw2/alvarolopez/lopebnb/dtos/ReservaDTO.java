@@ -1,21 +1,18 @@
 package org.iesalixar.daw2.alvarolopez.lopebnb.dtos;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
-@Data
+@Getter
+@Setter
 public class ReservaDTO {
 
     private Long id;
-
-    @NotNull(message = "La fecha de entrada es obligatoria")
     private LocalDate fechaEntrada;
-
-    @NotNull(message = "La fecha de salida es obligatoria")
     private LocalDate fechaSalida;
-
     private Double importeTotal;
 
     //Para extraer la info de las otras entidades, usamos los DTO's no las entidades

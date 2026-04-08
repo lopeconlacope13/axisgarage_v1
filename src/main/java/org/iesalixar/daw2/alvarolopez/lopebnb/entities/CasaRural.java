@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,8 @@ public class CasaRural {
     @ToString.Exclude
     private List<Opinion> opiniones = new ArrayList<>();
 
+    @Column(name = "imagen")
+    private String imagen;
 
      //Constructor sin ID para facilitar la creación.
     public CasaRural(String nombre, String direccion, Double precioNoche, Long capacidadPersonas, Propietario propietario) {

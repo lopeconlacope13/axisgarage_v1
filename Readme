@@ -26,3 +26,57 @@ Moderación de Opiniones: Es el único que puede BORRAR una opinión si es ofens
 Gestión de Usuarios (Auth): Puede ver todos los usuarios registrados en la plataforma (GET /api/usuarios) y cambiar sus roles (ej. ascender a un USER a MANAGER) o banearlos.
 
 (Idea extra para el futuro) Estadísticas: Podríamos crearle un endpoint GET /api/estadisticas que le devuelva el total de dinero ganado, las casas más reservadas, etc.
+
+
+# 📘 Documento Maestro: Lógica de Negocio y Reglas - LopeBnB
+
+Este documento define todas las reglas, restricciones y "casos trampa" que la capa de Servicios (`@Service`) debe validar antes de interactuar con la Base de Datos.
+
+## 1. 🏡 Entidad: CASA RURAL (Alojamiento)
+
+### Reglas de Validación:
+* **Valores Positivos:** El `precioNoche` y la `capacidadPersonas` deben ser estrictamente mayores que `0`.
+* **Nombre Único por Dueño (Creación):** Un propietario no puede registrar dos casas con el mismo nombre.
+  * *Método JPA:* `existsByNombreAndPropietarioId(String nombre, Long propietarioId)`
+* **Nombre Único por Dueño (Actualización - La Paradoja "Alberquillas"):** Al editar una casa, se debe comprobar que el nombre no esté pillado por OTRA casa del mismo dueño (excluyendo la casa actual que estamos editando).
+  * *Método JPA:* `existsByNombreAndPropietarioIdAndIdNot(String nombre, Long propietarioId, Long idCasa)`
+
+### Comportamiento de Borrado:
+* **Borrado Lógico (Soft Delete):** No se debe usar `deleteById()` si la casa tiene reservas asociadas, ya que rompería la base de datos o borraría el historial. Se recomienda añadir un campo `boolean activa = true` en la base de datos y pasarlo a `false` al borrar.
+
+---
+
+## 2. 🧑‍💼 Entidades: PROPIETARIO y HUÉSPED (Usuarios)
+
+### Reglas de Validación:
+* **Unicidad Global de Contacto:** El `email` debe ser estrictamente único en toda la base de datos para evitar cuentas duplicadas.
+  * *Método JPA:* `existsByEmail(String email)`
+* **Unicidad de Identificación:** Si existe campo `dni` o `telefono`, también deben ser únicos.
+  * *Método JPA:* `existsByDni(String dni)`
+
+---
+
+## 3. 📅 Entidad: RESERVA (El Núcleo del Sistema)
+
+### Reglas de Fechas (Cronología):
+* **Viajes al pasado:** La fecha de `checkIn` debe ser igual o posterior a la fecha actual (`LocalDate.now()`).
+* **Coherencia temporal:** La fecha de `checkOut` debe ser estrictamente posterior a la fecha de `checkIn`.
+
+### Reglas de Aforo y Precio:
+* **Límite de Aforo:** El número de personas de la reserva no puede superar la `capacidadPersonas` de la `CasaRural`.
+* **Congelación de Precios (Viaje en el tiempo):** La entidad Reserva DEBE tener un campo `precioTotal` (o `precioPagado`). Al crear la reserva, el Servicio debe calcular el total (días * precioNoche) y guardarlo. Así, si el dueño sube el precio de la casa meses después, el cliente sigue pagando lo que pactó.
+
+### Reglas de Solapamiento y Estado:
+* **Máquina de Estados:** Toda reserva debe tener un estado (`PENDIENTE`, `CONFIRMADA`, `CANCELADA`).
+* **Solapamiento de Fechas (Overlapping):** No se puede crear una reserva si las fechas pisan los días de otra reserva existente en esa misma casa.
+  * *Fórmula de choque:* `(Nuevo_CheckIn < Existente_CheckOut) AND (Nuevo_CheckOut > Existente_CheckIn)`
+  * *Condición vital:* Al buscar solapamientos, la consulta SQL **DEBE IGNORAR** las reservas cuyo estado sea `CANCELADA`.
+
+---
+
+## 4. ⭐ Entidad: OPINIÓN / RESEÑA
+
+### Reglas de Validación:
+* **Derecho de Admisión:** Un usuario solo puede dejar una opinión si tiene una `Reserva` asociada a esa `CasaRural` específica.
+* **Control de Tiempos:** La opinión solo se puede emitir si la fecha actual es posterior al `checkOut` de su reserva (no puede opinar antes de ir).
+* **Control de Spam:** Solo se permite UNA (1) reseña por cada reserva finalizada.

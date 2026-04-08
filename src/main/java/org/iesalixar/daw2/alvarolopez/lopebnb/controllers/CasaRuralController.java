@@ -1,19 +1,33 @@
 package org.iesalixar.daw2.alvarolopez.lopebnb.controllers;
 
-import org.iesalixar.daw2.alvarolopez.lopebnb.entities.CasaRural;
-import org.iesalixar.daw2.alvarolopez.lopebnb.repositories.CasaRuralRepository;
-import org.iesalixar.daw2.alvarolopez.lopebnb.repositories.PropietarioRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
+import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.CasaRuralDTO;
+import org.iesalixar.daw2.alvarolopez.lopebnb.services.CasaRuralService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
+/**
+ * Controlador REST para la gestión de Casas Rurales en el sistema LopeBnB.
+ * Proporciona los endpoints necesarios para realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar)
+ * sobre la entidad CasaRural, incluyendo el manejo de imágenes mediante multipart/form-data.
+ */
 @RestController
 @RequestMapping("/api/casas")
 public class CasaRuralController {
@@ -21,107 +35,173 @@ public class CasaRuralController {
     private static final Logger logger = LoggerFactory.getLogger(CasaRuralController.class);
 
     @Autowired
-    private CasaRuralRepository casaRuralRepository;
-    // Al crear o editar una casa, necesitamos la lista de propietarios a la hora de selccionarlo en el formulario
-    @Autowired
-    private PropietarioRepository propietarioRepository;
+    private CasaRuralService casaRuralService;
 
     // --- 1. LISTAR ---
+
+    /**
+     * Lista todas las casas rurales almacenadas en la base de datos de forma paginada.
+     *
+     * @param pageable Objeto Pageable inyectado por Spring con la configuración de la página (tamaño, orden, número).
+     * @return ResponseEntity conteniendo la página de CasaRuralDTO o un código de error HTTP 500 en caso de fallo.
+     */
+    @Operation(summary = "Obtener todas las Casas Rurales", description = "Devuelve una lista paginada de todas las Casas Rurales disponibles en el sistema.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de Casas Rurales recuperada exitosamente",
+                    content = @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = CasaRuralDTO.class)))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @GetMapping
-    public String listCasaRural(Model model) {
-        logger.info("Solicitando la lista de todas las casas rurales...");
+    public ResponseEntity<Page<CasaRuralDTO>> getAllCasaRural(
+            @PageableDefault(size = 10, sort = "nombre") Pageable pageable) {
 
-        // Utilizo el método findAll() que heredo de JpaRepository para traer todo de la BBDD
-        List<CasaRural> listCasaRural = casaRuralRepository.findAll();
+        logger.info("Solicitando todas las Casas Rurales con paginación: página {}, tamaño {}",
+                pageable.getPageNumber(), pageable.getPageSize());
 
-        logger.info("Se han cargado {} casas rurales.", listCasaRural.size());
-
-        // Paso la lista a la vista para recorrerla con un th:each
-        model.addAttribute("listCasaRural", listCasaRural);
-
-        return "casa-rural";
-    }
-
-    // --- 2. FORMULARIO NUEVA CASA ---
-    @GetMapping("/new")
-    public String showNewForm(Model model) {
-        logger.info("Mostrando formulario para nueva casa rural...");
-
-        // Pasamos el objeto vacío para que Thymeleaf pueda vincular los campos
-        model.addAttribute("casa_rural", new CasaRural());
-
-        //Cargamos los propietarios y los mandamos a la vista para poder pintar el desplegable
-        model.addAttribute("listaPropietarios", propietarioRepository.findAll());
-
-        return "casa-rural-form";
-    }
-
-    // --- 3. FORMULARIO EDITAR (Por ID en URL) ---
-    @GetMapping("/edit")
-    public String showEditForm(@RequestParam("id") Long id, Model model) {
-        logger.info("Mostrando formulario de edición para la casa ID: {}", id);
-
-        //Usamos optional porque findById no puede no encontrar nada
-        Optional<CasaRural> casaOptional = casaRuralRepository.findById(id);
-
-        if (casaOptional.isEmpty()) {
-            logger.warn("No se encontró la casa con ID {}", id);
-            return "redirect:/casas"; // Si no existe, lo devuelvo al listado por seguridad
+        try {
+            Page<CasaRuralDTO> casasRurales = casaRuralService.getAllCasasRurales(pageable);
+            logger.info("Se han encontrado {} Casas Rurales.", casasRurales.getTotalElements());
+            return ResponseEntity.ok(casasRurales);
+        } catch (Exception e) {
+            logger.error("Error al listar las Casas Rurales: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-
-        // Si existe, saco el objeto del Optional y lo mando al formulario
-        model.addAttribute("casa_rural", casaOptional.get());
-
-        // Vuelvo a cargar la lista de propietarios por si quiere cambiar de dueño
-        model.addAttribute("listaPropietarios", propietarioRepository.findAll());
-
-        return "casa-rural-form";
     }
 
-    // --- 4. INSERTAR ---
-    @PostMapping("/insert")
-    public String insertCasaRural(@ModelAttribute("casa_rural") CasaRural casaRural,
-                                  RedirectAttributes redirectAttributes) {
+    // --- 2. OBTENER POR ID ---
 
-        logger.info("Intentando guardar casa: {}", casaRural.getNombre());
+    /**
+     * Obtiene los detalles de una casa rural específica utilizando su ID.
+     *
+     * @param id ID único de la casa rural solicitada.
+     * @return ResponseEntity con el objeto CasaRuralDTO si se encuentra, o un mensaje de error HTTP 404/500 si falla.
+     */
+    @Operation(summary = "Obtener una Casa Rural por ID", description = "Recupera una casa rural específica según su identificador único.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Casa Rural encontrada",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CasaRuralDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Casa Rural no encontrada"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getCasaRuralById(@PathVariable Long id) {
+        logger.info("Buscando casa rural con ID {}", id);
+        try {
+            Optional<CasaRuralDTO> casaRuralDTO = casaRuralService.getCasaRuralById(id);
 
-        // tenemos que distinguir si estoy CREANDO o EDITANDO.
-        // Si el ID es null -> Es NUEVA.
-        // Si es nueva, compruebo si ya existe otra casa con ese mismo nombre para evitar duplicados.
-        if (casaRural.getId() == null && casaRuralRepository.existsByNombre(casaRural.getNombre())) {
-            logger.warn("El nombre '{}' ya existe.", casaRural.getNombre());
-
-            // Si existe, mando un error y lo devuelvo al formulario de creación
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: Ya existe una casa con ese nombre.");
-            return "redirect:/casas/new";
+            if (casaRuralDTO.isPresent()) {
+                logger.info("Casa Rural con ID {} encontrada.", id);
+                return ResponseEntity.ok(casaRuralDTO.get());
+            } else {
+                logger.warn("No se encontró ninguna casa rural con ID {}", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("La casa rural no existe.");
+            }
+        } catch (Exception e) {
+            logger.error("Error al buscar la casa rural con ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al buscar la casa rural con ID " + id);
         }
-
-        //El método .save de JPA ya hace el trabajo por nosotros
-        // - Si el objeto tiene ID -> hace UPDATE
-        // - Si el objeto NO tiene ID -> hace INSERT
-        casaRuralRepository.save(casaRural);
-
-        logger.info("Casa guardada con éxito (ID: {})", casaRural.getId());
-        redirectAttributes.addFlashAttribute("mensaje", "Casa rural guardada correctamente.");
-
-        return "redirect:/casas";
     }
 
-    // --- 5. BORRAR ---
-    @GetMapping("/delete")
-    public String deleteCasaRural(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
-        logger.info("Solicitud de borrado para casa ID: {}", id);
+    // --- 3. CREAR CASA RURAL ---
 
-        // Antes de borrar, verifico que exista para evitar excepciones de base de datos
-        if (casaRuralRepository.existsById(id)) {
-            casaRuralRepository.deleteById(id);
-            logger.info("Casa eliminada.");
-            redirectAttributes.addFlashAttribute("mensaje", "Casa eliminada correctamente.");
-        } else {
-            logger.warn("Intento de borrar casa inexistente.");
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: La casa no existe.");
+    /**
+     * Inserta una nueva casa rural en la base de datos, procesando también la imagen asociada si se proporciona.
+     *
+     * @param casaRuralDTO Objeto DTO que contiene los datos de la casa rural y el archivo de imagen adjunto.
+     * @param locale       Idioma de la petición para la internacionalización de los mensajes de error.
+     * @return ResponseEntity con la casa rural creada (HTTP 201) o un mensaje de error si no se superan las validaciones.
+     */
+    @Operation(summary = "Crear una nueva casa rural", description = "Permite registrar una nueva casa rural en la base de datos.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Casa rural creada exitosamente",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CasaRuralDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados (Ej. Nombre duplicado)"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor o error al guardar la imagen")
+    })
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<?> createCasaRural(@Valid @ModelAttribute CasaRuralDTO casaRuralDTO, Locale locale) {
+        logger.info("Insertando nueva casa rural con nombre {}", casaRuralDTO.getNombre());
+        try {
+            CasaRuralDTO createdCasaRural = casaRuralService.createCasaRural(casaRuralDTO, locale);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdCasaRural);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Error al crear la casa rural: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (RuntimeException e) {
+            logger.error("Error al guardar la imagen: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al guardar la imagen.");
+        } catch (Exception e) {
+            logger.error("Error inesperado al crear la casa rural: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear la casa rural.");
         }
+    }
 
-        return "redirect:/casas";
+    // --- 4. ACTUALIZAR CASA RURAL ---
+
+    /**
+     * Actualiza los datos de una casa rural existente, incluyendo la sustitución de la imagen si se envía una nueva.
+     *
+     * @param id           ID de la casa rural a actualizar.
+     * @param casaRuralDTO Objeto DTO con los nuevos datos y el nuevo archivo de imagen (opcional).
+     * @param locale       Idioma de la petición para la internacionalización de los mensajes de error.
+     * @return ResponseEntity con la casa rural actualizada (HTTP 200) o un mensaje de error.
+     */
+    @Operation(summary = "Actualizar una casa rural", description = "Permite actualizar los datos de una casa rural existente.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Casa rural actualizada exitosamente",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = CasaRuralDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos (Ej. Nombre duplicado en otra casa)"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+    public ResponseEntity<?> updateCasaRural(
+            @PathVariable Long id, @Valid @ModelAttribute CasaRuralDTO casaRuralDTO, Locale locale) {
+
+        logger.info("Actualizando casa rural con ID {}", id);
+        try {
+            CasaRuralDTO updatedCasaRural = casaRuralService.updateCasaRural(id, casaRuralDTO, locale);
+            return ResponseEntity.ok(updatedCasaRural);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (RuntimeException e) {
+            logger.error("Error al guardar la imagen para la casa rural con ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al guardar la imagen.");
+        } catch (Exception e) {
+            logger.error("Error inesperado al actualizar la casa rural con ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la casa rural.");
+        }
+    }
+
+    // --- 5. BORRAR CASA RURAL ---
+
+    /**
+     * Elimina una casa rural específica de la base de datos por su ID.
+     *
+     * @param id ID de la casa rural a eliminar.
+     * @return ResponseEntity indicando el éxito de la operación (HTTP 200) o error si no se encuentra (HTTP 404).
+     */
+    @Operation(summary = "Eliminar una casa rural", description = "Permite eliminar una casa rural específica de la base de datos.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Casa rural eliminada exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Casa rural no encontrada"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCasaRural(@PathVariable Long id) {
+        logger.info("Eliminando casa rural con ID {}", id);
+        try {
+            casaRuralService.deleteCasaRural(id);
+            return ResponseEntity.ok("Casa rural eliminada con éxito.");
+        } catch (IllegalArgumentException e) {
+            logger.warn("Error al eliminar la casa rural con ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error al eliminar la casa rural con ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la casa rural");
+        }
     }
 }
