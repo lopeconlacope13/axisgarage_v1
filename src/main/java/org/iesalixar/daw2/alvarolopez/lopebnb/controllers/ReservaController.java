@@ -17,8 +17,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
-@Controller
-@RequestMapping("/reservas")
+@RestController
+@RequestMapping("/api/reservas")
 public class ReservaController {
 
     private static final Logger logger = LoggerFactory.getLogger(ReservaController.class);

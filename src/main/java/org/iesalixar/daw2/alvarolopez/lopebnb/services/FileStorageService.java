@@ -5,6 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import java.net.MalformedURLException;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,6 +74,32 @@ public class FileStorageService {
             return fileName.substring(fileName.lastIndexOf(".") + 1);
         } else {
             return ""; // Sin extensión
+        }
+    }
+
+    /**
+     * Carga un archivo como recurso (Resource) para poder visualizarlo/descargarlo.
+     *
+     * @param fileName El nombre del archivo a cargar.
+     * @return El recurso (imagen) si existe.
+     * @throws RuntimeException si no se puede leer.
+     */
+    public Resource loadAsResource(String fileName) {
+        try {
+            // 1. Construimos la ruta completa al archivo
+            Path filePath = Paths.get(uploadPath).resolve(fileName).normalize();
+
+            // 2. Lo convertimos en un Recurso (UrlResource)
+            Resource resource = new UrlResource(filePath.toUri());
+
+            // 3. Verificamos si existe y es legible
+            if (resource.exists() || resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("No se puede leer el archivo: " + fileName);
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Error al resolver la ruta del archivo: " + fileName, e);
         }
     }
 }

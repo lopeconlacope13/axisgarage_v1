@@ -1,0 +1,28 @@
+🥉 Nivel 1: ROLE_USER (El Cliente / Huésped)
+Es el usuario de a pie que entra a la web/Angular para buscar alojamiento.
+
+Casas: Solo puede VER (GET /api/casas).
+
+Reservas: Puede CREAR una reserva para él mismo (POST /api/reservas) y VER su propio historial de reservas (GET /api/reservas/mis-reservas).
+
+Opiniones: Puede CREAR una opinión (POST /api/opiniones) solo si ha estado en la casa.
+
+🥈 Nivel 2: ROLE_MANAGER (El Gestor / Atención al Cliente)
+Es un empleado de LopeBnB. Su trabajo es gestionar el catálogo y ayudar con las reservas.
+
+Propietarios: Puede CREAR, VER, EDITAR y BORRAR dueños de casas (/api/propietarios/**).
+
+Casas: Puede dar de alta nuevas casas, modificar precios o borrarlas (POST, PUT, DELETE /api/casas/**).
+
+Reservas: Puede ver TODAS las reservas del sistema y cancelarlas si hay un problema (GET, DELETE /api/reservas/**).
+
+Huéspedes: Puede gestionar las fichas de los clientes (/api/huespedes/**).
+
+🥇 Nivel 3: ROLE_ADMIN (El "Jefe" / Superusuario)
+Tiene acceso total. Además de poder hacer todo lo del Manager, vamos a darle poderes exclusivos del sistema:
+
+Moderación de Opiniones: Es el único que puede BORRAR una opinión si es ofensiva o falsa (DELETE /api/opiniones/{id}).
+
+Gestión de Usuarios (Auth): Puede ver todos los usuarios registrados en la plataforma (GET /api/usuarios) y cambiar sus roles (ej. ascender a un USER a MANAGER) o banearlos.
+
+(Idea extra para el futuro) Estadísticas: Podríamos crearle un endpoint GET /api/estadisticas que le devuelva el total de dinero ganado, las casas más reservadas, etc.

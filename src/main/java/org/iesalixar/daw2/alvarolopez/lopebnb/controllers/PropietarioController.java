@@ -1,123 +1,96 @@
 package org.iesalixar.daw2.alvarolopez.lopebnb.controllers;
 
-import org.iesalixar.daw2.alvarolopez.lopebnb.entities.Propietario;
-import org.iesalixar.daw2.alvarolopez.lopebnb.repositories.PropietarioRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.PropietarioDTO;
+import org.iesalixar.daw2.alvarolopez.lopebnb.services.PropietarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-import java.util.Optional;
-
-@Controller
-@RequestMapping("/propietarios")
+@RestController
+@RequestMapping("/api/propietarios")
+@Tag(name = "Propietarios", description = "Operaciones CRUD para la gestión de propietarios")
 public class PropietarioController {
 
     private static final Logger logger = LoggerFactory.getLogger(PropietarioController.class);
 
-    // Inyectamos el repositorio para poder contactar con la Base de Datos
     @Autowired
-    private PropietarioRepository propietarioRepository;
+    private PropietarioService propietarioService;
 
-    // --- 1. LISTAR ---
+    // --- 1. LISTAR (PAGINADO) ---
+    @Operation(summary = "Obtener lista paginada de propietarios")
     @GetMapping
-    public String listPropietarios(Model model) {
-        logger.info("Solicitando la lista de todos los propietarios...");
-        // pedimos todos los datos al repositorio
-        List<Propietario> listPropietarios = propietarioRepository.findAll();
-
-        logger.info("Se han encontrado {} propietarios.", listPropietarios.size());
-
-        // pasamos la lista a la vista
-        model.addAttribute("listPropietarios", listPropietarios);
-
-        // devolvemos el nombre del archivo HTML a mostrar
-        return "propietario";
+    public ResponseEntity<Page<PropietarioDTO>> getAllPropietarios(Pageable pageable) {
+        logger.info("REST: Solicitando todos los propietarios (paginado)");
+        Page<PropietarioDTO> propietarios = propietarioService.getAllPropietarios(pageable);
+        return ResponseEntity.ok(propietarios);
     }
 
-    // --- 2. AÑADIR ---
-    @GetMapping("/new")
-    public String showNewForm(Model model) {
-        logger.info("Mostrando formulario para crear un nuevo propietario...");
-
-        // pasamos un objeto vacío para que el formulario lo rellene
-        model.addAttribute("propietario", new Propietario());
-
-        return "propietario-form";
-    }
-
-
-    // --- 3. EDITAR ---
-    @GetMapping("/edit")
-    public String showEditForm(@RequestParam("id") Long id, Model model) {
-        logger.info("Buscando propietario con ID {} para editar...", id);
-
-        // buscamos por ID (devuelve un Optional por si no existe)
-        Optional<Propietario> propietarioOptional = propietarioRepository.findById(id);
-
-        if (propietarioOptional.isPresent()) {
-            // si existe, lo pasamos al modelo para rellenar los campos
-            model.addAttribute("propietario", propietarioOptional.get());
-            return "propietario-form";
-        } else {
-            // si no existe, mostramos error y volvemos al listado
-            logger.warn("No se encontró el propietario con ID {}", id);
-            return "redirect:/propietarios";
+    // --- 2. OBTENER UNO POR ID ---
+    @Operation(summary = "Obtener un propietario por su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Propietario encontrado"),
+            @ApiResponse(responseCode = "404", description = "Propietario no encontrado")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getPropietarioById(@PathVariable Long id) {
+        try {
+            PropietarioDTO dto = propietarioService.getPropietarioById(id);
+            return ResponseEntity.ok(dto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
-    // --- 4- INSERTAR ---
-    @PostMapping("/insert")
-    public String insertPropietario(@ModelAttribute("propietario") Propietario propietario,
-                                    RedirectAttributes redirectAttributes) {
-
-        logger.info("Intentando guardar propietario: {}", propietario.getEmail());
-
-        // validacion email
-        // comprobamos si es un registro nuevo (id es null) y si el email ya existe en la BD
-        if (propietario.getId() == null && propietarioRepository.findByEmail(propietario.getEmail()).isPresent()) {
-            logger.warn("El email {} ya está registrado.", propietario.getEmail());
-            // mandamos mensaje de error
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: El email ya está en uso.");
-            // volvemos al formulario de creación
-            return "redirect:/propietarios/new";
+    // --- 3. CREAR ---
+    @Operation(summary = "Crear un nuevo propietario")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Creado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos (email o teléfono duplicados)")
+    })
+    @PostMapping
+    // @RequestBody indica que los datos vienen en el body del JSON, ya no en el Model de Thymeleaf
+    public ResponseEntity<?> createPropietario(@RequestBody PropietarioDTO dto) {
+        try {
+            logger.info("REST: Creando nuevo propietario");
+            PropietarioDTO creado = propietarioService.createPropietario(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
 
-        // validacion telefono
-        if (propietario.getId() == null && propietarioRepository.findByTelefono(propietario.getTelefono()).isPresent()) {
-            logger.warn("El teléfono {} ya está registrado.", propietario.getTelefono());
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: El teléfono ya está en uso.");
-            return "redirect:/propietarios/new";
+    // --- 4. ACTUALIZAR ---
+    @Operation(summary = "Actualizar un propietario existente")
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePropietario(@PathVariable Long id, @RequestBody PropietarioDTO dto) {
+        try {
+            logger.info("REST: Actualizando propietario con ID: {}", id);
+            PropietarioDTO actualizado = propietarioService.updatePropietario(id, dto);
+            return ResponseEntity.ok(actualizado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
-
-        // si pasa las validaciones, guardamos con .save (auto)
-        propietarioRepository.save(propietario);
-
-        logger.info("Propietario guardado con éxito (ID: {})", propietario.getId());
-        redirectAttributes.addFlashAttribute("mensaje", "Propietario guardado correctamente.");
-
-        return "redirect:/propietarios";
     }
 
     // --- 5. BORRAR ---
-
-    @GetMapping("/delete")
-    public String deletePropietario(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
-        logger.info("Solicitud de borrado para propietario ID: {}", id);
-
-        if (propietarioRepository.existsById(id)) {
-            propietarioRepository.deleteById(id);
-            logger.info("Propietario eliminado.");
-            redirectAttributes.addFlashAttribute("mensaje", "Propietario eliminado correctamente.");
-        } else {
-            logger.warn("Intento de borrar propietario inexistente.");
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: El propietario no existe.");
+    @Operation(summary = "Eliminar un propietario por su ID")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePropietario(@PathVariable Long id) {
+        try {
+            logger.info("REST: Borrando propietario con ID: {}", id);
+            propietarioService.deletePropietario(id);
+            return ResponseEntity.noContent().build(); // Devuelve 204 No Content
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-
-        return "redirect:/propietarios";
     }
 }

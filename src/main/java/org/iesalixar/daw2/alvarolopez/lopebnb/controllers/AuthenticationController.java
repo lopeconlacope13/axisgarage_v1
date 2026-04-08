@@ -1,7 +1,8 @@
 package org.iesalixar.daw2.alvarolopez.lopebnb.controllers;
 
-
 import jakarta.validation.Valid;
+import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.AuthRequestDTO;
+import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.AuthResponseDTO;
 import org.iesalixar.daw2.alvarolopez.lopebnb.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

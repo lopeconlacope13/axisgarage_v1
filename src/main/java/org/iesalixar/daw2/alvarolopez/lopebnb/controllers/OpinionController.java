@@ -15,8 +15,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import java.util.Optional;
 
-@Controller
-@RequestMapping("/opiniones")
+@RestController
+@RequestMapping("/api/opiniones")
 public class OpinionController {
 
     private static final Logger logger = LoggerFactory.getLogger(OpinionController.class);

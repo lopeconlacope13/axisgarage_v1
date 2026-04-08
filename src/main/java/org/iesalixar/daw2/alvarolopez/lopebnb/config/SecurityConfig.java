@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -49,32 +50,37 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable()) // Las APIs REST no suelen necesitar CSRF
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Sin sesiones
+                // 1. Desactivamos CSRF porque al usar tokens JWT ya estamos protegidos contra este ataque
+                .csrf(csrf -> csrf.disable())
+
+                // 2. Indicamos que nuestra API es Stateless (sin estado, no guarda sesiones en memoria)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 3. REGLAS DE AUTORIZACIÓN (El núcleo de tu seguridad)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/tickets", "/api/regions" ).hasRole("USER") // Solo USER
-                        .requestMatchers("/api/admin").hasRole("ADMIN") // Solo ADMIN
-                        .requestMatchers(
-                                "/api/provinces",
-                                "/api/supermarkets",
-                                "/api/locations",
-                                "/api/categories").hasRole("MANAGER") // Solo MANAGER
-                        .requestMatchers(
-                                "/api/v1/authenticate",
-                                "/api/v1/register",
-                                "/v3/api-docs/**",      // Documentación JSON
-                                "/swagger-ui/**",       // Interfaz de Swagger
-                                "/swagger-ui.html",     // Acceso directo a la página
-                                "/webjars/**",           // Recursos estáticos (CSS, JS)
-                                "/api-docs/**"
-                        ).permitAll()
-                        .anyRequest().authenticated() // El resto requiere autenticación
+                        // --- RUTAS PÚBLICAS (No requieren token) ---
+                        .requestMatchers("/api/v1/authenticate", "/api/v1/register").permitAll() // Login y Registro
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Documentación Swagger
+                        .requestMatchers(HttpMethod.GET, "/api/casas/**").permitAll() // Todo el mundo puede VER las casas
+
+                                // --- RUTAS DE CLIENTE ---
+                                .requestMatchers(HttpMethod.POST, "/api/reservas/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+
+// --- RUTAS DE MANAGER ---
+                                .requestMatchers("/api/casas/**").hasAnyRole("MANAGER", "ADMIN")
+                                .requestMatchers("/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
+
+// --- RUTAS EXCLUSIVAS DE ADMIN ---
+                                .requestMatchers(HttpMethod.DELETE, "/api/opiniones/**").hasRole("ADMIN")
+                                .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+
+                        // --- CUALQUIER OTRA RUTA ---
+                        // Por defecto, si se nos olvida alguna ruta, exigimos que al menos esté logueado
+                        .anyRequest().authenticated()
                 )
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Filtro JWT
+                // 4. Añadimos tu filtro JWT para que intercepte las peticiones y valide el token antes que Spring
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
