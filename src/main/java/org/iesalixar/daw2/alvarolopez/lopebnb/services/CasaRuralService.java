@@ -1,5 +1,6 @@
 package org.iesalixar.daw2.alvarolopez.lopebnb.services;
 
+import jakarta.transaction.Transactional;
 import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.CasaRuralDTO;
 import org.iesalixar.daw2.alvarolopez.lopebnb.entities.CasaRural;
 import org.iesalixar.daw2.alvarolopez.lopebnb.entities.Propietario;
@@ -75,6 +76,7 @@ public class CasaRuralService {
      * @param id Identificador único de la casa rural.
      * @return Optional<CasaRuralDTO> Un Optional que contiene el DTO si se encuentra, o vacío si no existe.
      */
+    @Transactional
     public Optional<CasaRuralDTO> getCasaRuralById(Long id) {
         try {
             logger.info("Buscando Casa Rural con ID {}", id);

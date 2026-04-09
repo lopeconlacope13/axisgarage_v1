@@ -11,9 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Setter
 public class CasaRuralDTO {
 
-
     private Long id;
-
     private String nombre;
     private String direccion;
     private Double precioNoche;

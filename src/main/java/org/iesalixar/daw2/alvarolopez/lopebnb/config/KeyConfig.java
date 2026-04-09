@@ -1,4 +1,4 @@
-package org.iesalixar.daw2.alvarolopez.lopebnb;
+package org.iesalixar.daw2.alvarolopez.lopebnb.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
