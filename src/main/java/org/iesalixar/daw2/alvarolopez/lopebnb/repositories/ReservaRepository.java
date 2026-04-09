@@ -17,17 +17,39 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long>{
     List<Reserva> findByHuesped_Id(Long huespedId);
 
 
-     //detectar si las fechas chocan con otra reserva.
-     //Devuelve TRUE si hay solapamiento.
-    // Devuelve la lista de reservas que chocan para poder mostrar las fechas en el error
+    /**
+     * Detectar si las fechas chocan con otra reserva (Para CREATE).
+     * Devuelve la lista de reservas que chocan para poder mostrar las fechas en el error.
+     */
     @Query("SELECT r FROM Reserva r WHERE r.casaRural.id = :casaId " +
             "AND :fechaEntrada < r.fechaSalida " +
             "AND :fechaSalida > r.fechaEntrada")
-    List<Reserva> findReservasConflictivas(@Param("casaId") Long casaId,
-                                           @Param("fechaEntrada") LocalDate fechaEntrada,
-                                           @Param("fechaSalida") LocalDate fechaSalida);
+    List<Reserva> findReservasConflictivas(
+            @Param("casaId") Long casaId,
+            @Param("fechaEntrada") LocalDate fechaEntrada,
+            @Param("fechaSalida") LocalDate fechaSalida);
+
+    /**
+     * Detectar si las fechas chocan con OTRA reserva distinta a la actual (Para UPDATE).
+     */
+    @Query("SELECT r FROM Reserva r WHERE r.casaRural.id = :casaId " +
+            "AND r.id != :reservaId " +
+            "AND :fechaEntrada < r.fechaSalida " +
+            "AND :fechaSalida > r.fechaEntrada")
+    List<Reserva> findReservasConflictivasExcludingId(
+            @Param("casaId") Long casaId,
+            @Param("fechaEntrada") LocalDate fechaEntrada,
+            @Param("fechaSalida") LocalDate fechaSalida,
+            @Param("reservaId") Long reservaId);
 
     // buscar las 5 primeras ordenadas por ID descendente, para encontrar
     // las últimas creadas y mostrarlas en el dashboard
     List<Reserva> findTop5ByOrderByIdDesc();
+
+
+
+
+
+
+
 }

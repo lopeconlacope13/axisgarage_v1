@@ -19,6 +19,4 @@ public class HuespedDTO {
     private String dni;
     private String telefono;
 
-    private ReservaDTO reservaDTO;
-    private OpinionDTO opinionDTO;
 }

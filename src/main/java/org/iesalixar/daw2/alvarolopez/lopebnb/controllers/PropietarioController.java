@@ -22,6 +22,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+/**
+ * Controlador REST para la gestión de Propietarios en el sistema LopeBnB.
+ * Permite realizar operaciones CRUD sobre los dueños de los alojamientos,
+ * delegando la lógica de validación de unicidad (email y teléfono) al servicio.
+ *
+ * @author Alvaro Lopez
+ */
 @RestController
 @RequestMapping("/api/propietarios")
 @Tag(name = "Propietarios", description = "Operaciones CRUD para la gestión de propietarios")
@@ -33,7 +40,8 @@ public class PropietarioController {
     private PropietarioService propietarioService;
 
     // --- 1. LISTAR (PAGINADO) ---
-    @Operation(summary = "Obtener lista paginada de propietarios", description = "Devuelve una lista paginada de todos los propietarios disponibles en el sistema.")
+
+    @Operation(summary = "Obtener lista paginada de propietarios", description = "Devuelve una lista paginada de todos los propietarios registrados en el sistema.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de Propietarios recuperada exitosamente",
                     content = @Content(mediaType = "application/json",
@@ -43,7 +51,6 @@ public class PropietarioController {
     @GetMapping
     public ResponseEntity<Page<PropietarioDTO>> getAllPropietarios(
             @PageableDefault(size = 10, sort = "nombre") Pageable pageable) {
-
         try {
             Page<PropietarioDTO> propietarios = propietarioService.getAllPropietarios(pageable);
             return ResponseEntity.ok(propietarios);
@@ -53,9 +60,10 @@ public class PropietarioController {
     }
 
     // --- 2. OBTENER UNO POR ID ---
-    @Operation(summary = "Obtener un Propietario por ID", description = "Recupera un propietario específico según su identificador único.")
+
+    @Operation(summary = "Obtener un Propietario por ID", description = "Recupera los datos de un propietario específico según su identificador único.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Propietario encontrado",
+            @ApiResponse(responseCode = "200", description = "Propietario encontrado exitosamente",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = PropietarioDTO.class))),
             @ApiResponse(responseCode = "404", description = "Propietario no encontrado"),
@@ -79,13 +87,15 @@ public class PropietarioController {
     }
 
     // --- 3. CREAR ---
-    @Operation(summary = "Crear un nuevo propietario")
+
+    @Operation(summary = "Crear un nuevo propietario", description = "Registra un nuevo propietario validando previamente que el email y el teléfono no estén en uso.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Propietario creado exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos (email o teléfono duplicados)")
+            @ApiResponse(responseCode = "201", description = "Propietario creado exitosamente",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PropietarioDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos (email o teléfono duplicados)"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    // Añadido @Valid para que Spring compruebe las restricciones del DTO antes de entrar al método
     public ResponseEntity<?> createPropietario(@Valid @RequestBody PropietarioDTO dto) {
         try {
             logger.info("REST: Creando nuevo propietario");
@@ -99,9 +109,16 @@ public class PropietarioController {
     }
 
     // --- 4. ACTUALIZAR ---
-    @Operation(summary = "Actualizar un propietario existente")
+
+    @Operation(summary = "Actualizar un propietario existente", description = "Modifica los datos de un propietario, asegurando que los nuevos datos de contacto no pertenezcan a otro usuario registrado.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Propietario actualizado exitosamente",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PropietarioDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos o generación de conflictos con otros usuarios"),
+            @ApiResponse(responseCode = "404", description = "El propietario a actualizar no existe"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PutMapping("/{id}")
-    // Añadido @Valid también aquí
     public ResponseEntity<?> updatePropietario(@PathVariable Long id, @Valid @RequestBody PropietarioDTO dto) {
         try {
             logger.info("REST: Actualizando propietario con ID: {}", id);
@@ -115,15 +132,20 @@ public class PropietarioController {
     }
 
     // --- 5. BORRAR ---
-    @Operation(summary = "Eliminar un propietario por su ID")
+
+    @Operation(summary = "Eliminar un propietario por su ID", description = "Elimina físicamente a un propietario de la base de datos a partir de su identificador.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Propietario eliminado exitosamente (No Content)"),
+            @ApiResponse(responseCode = "404", description = "El propietario a eliminar no fue encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePropietario(@PathVariable Long id) {
         try {
             logger.info("REST: Borrando propietario con ID: {}", id);
             propietarioService.deletePropietario(id);
-            return ResponseEntity.noContent().build(); // Devuelve 204 No Content (Es el estándar para borrados con éxito)
+            return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
-            // Si el service lanza IllegalArgumentException es porque no lo encontró
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al borrar el propietario");

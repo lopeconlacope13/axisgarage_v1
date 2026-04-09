@@ -27,6 +27,8 @@ import java.util.Optional;
  * procesar y coordinar el guardado de múltiples imágenes, y orquestar el mapeo entre Entidades y DTOs.
  * * @author Alvaro Lopez
  */
+
+//AÑADIR NUEVO METODO PARA LISTAR LAS OPINIONES DE LA CASA casaRuralListOpiniones (Repository)
 @Service
 public class CasaRuralService {
 

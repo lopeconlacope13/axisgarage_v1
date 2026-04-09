@@ -14,9 +14,11 @@ public class ReservaDTO {
     private LocalDate fechaEntrada;
     private LocalDate fechaSalida;
     private Double importeTotal;
+    private Long casaRuralId;
+    private Long huespedId;
 
-    //Para extraer la info de las otras entidades, usamos los DTO's no las entidades
-    private CasaRuralDTO casaRural;
-    private HuespedDTO huesped;
+    // --- DATOS PARA MOSTRAR AL CLIENTE (GET) ---
+    private String nombreCasaRural;
+    private String nombreHuesped;
 
 }
