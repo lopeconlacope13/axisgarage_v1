@@ -22,24 +22,25 @@ public class PropietarioService {
 
     private static final Logger logger = LoggerFactory.getLogger(PropietarioService.class);
 
-
     @Autowired
     private PropietarioRepository propietarioRepository;
 
     @Autowired
     private PropietarioMapper propietarioMapper;
 
-    // --- 1. LISTAR CON PAGINACIÓN (Basado en UD06-4) ---
+    // --- 1. LISTAR CON PAGINACIÓN ---
     public Page<PropietarioDTO> getAllPropietarios(Pageable pageable) {
-        logger.info("Solicitando todos los propietarios con paginación: página {}, tamaño {}",
-                pageable.getPageNumber(), pageable.getPageSize());
         try {
+            logger.info("Solicitando todos los propietarios con paginación: página {}, tamaño {}",
+                    pageable.getPageNumber(), pageable.getPageSize());
+
             Page<Propietario> propietarios = propietarioRepository.findAll(pageable);
             logger.info("Se han encontrado {} propietarios en la página actual.", propietarios.getNumberOfElements());
+
             return propietarios.map(propietarioMapper::toDTO);
         } catch (Exception e) {
             logger.error("Error al obtener la lista paginada de propietarios: {}", e.getMessage());
-            throw e;
+            throw new RuntimeException("Error interno al listar los propietarios", e);
         }
     }
 
@@ -50,17 +51,16 @@ public class PropietarioService {
             return propietarioRepository.findById(id).map(propietarioMapper::toDTO);
         } catch (Exception e) {
             logger.error("Error al buscar el propietario con ID {}: {}", id, e.getMessage());
-            throw new RuntimeException("Error al buscar la región.", e);
+            throw new RuntimeException("Error al buscar el propietario.", e);
         }
     }
 
     // --- 3. CREAR PROPIETARIO ---
     public PropietarioDTO createPropietario(@Valid PropietarioDTO propietarioDTO) {
-
         try {
-            logger.info("Creando nuevo propietario con id: {}", propietarioDTO.getId());
-            // Comprobamos que el email y el correo deben de ser únicos
-            //Preguntar profesor
+            logger.info("Creando nuevo propietario con email: {}", propietarioDTO.getEmail());
+
+            // Comprobamos que el email y el teléfono deben ser únicos
             if (propietarioRepository.findByEmail(propietarioDTO.getEmail()).isPresent()) {
                 throw new IllegalArgumentException("Error: El email '" + propietarioDTO.getEmail() + "' ya está registrado.");
             }
@@ -68,73 +68,80 @@ public class PropietarioService {
                 throw new IllegalArgumentException("Error: El teléfono '" + propietarioDTO.getTelefono() + "' ya está registrado.");
             }
 
-            // 2. Se convierte a Entity (El ID será nulo y la BBDD lo autogenerará)
             Propietario propietario = propietarioMapper.toEntity(propietarioDTO);
-
-            // 3. Guardamos en la base de datos
             Propietario savedPropietario = propietarioRepository.save(propietario);
 
             logger.info("Propietario creado exitosamente con ID {}", savedPropietario.getId());
-            // 4. Se devuelve el DTO ya con su ID generado
+            return propietarioMapper.toDTO(savedPropietario);
 
-            /**Preguntar*/
-            return ResponseEntity.status(HttpStatus.CREATED).body(propietarioMapper.toDTO(savedPropietario));
-        }catch (Exception e){
-            logger.error("Error al crear el propietario: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear el propietario.");
+        } catch (IllegalArgumentException e) {
+            // Si es un error de los que hemos lanzado nosotros (email duplicado, etc)
+            logger.warn("Validación fallida al crear: {}", e.getMessage());
+            throw e; // Lo relanzamos para que el Controlador devuelva un HTTP 400
+        } catch (Exception e) {
+            // Si es un error grave de base de datos
+            logger.error("Error inesperado al crear el propietario: {}", e.getMessage());
+            throw new RuntimeException("Error interno al crear el propietario.");
         }
-
     }
 
     // --- 4. ACTUALIZAR PROPIETARIO ---
     public PropietarioDTO updatePropietario(Long id, @Valid PropietarioDTO propietarioDTO) {
-
         try {
             logger.info("Actualizando propietario con ID {}", id);
-            Optional<Propietario> existingPropietario = propietarioRepository.findById(id);
-            if (!existingPropietario.isPresent()) {
-                logger.warn("No existe el propietario con ID {}", id);
-                /**PREGUNTAR*/
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El propietario no existe");
+
+            // 1. Comprobamos que el propietario existe
+            Propietario existente = propietarioRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Error: El propietario con ID " + id + " no existe."));
+
+            // 2. LÓGICA DE NEGOCIO (Excluyendo al propio usuario)
+            Optional<Propietario> porEmail = propietarioRepository.findByEmail(propietarioDTO.getEmail());
+            if (porEmail.isPresent() && !porEmail.get().getId().equals(id)) {
+                throw new IllegalArgumentException("Error: El email ya pertenece a otro propietario.");
             }
 
+            Optional<Propietario> porTelefono = propietarioRepository.findByTelefono(propietarioDTO.getTelefono());
+            if (porTelefono.isPresent() && !porTelefono.get().getId().equals(id)) {
+                throw new IllegalArgumentException("Error: El teléfono ya pertenece a otro propietario.");
+            }
 
+            // 3. Actualizamos los datos
+            existente.setNombre(propietarioDTO.getNombre());
+            existente.setApellidos(propietarioDTO.getApellidos());
+            existente.setEmail(propietarioDTO.getEmail());
+            existente.setTelefono(propietarioDTO.getTelefono());
+
+            // 4. Guardamos y devolvemos mapeado
+            Propietario updatedPropietario = propietarioRepository.save(existente);
+            logger.info("Propietario actualizado con éxito (ID {})", id);
+            return propietarioMapper.toDTO(updatedPropietario);
+
+        } catch (IllegalArgumentException e) {
+            logger.warn("Validación fallida al actualizar: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error inesperado al actualizar el propietario: {}", e.getMessage());
+            throw new RuntimeException("Error interno al actualizar.");
         }
-        // 1. Comprobamos que el propietario existe
-        Propietario existente = propietarioRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Error: El propietario con ID " + id + " no existe."));
-
-        // 2. LÓGICA DE NEGOCIO (Excluyendo al propio usuario)
-        // ¿Hay alguien en la base de datos con este email QUE NO SEA el propio usuario que estamos editando?
-        Optional<Propietario> porEmail = propietarioRepository.findByEmail(propietarioDTO.getEmail());
-        if (porEmail.isPresent() && !porEmail.get().getId().equals(id)) {
-            throw new IllegalArgumentException("Error: El email ya pertenece a otro propietario.");
-        }
-
-        // ¿Hay alguien en la base de datos con este teléfono QUE NO SEA este mismo usuario?
-        Optional<Propietario> porTelefono = propietarioRepository.findByTelefono(propietarioDTO.getTelefono());
-        if (porTelefono.isPresent() && !porTelefono.get().getId().equals(id)) {
-            throw new IllegalArgumentException("Error: El teléfono ya pertenece a otro propietario.");
-        }
-
-        // 3. Actualizamos los datos (NUNCA el ID)
-        existente.setNombre(propietarioDTO.getNombre());
-        existente.setApellidos(propietarioDTO.getApellidos());
-        existente.setEmail(propietarioDTO.getEmail());
-        existente.setTelefono(propietarioDTO.getTelefono());
-
-        // 4. Guardamos y devolvemos mapeado
-        Propietario updatedPropietario = propietarioRepository.save(existente);
-        return propietarioMapper.toDTO(updatedPropietario);
     }
 
     // --- 5. BORRAR ---
     public void deletePropietario(Long id) {
-        if (!propietarioRepository.existsById(id)) {
-            throw new IllegalArgumentException("Propietario no encontrado con ID: " + id);
-        }
-        propietarioRepository.deleteById(id);
-    }
+        try {
+            logger.info("Borrando propietario con ID {}", id);
+            if (!propietarioRepository.existsById(id)) {
+                throw new IllegalArgumentException("Propietario no encontrado con ID: " + id);
+            }
+            propietarioRepository.deleteById(id);
+            logger.info("Propietario borrado correctamente.");
 
+        } catch (IllegalArgumentException e) {
+            logger.warn("No se pudo borrar el propietario: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error al borrar el propietario: {}", e.getMessage());
+            throw new RuntimeException("Error interno al borrar el propietario.");
+        }
+    }
 
 }

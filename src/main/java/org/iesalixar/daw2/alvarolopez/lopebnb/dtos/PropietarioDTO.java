@@ -21,12 +21,5 @@ public class PropietarioDTO {
     private String email;
     private String telefono;
 
-    /**
-     * Lista de casas rurales del propietario.
-     * @JsonIgnoreProperties("propietarioDTO") evita el bucle infinito al serializar a JSON,
-     * ya que impide que la CasaRural vuelva a intentar pintar a su propietario.
-     */
-    @JsonIgnoreProperties("propietarioDTO")
-    private List<CasaRuralDTO> casasRuralesDTO = new ArrayList<>();
 
 }

@@ -41,9 +41,6 @@ public class CasaRuralService {
     private CasaRuralMapper casaRuralMapper;
 
     @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
     private FileStorageService fileStorageService;
 
     // --- 1. LISTAR CON PAGINACIÓN ---
@@ -104,11 +101,13 @@ public class CasaRuralService {
         /** LOGICA PENDIENTE AL CREAR*/
 
 
-        // 1. Validar nombre duplicado para este dueño
+        /*// 1. Validar nombre duplicado para este dueño
         if (casaRuralRepository.existsByNombreAndPropietarioId(casaRuralDTO.getNombre(), casaRuralDTO.getPropietarioDTO().getId())) {
-            String errorMessage = messageSource.getMessage("msg.casarural.insert.nameExistForOwner", null, locale);
+            String errorMessage = getMessage("msg.casarural.insert.nameExistForOwner", null, locale);
             throw new IllegalArgumentException(errorMessage);
-        }
+        }*/
+
+
 
         // 2. Buscamos al propietario para enlazar la relación
         Propietario propietario = propietarioRepository.findById(casaRuralDTO.getPropietarioDTO().getId())
@@ -157,8 +156,8 @@ public class CasaRuralService {
                 casaRuralDTO.getNombre(),
                 casaRuralDTO.getPropietarioDTO().getId(),
                 id)) {
-            String errorMessage = messageSource.getMessage("msg.casarural.insert.nameExistForOwner", null, locale);
-            throw new IllegalArgumentException(errorMessage);
+            //String errorMessage = messageSource.getMessage("msg.casarural.insert.nameExistForOwner", null, locale);
+            throw new IllegalArgumentException();
         }
 
         // 3. Buscar al propietario

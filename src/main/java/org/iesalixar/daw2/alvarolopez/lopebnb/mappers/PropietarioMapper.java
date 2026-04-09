@@ -18,29 +18,12 @@ public class PropietarioMapper {
      */
     public PropietarioDTO toDTO(Propietario propietario) {
         if (propietario == null) return null;
-
         PropietarioDTO dto = new PropietarioDTO();
         dto.setId(propietario.getId());
         dto.setNombre(propietario.getNombre());
         dto.setApellidos(propietario.getApellidos());
         dto.setEmail(propietario.getEmail());
         dto.setTelefono(propietario.getTelefono());
-
-        // Implementación con Java 21: .toList() sustituye a .collect(Collectors.toList())
-        if (propietario.getCasas() != null && !propietario.getCasas().isEmpty()) {
-            dto.setCasasRuralesDTO(propietario.getCasas().stream().map(casa -> {
-                CasaRuralDTO casaDTO = new CasaRuralDTO();
-                casaDTO.setId(casa.getId());
-                casaDTO.setNombre(casa.getNombre());
-                casaDTO.setDireccion(casa.getDireccion());
-                casaDTO.setPrecioNoche(casa.getPrecioNoche());
-                casaDTO.setCapacidadPersonas(casa.getCapacidadPersonas());
-                casaDTO.setImagen(casa.getImagen());
-                // Rompemos la referencia circular dejando el propietario en null aquí
-                return casaDTO;
-            }).toList());
-        }
-
         return dto;
     }
 

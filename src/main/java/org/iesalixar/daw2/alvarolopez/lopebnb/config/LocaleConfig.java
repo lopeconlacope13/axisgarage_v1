@@ -51,7 +51,7 @@ public class LocaleConfig {
      *
      * @param registry el registro de interceptores de Spring.
      */
-    @Override
+
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(localeChangeInterceptor());
         logger.info("LocaleChangeInterceptor registrado en el InterceptorRegistry");

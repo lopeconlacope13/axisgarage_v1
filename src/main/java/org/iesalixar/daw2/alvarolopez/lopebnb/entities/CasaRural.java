@@ -45,6 +45,8 @@ public class CasaRural {
     @Column(name = "capacidad_personas")
     private Long capacidadPersonas;
 
+    // Si te da error, lo cambias a EAGER. Si funciona, lo dejas en LAZY.
+
     // Relación con el Propietario (Dueño). Carga perezosa (Lazy).
     @NotNull(message = "La casa debe tener un propietario asignado")
     @ManyToOne(fetch = FetchType.LAZY)

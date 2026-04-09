@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.CasaRuralDTO;
+import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.PropietarioDTO;
 import org.iesalixar.daw2.alvarolopez.lopebnb.services.PropietarioService;
 import org.slf4j.Logger;
@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
-import java.util.OptionalInt;
 
 @RestController
 @RequestMapping("/api/propietarios")
@@ -34,25 +33,21 @@ public class PropietarioController {
     private PropietarioService propietarioService;
 
     // --- 1. LISTAR (PAGINADO) ---
-    @Operation(summary = "Obtener lista paginada de propietarios", description = "Devuelve una lista paginada de todos los propietarios de Casas Rurales disponibles en el sistema.")
+    @Operation(summary = "Obtener lista paginada de propietarios", description = "Devuelve una lista paginada de todos los propietarios disponibles en el sistema.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de Propietarios recuperada exitosamente",
                     content = @Content(mediaType = "application/json",
-                            array = @ArraySchema(schema = @Schema(implementation = CasaRuralDTO.class)))),
+                            array = @ArraySchema(schema = @Schema(implementation = PropietarioDTO.class)))),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping
     public ResponseEntity<Page<PropietarioDTO>> getAllPropietarios(
             @PageableDefault(size = 10, sort = "nombre") Pageable pageable) {
-        logger.info("Solicitando todos los propietarios con paginación: página {}, tamaño {}",
-                pageable.getPageNumber(), pageable.getPageSize());
 
         try {
             Page<PropietarioDTO> propietarios = propietarioService.getAllPropietarios(pageable);
-            logger.info("Se han encontrado {} propietarios en la página actual.", propietarios.getNumberOfElements());
             return ResponseEntity.ok(propietarios);
         } catch (Exception e) {
-            logger.error("Error al obtener la lista paginada de propietarios: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
@@ -60,9 +55,9 @@ public class PropietarioController {
     // --- 2. OBTENER UNO POR ID ---
     @Operation(summary = "Obtener un Propietario por ID", description = "Recupera un propietario específico según su identificador único.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Casa Rural encontrada",
+            @ApiResponse(responseCode = "200", description = "Propietario encontrado",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = CasaRuralDTO.class))),
+                            schema = @Schema(implementation = PropietarioDTO.class))),
             @ApiResponse(responseCode = "404", description = "Propietario no encontrado"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
@@ -71,46 +66,51 @@ public class PropietarioController {
         try {
             Optional<PropietarioDTO> propietarioDTO = propietarioService.getPropietarioById(id);
             if (propietarioDTO.isPresent()) {
-                logger.info("Se han encontrado Propietario por ID {}", id);
+                logger.info("Se ha encontrado Propietario por ID {}", id);
                 return ResponseEntity.ok(propietarioDTO.get());
-            }else  {
-                logger.info("No se encontro Propietario por ID {}", id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El propietario no existe. ");
+            } else {
+                logger.info("No se encontró Propietario por ID {}", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El propietario no existe.");
             }
         } catch (Exception e) {
             logger.error("Error al obtener Propietario por ID {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al buscar el propietario con ID" + id);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al buscar el propietario con ID " + id);
         }
     }
 
     // --- 3. CREAR ---
     @Operation(summary = "Crear un nuevo propietario")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Creado exitosamente"),
+            @ApiResponse(responseCode = "201", description = "Propietario creado exitosamente"),
             @ApiResponse(responseCode = "400", description = "Datos inválidos (email o teléfono duplicados)")
     })
     @PostMapping
-    // @RequestBody indica que los datos vienen en el body del JSON, ya no en el Model de Thymeleaf
-    public ResponseEntity<?> createPropietario(@RequestBody PropietarioDTO dto) {
+    // Añadido @Valid para que Spring compruebe las restricciones del DTO antes de entrar al método
+    public ResponseEntity<?> createPropietario(@Valid @RequestBody PropietarioDTO dto) {
         try {
             logger.info("REST: Creando nuevo propietario");
             PropietarioDTO creado = propietarioService.createPropietario(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(creado);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al crear el propietario");
         }
     }
 
     // --- 4. ACTUALIZAR ---
     @Operation(summary = "Actualizar un propietario existente")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updatePropietario(@PathVariable Long id, @RequestBody PropietarioDTO dto) {
+    // Añadido @Valid también aquí
+    public ResponseEntity<?> updatePropietario(@PathVariable Long id, @Valid @RequestBody PropietarioDTO dto) {
         try {
             logger.info("REST: Actualizando propietario con ID: {}", id);
             PropietarioDTO actualizado = propietarioService.updatePropietario(id, dto);
             return ResponseEntity.ok(actualizado);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al actualizar el propietario");
         }
     }
 
@@ -121,9 +121,12 @@ public class PropietarioController {
         try {
             logger.info("REST: Borrando propietario con ID: {}", id);
             propietarioService.deletePropietario(id);
-            return ResponseEntity.noContent().build(); // Devuelve 204 No Content
+            return ResponseEntity.noContent().build(); // Devuelve 204 No Content (Es el estándar para borrados con éxito)
         } catch (IllegalArgumentException e) {
+            // Si el service lanza IllegalArgumentException es porque no lo encontró
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al borrar el propietario");
         }
     }
 }
