@@ -10,7 +10,6 @@ import org.iesalixar.daw2.alvarolopez.lopebnb.repositories.PropietarioRepository
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,13 +20,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
-//PENDIENTE REVISAR MESSAGE SOURCE PARA LOS ERRORES DE VALIDACIÓN DE NEGOCIO EN EL CREATE Y UPDATE (NOMBRE DUPLICADO PARA EL MISMO PROPIETARIO)
-
-
 /**
- * Servicio que gestiona toda la lógica de negocio relacionada con la entidad CasaRural.
- * Actúa como intermediario entre el Controlador (CasaRuralController) y el acceso a datos (CasaRuralRepository).
- * Se encarga de validar reglas de negocio, procesar imágenes y coordinar los mapeos a DTOs.
+ * Servicio que gestiona toda la lógica de negocio (Business Logic) relacionada con la entidad {@link CasaRural}.
+ * * Actúa como intermediario (Capa de Servicio) entre el Controlador (que recibe peticiones HTTP)
+ * y los Repositorios (que acceden a la Base de Datos). Se encarga de validar reglas estrictas de negocio,
+ * procesar y coordinar el guardado de múltiples imágenes, y orquestar el mapeo entre Entidades y DTOs.
+ * * @author Alvaro Lopez
  */
 @Service
 public class CasaRuralService {
@@ -50,9 +48,10 @@ public class CasaRuralService {
 
     /**
      * Recupera una lista paginada de todas las casas rurales registradas en el sistema.
+     * Utiliza el {@link CasaRuralMapper} para transformar limpiamente la página de Entidades a una página de DTOs.
      *
-     * @param pageable Objeto que contiene la información de paginación (número de página, tamaño, orden).
-     * @return Page<CasaRuralDTO> Página que contiene los DTOs de las casas rurales.
+     * @param pageable Objeto inyectado por Spring que contiene la información de paginación (página, tamaño, orden).
+     * @return {@link Page} de {@link CasaRuralDTO} lista para ser enviada al cliente.
      */
     public Page<CasaRuralDTO> getAllCasasRurales(Pageable pageable) {
         logger.info("Solicitando todas las Casas Rurales con paginación: página {}, tamaño {}",
@@ -60,7 +59,8 @@ public class CasaRuralService {
         try {
             Page<CasaRural> casasRurales = casaRuralRepository.findAll(pageable);
             logger.info("Se han encontrado {} Casas Rurales en la página actual.", casasRurales.getNumberOfElements());
-            // Transformamos cada Entity de la página a DTO usando el Mapper
+
+            // Transformamos cada Entity de la página a DTO usando una referencia a método (method reference)
             return casasRurales.map(casaRuralMapper::toDTO);
         } catch (Exception e) {
             logger.error("Error al obtener la lista paginada de Casas Rurales: {}", e.getMessage());
@@ -68,20 +68,21 @@ public class CasaRuralService {
         }
     }
 
-// --- 2. OBTENER POR ID ---
+    // --- 2. OBTENER POR ID ---
 
     /**
-     * Busca una casa rural específica por su identificador.
+     * Busca una casa rural específica por su identificador en la base de datos.
+     * Se marca como {@link Transactional} para asegurar que las colecciones perezosas (Lazy Loading)
+     * se inicialicen correctamente dentro de una transacción activa antes de mapear a DTO.
      *
      * @param id Identificador único de la casa rural.
-     * @return Optional<CasaRuralDTO> Un Optional que contiene el DTO si se encuentra, o vacío si no existe.
+     * @return Un {@link Optional} que contiene el {@link CasaRuralDTO} si se encuentra, o vacío si no existe.
      */
     @Transactional
     public Optional<CasaRuralDTO> getCasaRuralById(Long id) {
         try {
             logger.info("Buscando Casa Rural con ID {}", id);
             return casaRuralRepository.findById(id).map(casaRuralMapper::toDTO);
-
         } catch (Exception e) {
             logger.error("Error al buscar la Casa Rural con ID {}: {}", id, e.getMessage());
             throw new RuntimeException("Error al buscar la Casa Rural.", e);
@@ -91,55 +92,49 @@ public class CasaRuralService {
     // --- 3. CREAR CASA RURAL ---
 
     /**
-     * Registra una nueva casa rural en la base de datos tras validar las reglas de negocio,
-     * y gestiona el almacenamiento físico de su imagen asociada.
+     * Registra una nueva casa rural aplicando reglas de negocio estrictas y delegando el guardado
+     * de archivos físicos al {@link FileStorageService}.
+     * * REGLA DE NEGOCIO 1: Un propietario no puede registrar dos casas con el mismo nombre exacto.
+     * REGLA DE NEGOCIO 2: Se debe asociar una entidad {@link Propietario} válida existente en BD.
      *
-     * @param casaRuralDTO Objeto con los datos de la casa rural a crear (incluye el archivo de imagen).
-     * @param locale Idioma de la petición para obtener los mensajes de error internacionalizados.
-     * @return CasaRuralDTO El DTO de la casa rural recién guardada, incluyendo su ID autogenerado.
-     * @throws IllegalArgumentException Si el propietario no existe o si ya tiene otra casa con ese mismo nombre.
+     * @param casaRuralDTO Objeto con los datos de la casa rural a crear (incluye la lista de MultipartFile).
+     * @param locale Idioma de la petición para posibles mensajes de error internacionalizados.
+     * @return El {@link CasaRuralDTO} resultante con su ID autogenerado y su galería de imágenes actualizada.
+     * @throws IllegalArgumentException Si el propietario no existe o si se viola la regla de nombres duplicados.
      */
     public CasaRuralDTO createCasaRural(CasaRuralDTO casaRuralDTO, Locale locale) {
 
-        /** LOGICA PENDIENTE AL CREAR*/
-
         // 1. Validar nombre duplicado para este dueño
         if (casaRuralRepository.existsByNombreAndPropietarioId(casaRuralDTO.getNombre(), casaRuralDTO.getPropietarioDTO().getId())) {
-            // Lanzamos una excepción si Manolo ya tiene una casa con ese nombre
             throw new IllegalArgumentException("El propietario ya tiene una casa rural registrada con este nombre.");
         }
 
-        // 2. Buscamos al propietario para enlazar la relación
+        // 2. Buscamos al propietario para enlazar la relación (Atachar a la sesión de Hibernate)
         Propietario propietario = propietarioRepository.findById(casaRuralDTO.getPropietarioDTO().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Propietario no encontrado"));
 
         // 3. Convertimos a entity pasándole el propietario atachado
         CasaRural casaRural = casaRuralMapper.toEntity(casaRuralDTO, propietario);
 
-        // 4. Guardar IMÁGENES (múltiples) físicamente en el servidor
-        List<String> nombresImagenesGuardadas = new ArrayList<>(); // Lista temporal para los nombres
+        // 4. Guardar IMÁGENES múltiples iterando sobre la lista de MultipartFile
+        List<String> nombresImagenesGuardadas = new ArrayList<>();
 
-        // Verificamos si la lista de archivos que llega del DTO no es nula ni está vacía
         if (casaRuralDTO.getImageFiles() != null && !casaRuralDTO.getImageFiles().isEmpty()) {
-
-            // Recorremos cada archivo que nos ha enviado Postman/Frontend
             for (MultipartFile file : casaRuralDTO.getImageFiles()) {
                 if (file != null && !file.isEmpty()) {
-                    // Reutilizamos tu servicio estrella para guardar cada archivo
-                    String fileName = fileStorageService.saveFile(file);
+                    String fileName = fileStorageService.saveFile(file); // Delegamos la escritura física
                     if (fileName != null) {
-                        nombresImagenesGuardadas.add(fileName); // Añadimos el nombre generado a la lista
+                        nombresImagenesGuardadas.add(fileName);
                     }
                 }
             }
-            // Le pasamos la lista completa de nombres a la entidad
+            // Asignamos la lista final de UUIDs a la entidad (@ElementCollection lo mapeará a su tabla)
             casaRural.setImagenes(nombresImagenesGuardadas);
-
         } else {
             logger.warn("No se recibió ninguna imagen para la casa rural en la creación.");
         }
 
-        // 5. Guardar en base de datos y devolver como DTO
+        // 5. Guardar en BD (insert) y retornar DTO
         CasaRural savedCasaRural = casaRuralRepository.save(casaRural);
         return casaRuralMapper.toDTO(savedCasaRural);
     }
@@ -148,27 +143,27 @@ public class CasaRuralService {
 
     /**
      * Actualiza los datos de una casa rural existente.
-     * Aplica la exclusión del ID propio en la validación de nombres para permitir actualizaciones parciales
-     * sin levantar falsos positivos de duplicidad.
+     * Incluye una validación avanzada para evitar falsos positivos de duplicidad ("La trampa del Update")
+     * y gestiona la adición de nuevas imágenes a la galería actual sin borrar las anteriores.
      *
      * @param id Identificador de la casa rural que se desea actualizar.
-     * @param casaRuralDTO Objeto con los nuevos datos y la posible nueva imagen.
+     * @param casaRuralDTO DTO con los nuevos datos y la posible nueva remesa de archivos de imagen.
      * @param locale Idioma de la petición para los mensajes de error.
-     * @return CasaRuralDTO El DTO actualizado.
-     * @throws IllegalArgumentException Si la casa no existe, si el propietario no existe, o si el nombre ya lo usa OTRA casa del mismo dueño.
+     * @return El {@link CasaRuralDTO} con los datos y la galería actualizados.
+     * @throws IllegalArgumentException Si se viola la exclusión de ID en nombres duplicados o entidades no existen.
      */
     public CasaRuralDTO updateCasaRural(Long id, CasaRuralDTO casaRuralDTO, Locale locale) {
 
-        // 1. Verificar que la casa existe usando el ID de la URL
+        // 1. Verificar que la casa existe
         CasaRural existente = casaRuralRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Error: Casa rural no encontrada con ID: " + id));
 
         // 2. Regla de Negocio: Exclusión de duplicados (La trampa del update)
+        // Busca si este dueño tiene OTRA casa (IdNot) que se llame igual que el nuevo nombre propuesto.
         if (casaRuralRepository.existsByNombreAndPropietarioIdAndIdNot(
                 casaRuralDTO.getNombre(),
                 casaRuralDTO.getPropietarioDTO().getId(),
                 id)) {
-            // Lanza tu excepción personalizada aquí
             throw new IllegalArgumentException("El propietario ya tiene OTRA casa rural con este nombre.");
         }
 
@@ -176,19 +171,18 @@ public class CasaRuralService {
         Propietario propietario = propietarioRepository.findById(casaRuralDTO.getPropietarioDTO().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Propietario no encontrado"));
 
-        // 4. Actualizar los datos sobre la entidad EXISTENTE
+        // 4. Mutar el estado de la entidad EXISTENTE (En lugar de crear un new CasaRural())
         existente.setNombre(casaRuralDTO.getNombre());
         existente.setDireccion(casaRuralDTO.getDireccion());
         existente.setPrecioNoche(casaRuralDTO.getPrecioNoche());
         existente.setCapacidadPersonas(casaRuralDTO.getCapacidadPersonas());
         existente.setPropietario(propietario);
 
-        // 5. Guardar imágenes NUEVAS en la galería
+        // 5. Guardar imágenes NUEVAS y añadirlas a la galería
         List<MultipartFile> archivosNuevos = casaRuralDTO.getImageFiles();
 
         if (archivosNuevos != null && !archivosNuevos.isEmpty()) {
             List<String> nombresNuevos = new ArrayList<>();
-
             for (MultipartFile archivo : archivosNuevos) {
                 if (archivo != null && !archivo.isEmpty()) {
                     String fileName = fileStorageService.saveFile(archivo);
@@ -197,16 +191,13 @@ public class CasaRuralService {
                     }
                 }
             }
-
-            // AÑADIMOS las fotos nuevas a la lista que ya tenía la casa
-            // (Si prefirieras borrarlas y sustituirlas, sería: existente.setImagenes(nombresNuevos);)
+            // Agregamos las nuevas fotos a la colección de Hibernate existente
             existente.getImagenes().addAll(nombresNuevos);
-
         } else {
             logger.info("No se recibieron nuevas imágenes, se mantiene la galería actual.");
         }
 
-        // 6. Guardar los cambios en BBDD y devolver
+        // 6. Guardar los cambios (update)
         CasaRural savedCasaRural = casaRuralRepository.save(existente);
         return casaRuralMapper.toDTO(savedCasaRural);
     }
@@ -214,16 +205,17 @@ public class CasaRuralService {
     // --- 5. ELIMINAR CASA RURAL ---
 
     /**
-     * Elimina una casa rural de la base de datos tras verificar su existencia.
+     * Elimina una casa rural de la base de datos de manera física.
+     * Gracias a la configuración ON DELETE CASCADE en la BD, la eliminación de la casa
+     * también limpiará sus registros asociados en la tabla de imágenes (casa_rural_imagenes).
      *
      * @param id Identificador de la casa rural a borrar.
-     * @throws IllegalArgumentException Si no existe ninguna casa rural con el ID proporcionado.
+     * @throws IllegalArgumentException Si no se encuentra el ID en la base de datos antes de borrar.
      */
     public void deleteCasaRural(Long id) {
         if (!casaRuralRepository.existsById(id)) {
             throw new IllegalArgumentException("La casa rural no existe.");
         }
-
         casaRuralRepository.deleteById(id);
     }
 }

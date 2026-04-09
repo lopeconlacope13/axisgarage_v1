@@ -2,7 +2,6 @@ package org.iesalixar.daw2.alvarolopez.lopebnb.services;
 
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.PropietarioDTO;
-import org.iesalixar.daw2.alvarolopez.lopebnb.entities.CasaRural;
 import org.iesalixar.daw2.alvarolopez.lopebnb.entities.Propietario;
 import org.iesalixar.daw2.alvarolopez.lopebnb.mappers.PropietarioMapper;
 import org.iesalixar.daw2.alvarolopez.lopebnb.repositories.PropietarioRepository;
@@ -11,12 +10,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Servicio encargado de gestionar la lógica de negocio relativa a la entidad {@link Propietario}.
+ * * Actúa como la capa intermedia entre el Controlador y el Repositorio de datos. Su responsabilidad
+ * principal es garantizar la integridad de los datos de los propietarios, aplicando reglas de negocio
+ * estrictas (como la unicidad de correos electrónicos y teléfonos) antes de persistir la información.
+ * * @author Alvaro Lopez
+ */
 @Service
 public class PropietarioService {
 
@@ -29,6 +33,16 @@ public class PropietarioService {
     private PropietarioMapper propietarioMapper;
 
     // --- 1. LISTAR CON PAGINACIÓN ---
+
+    /**
+     * Recupera una lista paginada de todos los propietarios registrados.
+     * Utiliza {@link PropietarioMapper} para convertir de manera eficiente las entidades
+     * recuperadas por el repositorio en DTOs seguros para la capa de presentación.
+     *
+     * @param pageable Objeto inyectado con los parámetros de paginación (tamaño, orden, página).
+     * @return {@link Page} de {@link PropietarioDTO} con los datos de los propietarios.
+     * @throws RuntimeException Si ocurre un error inesperado al consultar la base de datos.
+     */
     public Page<PropietarioDTO> getAllPropietarios(Pageable pageable) {
         try {
             logger.info("Solicitando todos los propietarios con paginación: página {}, tamaño {}",
@@ -45,6 +59,14 @@ public class PropietarioService {
     }
 
     // --- 2. OBTENER UNO POR ID ---
+
+    /**
+     * Busca un propietario específico por su identificador único.
+     *
+     * @param id Identificador del propietario a buscar.
+     * @return Un {@link Optional} que contiene el {@link PropietarioDTO} si se encuentra, o vacío si no existe.
+     * @throws RuntimeException Si falla la conexión o consulta a la base de datos.
+     */
     public Optional<PropietarioDTO> getPropietarioById(Long id) {
         try {
             logger.info("Buscando propietario con ID {}", id);
@@ -56,6 +78,15 @@ public class PropietarioService {
     }
 
     // --- 3. CREAR PROPIETARIO ---
+
+    /**
+     * Registra un nuevo propietario en el sistema tras validar sus datos de contacto.
+     * * REGLA DE NEGOCIO: No pueden existir dos propietarios con el mismo email ni el mismo teléfono.
+     *
+     * @param propietarioDTO Objeto con los datos del propietario a crear. Validado previamente por Spring.
+     * @return El {@link PropietarioDTO} del propietario recién persistido (con su ID generado).
+     * @throws IllegalArgumentException Si el email o el teléfono ya existen en la base de datos.
+     */
     public PropietarioDTO createPropietario(@Valid PropietarioDTO propietarioDTO) {
         try {
             logger.info("Creando nuevo propietario con email: {}", propietarioDTO.getEmail());
@@ -75,17 +106,28 @@ public class PropietarioService {
             return propietarioMapper.toDTO(savedPropietario);
 
         } catch (IllegalArgumentException e) {
-            // Si es un error de los que hemos lanzado nosotros (email duplicado, etc)
+            // Si es un error de validación propio, se relanza tal cual para que el Controlador devuelva un 400 Bad Request
             logger.warn("Validación fallida al crear: {}", e.getMessage());
-            throw e; // Lo relanzamos para que el Controlador devuelva un HTTP 400
+            throw e;
         } catch (Exception e) {
-            // Si es un error grave de base de datos
             logger.error("Error inesperado al crear el propietario: {}", e.getMessage());
             throw new RuntimeException("Error interno al crear el propietario.");
         }
     }
 
     // --- 4. ACTUALIZAR PROPIETARIO ---
+
+    /**
+     * Actualiza la información de un propietario existente, garantizando la unicidad de sus
+     * nuevos datos de contacto frente al resto de usuarios.
+     * * Aplica la lógica de exclusión de ID ("trampa del update") para permitir que el propietario
+     * mantenga su propio email/teléfono al actualizar otros campos como el nombre.
+     *
+     * @param id Identificador del propietario a modificar.
+     * @param propietarioDTO DTO con los nuevos datos a aplicar.
+     * @return El {@link PropietarioDTO} actualizado.
+     * @throws IllegalArgumentException Si no existe el propietario, o si el nuevo email/teléfono ya pertenece a OTRO usuario.
+     */
     public PropietarioDTO updatePropietario(Long id, @Valid PropietarioDTO propietarioDTO) {
         try {
             logger.info("Actualizando propietario con ID {}", id);
@@ -126,6 +168,15 @@ public class PropietarioService {
     }
 
     // --- 5. BORRAR ---
+
+    /**
+     * Elimina a un propietario del sistema tras comprobar que existe.
+     * Si este propietario tiene casas rurales asociadas, la base de datos (según su configuración
+     * de restricciones) impedirá el borrado o borrará en cascada.
+     *
+     * @param id Identificador del propietario a eliminar.
+     * @throws IllegalArgumentException Si el identificador no corresponde a ningún propietario registrado.
+     */
     public void deletePropietario(Long id) {
         try {
             logger.info("Borrando propietario con ID {}", id);
@@ -143,5 +194,4 @@ public class PropietarioService {
             throw new RuntimeException("Error interno al borrar el propietario.");
         }
     }
-
 }
