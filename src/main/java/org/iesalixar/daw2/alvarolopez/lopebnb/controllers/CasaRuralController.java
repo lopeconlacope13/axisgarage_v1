@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.CasaRuralDTO;
 import org.iesalixar.daw2.alvarolopez.lopebnb.services.CasaRuralService;
@@ -30,6 +31,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/casas")
+@Tag(name = "Casa Rural", description = "Operaciones CRUD para la gestión de casas rurales")
 public class CasaRuralController {
 
     private static final Logger logger = LoggerFactory.getLogger(CasaRuralController.class);

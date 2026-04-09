@@ -78,11 +78,7 @@ public class CasaRuralService {
     public Optional<CasaRuralDTO> getCasaRuralById(Long id) {
         try {
             logger.info("Buscando Casa Rural con ID {}", id);
-            // Buscamos en la base de datos
-            Optional<CasaRural> casaRuralOptional = casaRuralRepository.findById(id);
-
-            // Devolvemos el Optional mapeado. Si está vacío, simplemente llegará vacío al Controlador
-            return casaRuralOptional.map(casaRuralMapper::toDTO);
+            return casaRuralRepository.findById(id).map(casaRuralMapper::toDTO);
 
         } catch (Exception e) {
             logger.error("Error al buscar la Casa Rural con ID {}: {}", id, e.getMessage());
