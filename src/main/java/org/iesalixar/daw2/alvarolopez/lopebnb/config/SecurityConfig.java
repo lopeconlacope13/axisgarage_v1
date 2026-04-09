@@ -74,6 +74,11 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.DELETE, "/api/opiniones/**").hasRole("ADMIN")
                                 .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
 
+                        //IMAGENES PUBLICAS
+                                .requestMatchers("/uploads/**").permitAll() // O la ruta donde guardes las fotos
+
+
+
                         // --- CUALQUIER OTRA RUTA ---
                         // Por defecto, si se nos olvida alguna ruta, exigimos que al menos esté logueado
                         .anyRequest().authenticated()

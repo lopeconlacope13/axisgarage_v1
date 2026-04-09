@@ -63,15 +63,19 @@ public class CasaRural {
     @ToString.Exclude
     private List<Opinion> opiniones = new ArrayList<>();
 
-    @Column(name = "imagen")
-    private String imagen;
+    @ElementCollection
+    @CollectionTable(name = "casa_rural_imagenes", joinColumns = @JoinColumn(name = "casa_rural_id"))
+    @Column(name = "imagen_url")
+    private List<String> imagenes = new ArrayList<>();
 
-     //Constructor sin ID para facilitar la creación.
-    public CasaRural(String nombre, String direccion, Double precioNoche, Long capacidadPersonas, Propietario propietario) {
+    public CasaRural(String nombre, String direccion, Double precioNoche, Long capacidadPersonas, Propietario propietario, List<Reserva> reservas, List<Opinion> opiniones, List<String> imagenes) {
         this.nombre = nombre;
         this.direccion = direccion;
         this.precioNoche = precioNoche;
         this.capacidadPersonas = capacidadPersonas;
         this.propietario = propietario;
+        this.reservas = reservas;
+        this.opiniones = opiniones;
+        this.imagenes = imagenes;
     }
 }

@@ -23,7 +23,7 @@ public class CasaRuralMapper {
         dto.setDireccion(casaRural.getDireccion()); // Añadido
         dto.setPrecioNoche(casaRural.getPrecioNoche());
         dto.setCapacidadPersonas(casaRural.getCapacidadPersonas());
-        dto.setImagen(casaRural.getImagen()); // Añadido para que el Front sepa la foto
+        dto.setImagenes(casaRural.getImagenes()); // Añadido para que el Front sepa la foto
 
         // AQUÍ USAMOS EL MAPPER INYECTADO PARA METER AL DUEÑO
         if (casaRural.getPropietario() != null) {

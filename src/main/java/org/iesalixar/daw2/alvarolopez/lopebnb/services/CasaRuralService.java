@@ -14,7 +14,10 @@ import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -100,14 +103,11 @@ public class CasaRuralService {
 
         /** LOGICA PENDIENTE AL CREAR*/
 
-
-        /*// 1. Validar nombre duplicado para este dueño
+        // 1. Validar nombre duplicado para este dueño
         if (casaRuralRepository.existsByNombreAndPropietarioId(casaRuralDTO.getNombre(), casaRuralDTO.getPropietarioDTO().getId())) {
-            String errorMessage = getMessage("msg.casarural.insert.nameExistForOwner", null, locale);
-            throw new IllegalArgumentException(errorMessage);
-        }*/
-
-
+            // Lanzamos una excepción si Manolo ya tiene una casa con ese nombre
+            throw new IllegalArgumentException("El propietario ya tiene una casa rural registrada con este nombre.");
+        }
 
         // 2. Buscamos al propietario para enlazar la relación
         Propietario propietario = propietarioRepository.findById(casaRuralDTO.getPropietarioDTO().getId())
@@ -116,12 +116,25 @@ public class CasaRuralService {
         // 3. Convertimos a entity pasándole el propietario atachado
         CasaRural casaRural = casaRuralMapper.toEntity(casaRuralDTO, propietario);
 
-        // 4. Guardar imagen físicamente en el servidor
-        if (casaRuralDTO.getImageFile() != null && !casaRuralDTO.getImageFile().isEmpty()) {
-            String fileName = fileStorageService.saveFile(casaRuralDTO.getImageFile());
-            if (fileName != null) {
-                casaRural.setImagen(fileName); // Guardamos el nombre del archivo en la base de datos
+        // 4. Guardar IMÁGENES (múltiples) físicamente en el servidor
+        List<String> nombresImagenesGuardadas = new ArrayList<>(); // Lista temporal para los nombres
+
+        // Verificamos si la lista de archivos que llega del DTO no es nula ni está vacía
+        if (casaRuralDTO.getImageFiles() != null && !casaRuralDTO.getImageFiles().isEmpty()) {
+
+            // Recorremos cada archivo que nos ha enviado Postman/Frontend
+            for (MultipartFile file : casaRuralDTO.getImageFiles()) {
+                if (file != null && !file.isEmpty()) {
+                    // Reutilizamos tu servicio estrella para guardar cada archivo
+                    String fileName = fileStorageService.saveFile(file);
+                    if (fileName != null) {
+                        nombresImagenesGuardadas.add(fileName); // Añadimos el nombre generado a la lista
+                    }
+                }
             }
+            // Le pasamos la lista completa de nombres a la entidad
+            casaRural.setImagenes(nombresImagenesGuardadas);
+
         } else {
             logger.warn("No se recibió ninguna imagen para la casa rural en la creación.");
         }
@@ -151,34 +164,46 @@ public class CasaRuralService {
                 .orElseThrow(() -> new IllegalArgumentException("Error: Casa rural no encontrada con ID: " + id));
 
         // 2. Regla de Negocio: Exclusión de duplicados (La trampa del update)
-        // Comprobamos si el dueño tiene OTRA casa distinta con el nombre propuesto.
         if (casaRuralRepository.existsByNombreAndPropietarioIdAndIdNot(
                 casaRuralDTO.getNombre(),
                 casaRuralDTO.getPropietarioDTO().getId(),
                 id)) {
-            //String errorMessage = messageSource.getMessage("msg.casarural.insert.nameExistForOwner", null, locale);
-            throw new IllegalArgumentException();
+            // Lanza tu excepción personalizada aquí
+            throw new IllegalArgumentException("El propietario ya tiene OTRA casa rural con este nombre.");
         }
 
         // 3. Buscar al propietario
         Propietario propietario = propietarioRepository.findById(casaRuralDTO.getPropietarioDTO().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Propietario no encontrado"));
 
-        // 4. Actualizar los datos sobre la entidad EXISTENTE (Sin crear un nuevo objeto)
+        // 4. Actualizar los datos sobre la entidad EXISTENTE
         existente.setNombre(casaRuralDTO.getNombre());
         existente.setDireccion(casaRuralDTO.getDireccion());
         existente.setPrecioNoche(casaRuralDTO.getPrecioNoche());
         existente.setCapacidadPersonas(casaRuralDTO.getCapacidadPersonas());
         existente.setPropietario(propietario);
 
-        // 5. Guardar imagen SOLO SI EL USUARIO HA SUBIDO UNA NUEVA
-        if (casaRuralDTO.getImageFile() != null && !casaRuralDTO.getImageFile().isEmpty()) {
-            String fileName = fileStorageService.saveFile(casaRuralDTO.getImageFile());
-            if (fileName != null) {
-                existente.setImagen(fileName); // Sobreescribe la referencia a la imagen vieja
+        // 5. Guardar imágenes NUEVAS en la galería
+        List<MultipartFile> archivosNuevos = casaRuralDTO.getImageFiles();
+
+        if (archivosNuevos != null && !archivosNuevos.isEmpty()) {
+            List<String> nombresNuevos = new ArrayList<>();
+
+            for (MultipartFile archivo : archivosNuevos) {
+                if (archivo != null && !archivo.isEmpty()) {
+                    String fileName = fileStorageService.saveFile(archivo);
+                    if (fileName != null) {
+                        nombresNuevos.add(fileName);
+                    }
+                }
             }
+
+            // AÑADIMOS las fotos nuevas a la lista que ya tenía la casa
+            // (Si prefirieras borrarlas y sustituirlas, sería: existente.setImagenes(nombresNuevos);)
+            existente.getImagenes().addAll(nombresNuevos);
+
         } else {
-            logger.info("No se recibió nueva imagen, se mantiene la actual.");
+            logger.info("No se recibieron nuevas imágenes, se mantiene la galería actual.");
         }
 
         // 6. Guardar los cambios en BBDD y devolver

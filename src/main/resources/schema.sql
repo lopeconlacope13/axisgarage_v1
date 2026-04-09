@@ -1,9 +1,14 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+
+
 -- BORRADO DE TABLAS (Orden inverso para no romper FKs) --
 DROP TABLE IF EXISTS opinion;
 DROP TABLE IF EXISTS reserva;
 DROP TABLE IF EXISTS casa_rural;
 DROP TABLE IF EXISTS huesped;
 DROP TABLE IF EXISTS propietario;
+DROP TABLE IF EXISTS casa_rural_imagenes;
 
 -- 1. TABLA PROPIETARIO --
 CREATE TABLE propietario (
@@ -33,6 +38,12 @@ CREATE TABLE casa_rural (
     capacidad_personas BIGINT,
     propietario_id BIGINT NOT NULL,
     CONSTRAINT fk_casa_propietario FOREIGN KEY (propietario_id) REFERENCES propietario(id)
+);
+
+CREATE TABLE casa_rural_imagenes (
+    casa_rural_id BIGINT NOT NULL,
+    imagen_url VARCHAR(255),
+    FOREIGN KEY (casa_rural_id) REFERENCES casa_rural(id) ON DELETE CASCADE
 );
 
 -- 4. TABLA RESERVA (Hija de Casa y Huesped) --
@@ -88,3 +99,5 @@ CREATE TABLE IF NOT EXISTS user_roles (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
 );
+
+SET FOREIGN_KEY_CHECKS = 1;
