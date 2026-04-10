@@ -37,49 +37,61 @@ import java.util.Set;
 @EqualsAndHashCode(exclude = "roles") // Excluye roles para evitar recursión en equals y hashCode.
 @EntityListeners(AuditingEntityListener.class) // Habilita las anotaciones de auditoría.
 public class User {
+
     // Campo que almacena el identificador único del usuario. Es autogenerado y clave primaria.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     // Campo que almacena el nombre de usuario. Actúa como la clave primaria.
     @NotEmpty(message = "{msg.user.username.notEmpty}")
     @Size(max = 50, message = "{msg.user.username.size}")
     @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;
+
     // Campo que almacena la contraseña encriptada del usuario.
     @NotEmpty(message = "{msg.user.password.notEmpty}")
     @Size(min = 8, message = "{msg.user.password.size}")
     @Column(name = "password", nullable = false)
     private String password;
+
     // Campo que indica si el usuario está habilitado.
     @NotNull(message = "{msg.user.enabled.notNull}")
     @Column(name = "enabled", nullable = false)
     private boolean enabled;
+
     // Campo que almacena el primer nombre del usuario.
     @NotEmpty(message = "{msg.user.firstName.notEmpty}")
     @Size(max = 50, message = "{msg.user.firstName.size}")
     @Column(name = "first_name", nullable = false, length = 50)
     private String firstName;
+
     // Campo que almacena el apellido del usuario.
     @NotEmpty(message = "{msg.user.lastName.notEmpty}")
     @Size(max = 50, message = "{msg.user.lastName.size}")
     @Column(name = "last_name", nullable = false, length = 50)
     private String lastName;
+
     // Campo que almacena la ruta de la imagen del perfil del usuario en disco.
     @Size(max = 255, message = "{msg.user.image.size}")
     @Column(name = "image", length = 255)
     private String image;
+
     // Fecha de creación del registro.
     @CreatedDate
     @Column(name = "created_date", updatable = false)
     private LocalDateTime createdDate;
+
     // Fecha de última modificación del registro.
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private LocalDateTime lastModifiedDate;
+
     // Fecha del último cambio de contraseña.
     @Column(name = "last_password_change_date")
     private LocalDateTime lastPasswordChangeDate;
+
+
     // Relación muchos a muchos con la entidad `Role`.
 // Se establece FetchType.EAGER para que se carguen los roles junto al usuario
     @ManyToMany(fetch = FetchType.EAGER)

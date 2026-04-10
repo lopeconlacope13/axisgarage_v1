@@ -14,10 +14,4 @@ public class UserDTO {
     private String username;
     private String firstName;
     private String lastName;
-    private String image;
-    private LocalDateTime createdDate;
-
-    //omitimos password
-    //pasar rolDTO, que es solo 1 sting obje tipado
-    private Set<String> roles;
 }

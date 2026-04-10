@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.CasaRuralDTO;
+import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.OpinionDTO;
 import org.iesalixar.daw2.alvarolopez.lopebnb.services.CasaRuralService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ public class CasaRuralController {
      * @param pageable Objeto Pageable inyectado por Spring con la configuración de la página (tamaño, orden, número).
      * @return ResponseEntity conteniendo la página de CasaRuralDTO o un código de error HTTP 500 en caso de fallo.
      */
-    @Operation(summary = "Obtener todas las Casas Rurales", description = "Devuelve una lista paginada de todas las Casas Rurales disponibles en el sistema.")
+    @Operation(summary = "Obtener todas las Casas Rurales", description = "Devuelve una lista paginada de todas las Casas Rurales disponibles. Permite filtrar opcionalmente por nombre o por capacidad mínima de personas.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de Casas Rurales recuperada exitosamente",
                     content = @Content(mediaType = "application/json",
@@ -56,14 +57,16 @@ public class CasaRuralController {
     })
     @GetMapping
     public ResponseEntity<Page<CasaRuralDTO>> getAllCasaRural(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) Long capacidad,
             @PageableDefault(size = 10, sort = "nombre") Pageable pageable) {
 
-        logger.info("Solicitando todas las Casas Rurales con paginación: página {}, tamaño {}",
-                pageable.getPageNumber(), pageable.getPageSize());
+        logger.info("REST: Solicitando Casas Rurales (Filtros -> nombre: {}, capacidad: {}) | Pág: {}, Tamaño: {}",
+                nombre, capacidad, pageable.getPageNumber(), pageable.getPageSize());
 
         try {
-            Page<CasaRuralDTO> casasRurales = casaRuralService.getAllCasasRurales(pageable);
-            logger.info("Se han encontrado {} Casas Rurales.", casasRurales.getTotalElements());
+            // Le pasamos los nuevos parámetros al servicio
+            Page<CasaRuralDTO> casasRurales = casaRuralService.getAllCasasRurales(nombre, capacidad, pageable);
             return ResponseEntity.ok(casasRurales);
         } catch (Exception e) {
             logger.error("Error al listar las Casas Rurales: {}", e.getMessage());
@@ -121,6 +124,7 @@ public class CasaRuralController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CasaRuralDTO.class))),
             @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados (Ej. Nombre duplicado)"),
+            @ApiResponse(responseCode = "403", description = "Sin permisos para crear casas (solo propietarios)"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor o error al guardar la imagen")
     })
     @PostMapping(consumes = "multipart/form-data")
@@ -157,6 +161,7 @@ public class CasaRuralController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = CasaRuralDTO.class))),
             @ApiResponse(responseCode = "400", description = "Datos inválidos (Ej. Nombre duplicado en otra casa)"),
+            @ApiResponse(responseCode = "403", description = "Sin permisos para actualizar casas (solo propietarios)"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping(value = "/{id}", consumes = "multipart/form-data")
@@ -189,6 +194,7 @@ public class CasaRuralController {
     @Operation(summary = "Eliminar una casa rural", description = "Permite eliminar una casa rural específica de la base de datos.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Casa rural eliminada exitosamente"),
+            @ApiResponse(responseCode = "403", description = "Sin permisos para eliminar casas (solo propietarios)"),
             @ApiResponse(responseCode = "404", description = "Casa rural no encontrada"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
@@ -204,6 +210,33 @@ public class CasaRuralController {
         } catch (Exception e) {
             logger.error("Error al eliminar la casa rural con ID {}: {}", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la casa rural");
+        }
+    }
+
+    // --- 6. OBTENER OPINIONES DE UNA CASA RURAL ---
+
+    /**
+     * Devuelve la lista de opiniones de una casa rural concreta.
+     * Útil para vistas en Angular que requieren "listCasasAndOpiniones".
+     */
+    @Operation(summary = "Obtener opiniones de una casa rural", description = "Devuelve todas las opiniones y puntuaciones asociadas a una casa específica.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Opiniones recuperadas exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Casa rural no encontrada"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/{id}/opiniones")
+    public ResponseEntity<?> getOpinionesDeCasa(@PathVariable Long id) {
+        logger.info("REST: Buscando opiniones para la casa rural con ID {}", id);
+        try {
+            List<OpinionDTO> opiniones = casaRuralService.getCasaRuralListOpiniones(id);
+            return ResponseEntity.ok(opiniones);
+        } catch (IllegalArgumentException e) {
+            logger.warn("No se pudo obtener las opiniones: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error al obtener las opiniones de la casa con ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener las opiniones.");
         }
     }
 }

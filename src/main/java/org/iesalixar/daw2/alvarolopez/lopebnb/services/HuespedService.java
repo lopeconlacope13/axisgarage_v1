@@ -14,14 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-/**
- * Servicio encargado de gestionar la lógica de negocio relativa a la entidad {@link Huesped}.
- * Actúa como intermediario entre el Controlador y la Base de Datos.
- * Aplica reglas de negocio estrictas para evitar duplicidades en datos críticos (DNI, Email, Teléfono)
- * y garantiza que las excepciones sean capturadas, registradas (logs) y manejadas correctamente.
- *
- * @author Alvaro Lopez
- */
+
 @Service
 public class HuespedService {
 
@@ -41,17 +34,16 @@ public class HuespedService {
      * @param pageable Objeto inyectado con los parámetros de paginación (tamaño, orden, página).
      * @return {@link Page} de {@link HuespedDTO} con los datos de los huéspedes.
      */
-    public Page<HuespedDTO> getAllHuespedes(Pageable pageable) {
+    public Page<HuespedDTO> getAllHuespedes(String nombre, String dni, Pageable pageable) {
         try {
-            logger.info("Solicitando huéspedes con paginación: página {}, tamaño {}",
-                    pageable.getPageNumber(), pageable.getPageSize());
+            logger.info("Solicitando huéspedes con filtros -> Nombre: {}, DNI: {}", nombre, dni);
 
-            Page<Huesped> huespedes = huespedRepository.findAll(pageable);
-            logger.info("Se han encontrado {} huéspedes en la página actual.", huespedes.getNumberOfElements());
+            Page<Huesped> huespedes = huespedRepository.findByFiltros(nombre, dni, pageable);
+            logger.info("Se han encontrado {} huéspedes.", huespedes.getNumberOfElements());
 
             return huespedes.map(huespedMapper::toDTO);
         } catch (Exception e) {
-            logger.error("Error al obtener la lista paginada de huéspedes: {}", e.getMessage());
+            logger.error("Error al obtener la lista de huéspedes: {}", e.getMessage());
             throw new RuntimeException("Error interno al listar los huéspedes", e);
         }
     }

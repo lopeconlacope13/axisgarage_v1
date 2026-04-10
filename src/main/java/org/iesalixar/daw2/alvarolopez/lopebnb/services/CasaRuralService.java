@@ -5,7 +5,9 @@ import org.iesalixar.daw2.alvarolopez.lopebnb.dtos.CasaRuralDTO;
 import org.iesalixar.daw2.alvarolopez.lopebnb.entities.CasaRural;
 import org.iesalixar.daw2.alvarolopez.lopebnb.entities.Propietario;
 import org.iesalixar.daw2.alvarolopez.lopebnb.mappers.CasaRuralMapper;
+import org.iesalixar.daw2.alvarolopez.lopebnb.mappers.OpinionMapper;
 import org.iesalixar.daw2.alvarolopez.lopebnb.repositories.CasaRuralRepository;
+import org.iesalixar.daw2.alvarolopez.lopebnb.repositories.OpinionRepository;
 import org.iesalixar.daw2.alvarolopez.lopebnb.repositories.PropietarioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,15 +22,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
-/**
- * Servicio que gestiona toda la lógica de negocio (Business Logic) relacionada con la entidad {@link CasaRural}.
- * * Actúa como intermediario (Capa de Servicio) entre el Controlador (que recibe peticiones HTTP)
- * y los Repositorios (que acceden a la Base de Datos). Se encarga de validar reglas estrictas de negocio,
- * procesar y coordinar el guardado de múltiples imágenes, y orquestar el mapeo entre Entidades y DTOs.
- * * @author Alvaro Lopez
- */
 
-//AÑADIR NUEVO METODO PARA LISTAR LAS OPINIONES DE LA CASA casaRuralListOpiniones (Repository)
+
 @Service
 public class CasaRuralService {
 
@@ -46,6 +41,12 @@ public class CasaRuralService {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @Autowired
+    private OpinionRepository opinionRepository;
+
+    @Autowired
+    private OpinionMapper opinionMapper;
+
     // --- 1. LISTAR CON PAGINACIÓN ---
 
     /**
@@ -55,14 +56,14 @@ public class CasaRuralService {
      * @param pageable Objeto inyectado por Spring que contiene la información de paginación (página, tamaño, orden).
      * @return {@link Page} de {@link CasaRuralDTO} lista para ser enviada al cliente.
      */
-    public Page<CasaRuralDTO> getAllCasasRurales(Pageable pageable) {
-        logger.info("Solicitando todas las Casas Rurales con paginación: página {}, tamaño {}",
-                pageable.getPageNumber(), pageable.getPageSize());
+    public Page<CasaRuralDTO> getAllCasasRurales(String nombre, Long capacidad, Pageable pageable) {
+        logger.info("Solicitando Casas Rurales con filtros -> Nombre: {}, Capacidad mínima: {}", nombre, capacidad);
         try {
-            Page<CasaRural> casasRurales = casaRuralRepository.findAll(pageable);
-            logger.info("Se han encontrado {} Casas Rurales en la página actual.", casasRurales.getNumberOfElements());
+            // Llamamos a nuestro nuevo método mágico del repositorio
+            Page<CasaRural> casasRurales = casaRuralRepository.findByFiltros(nombre, capacidad, pageable);
 
-            // Transformamos cada Entity de la página a DTO usando una referencia a método (method reference)
+            logger.info("Se han encontrado {} Casas Rurales en la base de datos.", casasRurales.getTotalElements());
+
             return casasRurales.map(casaRuralMapper::toDTO);
         } catch (Exception e) {
             logger.error("Error al obtener la lista paginada de Casas Rurales: {}", e.getMessage());
@@ -100,25 +101,24 @@ public class CasaRuralService {
      * REGLA DE NEGOCIO 2: Se debe asociar una entidad {@link Propietario} válida existente en BD.
      *
      * @param casaRuralDTO Objeto con los datos de la casa rural a crear (incluye la lista de MultipartFile).
-     * @param locale Idioma de la petición para posibles mensajes de error internacionalizados.
      * @return El {@link CasaRuralDTO} resultante con su ID autogenerado y su galería de imágenes actualizada.
      * @throws IllegalArgumentException Si el propietario no existe o si se viola la regla de nombres duplicados.
      */
     public CasaRuralDTO createCasaRural(CasaRuralDTO casaRuralDTO, Locale locale) {
 
-        // 1. Validar nombre duplicado para este dueño
+        // validar nombre duplicado para este dueño
         if (casaRuralRepository.existsByNombreAndPropietarioId(casaRuralDTO.getNombre(), casaRuralDTO.getPropietarioDTO().getId())) {
             throw new IllegalArgumentException("El propietario ya tiene una casa rural registrada con este nombre.");
         }
 
-        // 2. Buscamos al propietario para enlazar la relación (Atachar a la sesión de Hibernate)
+        // buscamos al propietario para enlazar la relación
         Propietario propietario = propietarioRepository.findById(casaRuralDTO.getPropietarioDTO().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Propietario no encontrado"));
 
-        // 3. Convertimos a entity pasándole el propietario atachado
+        // convertimos a entity pasándole el propietario atachado
         CasaRural casaRural = casaRuralMapper.toEntity(casaRuralDTO, propietario);
 
-        // 4. Guardar IMÁGENES múltiples iterando sobre la lista de MultipartFile
+        // guardar IMÁGENES múltiples iterando sobre la lista de MultipartFile
         List<String> nombresImagenesGuardadas = new ArrayList<>();
 
         if (casaRuralDTO.getImageFiles() != null && !casaRuralDTO.getImageFiles().isEmpty()) {
@@ -130,13 +130,13 @@ public class CasaRuralService {
                     }
                 }
             }
-            // Asignamos la lista final de UUIDs a la entidad (@ElementCollection lo mapeará a su tabla)
+            // asignamos la lista final de UUIDs a la entidad (@ElementCollection lo mapeará a su tabla)
             casaRural.setImagenes(nombresImagenesGuardadas);
         } else {
             logger.warn("No se recibió ninguna imagen para la casa rural en la creación.");
         }
 
-        // 5. Guardar en BD (insert) y retornar DTO
+        // guardar en BD (insert) y retornar DTO
         CasaRural savedCasaRural = casaRuralRepository.save(casaRural);
         return casaRuralMapper.toDTO(savedCasaRural);
     }
@@ -150,18 +150,17 @@ public class CasaRuralService {
      *
      * @param id Identificador de la casa rural que se desea actualizar.
      * @param casaRuralDTO DTO con los nuevos datos y la posible nueva remesa de archivos de imagen.
-     * @param locale Idioma de la petición para los mensajes de error.
      * @return El {@link CasaRuralDTO} con los datos y la galería actualizados.
      * @throws IllegalArgumentException Si se viola la exclusión de ID en nombres duplicados o entidades no existen.
      */
     public CasaRuralDTO updateCasaRural(Long id, CasaRuralDTO casaRuralDTO, Locale locale) {
 
-        // 1. Verificar que la casa existe
+        // verificar que la casa existe
         CasaRural existente = casaRuralRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Error: Casa rural no encontrada con ID: " + id));
 
-        // 2. Regla de Negocio: Exclusión de duplicados (La trampa del update)
-        // Busca si este dueño tiene OTRA casa (IdNot) que se llame igual que el nuevo nombre propuesto.
+        // regla de negocio: exclusión de duplicados
+        // busca si este dueño tiene OTRA casa (IdNot) que se llame igual que el nuevo nombre propuesto.
         if (casaRuralRepository.existsByNombreAndPropietarioIdAndIdNot(
                 casaRuralDTO.getNombre(),
                 casaRuralDTO.getPropietarioDTO().getId(),
@@ -169,18 +168,18 @@ public class CasaRuralService {
             throw new IllegalArgumentException("El propietario ya tiene OTRA casa rural con este nombre.");
         }
 
-        // 3. Buscar al propietario
+        // buscar al propietario
         Propietario propietario = propietarioRepository.findById(casaRuralDTO.getPropietarioDTO().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Propietario no encontrado"));
 
-        // 4. Mutar el estado de la entidad EXISTENTE (En lugar de crear un new CasaRural())
+        // mutar el estado de la entidad EXISTENTE (En lugar de crear un new CasaRural())
         existente.setNombre(casaRuralDTO.getNombre());
         existente.setDireccion(casaRuralDTO.getDireccion());
         existente.setPrecioNoche(casaRuralDTO.getPrecioNoche());
         existente.setCapacidadPersonas(casaRuralDTO.getCapacidadPersonas());
         existente.setPropietario(propietario);
 
-        // 5. Guardar imágenes NUEVAS y añadirlas a la galería
+        // guardar imágenes NUEVAS y añadirlas a la galería
         List<MultipartFile> archivosNuevos = casaRuralDTO.getImageFiles();
 
         if (archivosNuevos != null && !archivosNuevos.isEmpty()) {
@@ -193,13 +192,13 @@ public class CasaRuralService {
                     }
                 }
             }
-            // Agregamos las nuevas fotos a la colección de Hibernate existente
+            // agregamos las nuevas fotos
             existente.getImagenes().addAll(nombresNuevos);
         } else {
             logger.info("No se recibieron nuevas imágenes, se mantiene la galería actual.");
         }
 
-        // 6. Guardar los cambios (update)
+        // guardar los cambios (update)
         CasaRural savedCasaRural = casaRuralRepository.save(existente);
         return casaRuralMapper.toDTO(savedCasaRural);
     }
@@ -219,5 +218,27 @@ public class CasaRuralService {
             throw new IllegalArgumentException("La casa rural no existe.");
         }
         casaRuralRepository.deleteById(id);
+    }
+
+
+    // --- 6. LISTAR OPINIONES DE LA CASA (Para Angular) ---
+
+    /**
+     * Recupera todas las opiniones asociadas a una casa rural específica.
+     * Ideal para cargar la sección de comentarios en el Frontend (listCasasAndOpiniones).
+     *
+     * @param id Identificador de la casa rural.
+     * @return Lista de OpinionDTO asociadas a esa casa.
+     */
+    public List<org.iesalixar.daw2.alvarolopez.lopebnb.dtos.OpinionDTO> getCasaRuralListOpiniones(Long id) {
+        logger.info("Solicitando opiniones para la casa rural con ID {}", id);
+
+        if (!casaRuralRepository.existsById(id)) {
+            throw new IllegalArgumentException("La casa rural no existe.");
+        }
+
+        return opinionRepository.findByCasaRural_Id(id).stream()
+                .map(opinionMapper::toDTO)
+                .toList();
     }
 }

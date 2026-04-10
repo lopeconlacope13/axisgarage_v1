@@ -41,7 +41,7 @@ public class HuespedController {
 
     // --- 1. LISTAR (PAGINADO) ---
 
-    @Operation(summary = "Obtener lista de huéspedes", description = "Devuelve una lista paginada de todos los huéspedes disponibles.")
+    @Operation(summary = "Obtener lista de huéspedes", description = "Devuelve una lista paginada de huéspedes. Permite filtrar opcionalmente por nombre o DNI.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista recuperada exitosamente",
                     content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = HuespedDTO.class)))),
@@ -49,9 +49,11 @@ public class HuespedController {
     })
     @GetMapping
     public ResponseEntity<Page<HuespedDTO>> getAllHuespedes(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String dni,
             @PageableDefault(size = 10, sort = "nombre") Pageable pageable) {
         try {
-            return ResponseEntity.ok(huespedService.getAllHuespedes(pageable));
+            return ResponseEntity.ok(huespedService.getAllHuespedes(nombre, dni, pageable));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }

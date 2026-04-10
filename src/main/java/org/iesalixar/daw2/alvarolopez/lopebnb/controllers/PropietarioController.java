@@ -50,9 +50,11 @@ public class PropietarioController {
     })
     @GetMapping
     public ResponseEntity<Page<PropietarioDTO>> getAllPropietarios(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String email,
             @PageableDefault(size = 10, sort = "nombre") Pageable pageable) {
         try {
-            Page<PropietarioDTO> propietarios = propietarioService.getAllPropietarios(pageable);
+            Page<PropietarioDTO> propietarios = propietarioService.getAllPropietarios(nombre, email, pageable);
             return ResponseEntity.ok(propietarios);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

@@ -12,10 +12,6 @@ import java.util.stream.Collectors;
 @Component
 public class PropietarioMapper {
 
-    /**
-     * Convierte de Entidad a DTO.
-     * Implementa lógica de mapeo para la colección de casas usando Streams.
-     */
     public PropietarioDTO toDTO(Propietario propietario) {
         if (propietario == null) return null;
         PropietarioDTO dto = new PropietarioDTO();

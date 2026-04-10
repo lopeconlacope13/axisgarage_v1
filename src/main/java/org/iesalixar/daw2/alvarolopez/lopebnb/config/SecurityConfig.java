@@ -63,25 +63,40 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Documentación Swagger
                         .requestMatchers(HttpMethod.GET, "/api/casas/**").permitAll() // Todo el mundo puede VER las casas
 
-                                // --- RUTAS DE CLIENTE ---
-                                .requestMatchers(HttpMethod.POST, "/api/reservas/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+                                // --- RUTAS DE CLIENTE (USER/ADMIN) ---
+                                .requestMatchers(HttpMethod.GET, "/api/reservas/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
 
-// --- RUTAS DE MANAGER ---
-                                .requestMatchers("/api/casas/**").hasAnyRole("MANAGER", "ADMIN")
-                                .requestMatchers("/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
 
-// --- RUTAS EXCLUSIVAS DE ADMIN ---
-                                .requestMatchers(HttpMethod.DELETE, "/api/opiniones/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
+
+                                // --- RUTAS DE MANAGER ---
+                                .requestMatchers(HttpMethod.POST, "/api/casas/**").hasAnyRole("MANAGER", "ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/casas/**").hasAnyRole("MANAGER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/casas/**").hasAnyRole("MANAGER", "ADMIN")
+
+                                .requestMatchers(HttpMethod.GET, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
+
+                                // --- RUTAS EXCLUSIVAS DE ADMIN ---
                                 .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
 
-                        //IMAGENES PUBLICAS
-                                .requestMatchers("/uploads/**").permitAll() // O la ruta donde guardes las fotos
+                                // IMAGENES PUBLICAS
+                                .requestMatchers("/uploads/**").permitAll()
 
-
-
-                        // --- CUALQUIER OTRA RUTA ---
-                        // Por defecto, si se nos olvida alguna ruta, exigimos que al menos esté logueado
-                        .anyRequest().authenticated()
+                                // --- CUALQUIER OTRA RUTA ---
+                                // Por defecto, si se nos olvida alguna ruta, exigimos que al menos esté logueado
+                                .anyRequest().authenticated()
                 )
                 // 4. Añadimos tu filtro JWT para que intercepte las peticiones y valide el token antes que Spring
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

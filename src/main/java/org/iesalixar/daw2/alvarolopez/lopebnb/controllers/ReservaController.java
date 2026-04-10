@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 /**
@@ -50,9 +51,13 @@ public class ReservaController {
     })
     @GetMapping
     public ResponseEntity<Page<ReservaDTO>> getAllReservas(
+            @RequestParam(required = false) Long casaRuralId,
+            @RequestParam(required = false) Long huespedId,
+            @RequestParam(required = false) LocalDate fechaDesde,
+            @RequestParam(required = false) LocalDate fechaHasta,
             @PageableDefault(size = 10, sort = "fechaEntrada") Pageable pageable) {
         try {
-            return ResponseEntity.ok(reservaService.getAllReservas(pageable));
+            return ResponseEntity.ok(reservaService.getAllReservas(casaRuralId, huespedId, fechaDesde, fechaHasta, pageable));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -132,6 +137,7 @@ public class ReservaController {
     @Operation(summary = "Cancelar y eliminar una reserva", description = "Elimina de forma física el registro de una reserva de la base de datos a partir de su ID.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Reserva eliminada exitosamente (No Content)"),
+            @ApiResponse(responseCode = "403", description = "Sin permisos para eliminar reservas"),
             @ApiResponse(responseCode = "404", description = "La reserva a eliminar no fue encontrada"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })

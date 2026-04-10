@@ -33,7 +33,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
                 .password(user.getPassword())
                 .authorities(user.getRoles().stream()
-                        .map(Role::getName)
+                        .map(role -> {
+                            String roleName = role.getName();
+                            // Asegurar que el rol siempre comienza con "ROLE_" para compatibilidad con Spring Security
+                            return roleName.startsWith("ROLE_") ? roleName : "ROLE_" + roleName;
+                        })
                         .toList()
                         .toArray(new String[0]))
                 .accountExpired(false)

@@ -31,21 +31,17 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     // Nombre del rol, como "ROLE_ADMIN" o "ROLE_USER".
     @NotEmpty(message = "{msg.role.name.notEmpty}")
     @Size(max = 50, message = "{msg.role.name.size}")
     @Column(name = "name", nullable = false, unique = true, length = 50)
     private String name;
+
     // Relación muchos a muchos con la entidad `User`. Un rol puede pertenecer a muchos usuarios.
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     private Set<User> users;
-    /**
-     * Constructor que excluye el campo `id`. Se utiliza para crear instancias
-     de `Role`
-     * cuando el `id` aún no se ha generado (por ejemplo, antes de insertarlo en
-     la base de datos).
-     * @param name Nombre del rol.
-     */
+
     public Role(String name) {
         this.name = name;
     }
