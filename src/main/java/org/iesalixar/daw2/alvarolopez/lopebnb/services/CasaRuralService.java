@@ -81,7 +81,6 @@ public class CasaRuralService {
      * @param id Identificador único de la casa rural.
      * @return Un {@link Optional} que contiene el {@link CasaRuralDTO} si se encuentra, o vacío si no existe.
      */
-    @Transactional
     public Optional<CasaRuralDTO> getCasaRuralById(Long id) {
         try {
             logger.info("Buscando Casa Rural con ID {}", id);

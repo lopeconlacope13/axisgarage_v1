@@ -48,7 +48,8 @@ public class CasaRuralController {
      * @param pageable Objeto Pageable inyectado por Spring con la configuración de la página (tamaño, orden, número).
      * @return ResponseEntity conteniendo la página de CasaRuralDTO o un código de error HTTP 500 en caso de fallo.
      */
-    @Operation(summary = "Obtener todas las Casas Rurales", description = "Devuelve una lista paginada de todas las Casas Rurales disponibles. Permite filtrar opcionalmente por nombre o por capacidad mínima de personas.")
+    @Operation(summary = "Obtener todas las Casas Rurales", description = "Devuelve una lista paginada de todas las " +
+			"Casas Rurales disponibles. Permite filtrar opcionalmente por nombre o por capacidad mínima de personas.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de Casas Rurales recuperada exitosamente",
                     content = @Content(mediaType = "application/json",

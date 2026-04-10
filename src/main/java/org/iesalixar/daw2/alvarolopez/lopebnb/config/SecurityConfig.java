@@ -22,6 +22,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 /**
  * Configura la seguridad de la aplicación, definiendo autenticación y autorización
  * para diferentes roles de usuario, y gestionando la política de sesiones.
@@ -39,6 +41,7 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+
     /**
      * Configura el filtro de seguridad para las solicitudes HTTP, especificando las
      * rutas permitidas y los roles necesarios para acceder a diferentes endpoints.
@@ -47,62 +50,60 @@ public class SecurityConfig {
      * @return una instancia de {@Link SecurityFilterChain} que contiene la configuración de seguridad.
      * @throws Exception si ocurre un error en la configuración de seguridad.
      */
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                // 1. Desactivamos CSRF porque al usar tokens JWT ya estamos protegidos contra este ataque
-                .csrf(csrf -> csrf.disable())
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http
+				.cors(Customizer.withDefaults())
+				.csrf(csrf -> csrf.disable())
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.authorizeHttpRequests(auth -> auth
+						// Dejamos pasar los OPTIONS
+						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // 2. Indicamos que nuestra API es Stateless (sin estado, no guarda sesiones en memoria)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+						// --- RUTAS PÚBLICAS ---
+						.requestMatchers("/api/v1/authenticate", "/api/v1/register").permitAll()
+						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/casas", "/api/casas/**").permitAll()
+						.requestMatchers("/uploads/**").permitAll() // Movido aquí arriba por orden
 
-                // 3. REGLAS DE AUTORIZACIÓN (El núcleo de tu seguridad)
-                .authorizeHttpRequests(auth -> auth
-                        // --- RUTAS PÚBLICAS (No requieren token) ---
-                        .requestMatchers("/api/v1/authenticate", "/api/v1/register").permitAll() // Login y Registro
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Documentación Swagger
-                        .requestMatchers(HttpMethod.GET, "/api/casas/**").permitAll() // Todo el mundo puede VER las casas
+						// --- RUTAS DE CLIENTE (USER/MANAGER/ADMIN) ---
+						.requestMatchers(HttpMethod.GET, "/api/reservas/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.POST, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.PUT, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
 
-                                // --- RUTAS DE CLIENTE (USER/ADMIN) ---
-                                .requestMatchers(HttpMethod.GET, "/api/reservas/**").hasAnyRole("USER", "MANAGER", "ADMIN")
-                                .requestMatchers(HttpMethod.POST, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.POST, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.PUT, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
 
-                                .requestMatchers(HttpMethod.POST, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.GET, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.POST, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.PUT, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
 
-                                .requestMatchers(HttpMethod.GET, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.POST, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
+						// --- RUTAS DE MANAGER ---
+						.requestMatchers(HttpMethod.POST, "/api/casas/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.PUT, "/api/casas/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/api/casas/**").hasAnyRole("MANAGER", "ADMIN")
 
-                                // --- RUTAS DE MANAGER ---
-                                .requestMatchers(HttpMethod.POST, "/api/casas/**").hasAnyRole("MANAGER", "ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/casas/**").hasAnyRole("MANAGER", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/casas/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.GET, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.POST, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.PUT, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
 
-                                .requestMatchers(HttpMethod.GET, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
-                                .requestMatchers(HttpMethod.POST, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
-                                .requestMatchers(HttpMethod.PUT, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
-                                .requestMatchers(HttpMethod.DELETE, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
+						// --- RUTAS EXCLUSIVAS DE ADMIN ---
+						.requestMatchers("/api/usuarios/**").hasRole("ADMIN")
 
-                                // --- RUTAS EXCLUSIVAS DE ADMIN ---
-                                .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+						// --- CUALQUIER OTRA RUTA ---
+						.anyRequest().authenticated()
+				)
+				.exceptionHandling(exception -> exception
+						.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+				)
+				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-                                // IMAGENES PUBLICAS
-                                .requestMatchers("/uploads/**").permitAll()
-
-                                // --- CUALQUIER OTRA RUTA ---
-                                // Por defecto, si se nos olvida alguna ruta, exigimos que al menos esté logueado
-                                .anyRequest().authenticated()
-                )
-                // 4. Añadimos tu filtro JWT para que intercepte las peticiones y valide el token antes que Spring
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
+		return http.build();
+	}
 
     /**
      * Configura el proveedor de autenticación para usar el servicio de detalles de usuario
