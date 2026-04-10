@@ -1,0 +1,442 @@
+{
+  "info": {
+    "name": "AXISGARAGE (High-End Vehicle Rental) API",
+    "description": "Colección de Postman con todos los endpoints de la API refactorizada a alquiler de vehículos de alta gama.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "vehicle_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "owner_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "renter_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "reservation_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "review_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Authenticate (Login)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/authenticate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "authenticate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicles (Antiguas Casas Rurales)",
+      "item": [
+        {
+          "name": "Get All Vehicles",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/vehicles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vehicles"]
+            }
+          }
+        },
+        {
+          "name": "Get Vehicle by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/vehicles/{{vehicle_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vehicles", "{{vehicle_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Vehicle",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "brand", "value": "Porsche", "type": "text"},
+                {"key": "model", "value": "911 Carrera", "type": "text"},
+                {"key": "productionYear", "value": "2024", "type": "text"},
+                {"key": "pricePerDay", "value": "150.0", "type": "text"},
+                {"key": "engineType", "value": "V6", "type": "text"},
+                {"key": "horsePower", "value": "450", "type": "text"},
+                {"key": "torqueNm", "value": "530", "type": "text"},
+                {"key": "transmission", "value": "Aut", "type": "text"},
+                {"key": "drivetrain", "value": "RWD", "type": "text"},
+                {"key": "fuelType", "value": "Gasolina", "type": "text"},
+                {"key": "zeroToHundred", "value": "3.5", "type": "text"},
+                {"key": "description", "value": "Deportivo increíble", "type": "text"},
+                {"key": "ownerId", "value": "1", "type": "text"}
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/vehicles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vehicles"]
+            }
+          }
+        },
+        {
+          "name": "Update Vehicle",
+          "request": {
+            "method": "PUT",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                 {"key": "pricePerDay", "value": "200.0", "type": "text"}
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/vehicles/{{vehicle_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vehicles", "{{vehicle_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Vehicle",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/vehicles/{{vehicle_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "vehicles", "{{vehicle_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Owners (Antiguos Propietarios)",
+      "item": [
+        {
+          "name": "Get All Owners",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/owners",
+              "host": ["{{base_url}}"],
+              "path": ["api", "owners"]
+            }
+          }
+        },
+        {
+          "name": "Get Owner by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/owners/{{owner_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "owners", "{{owner_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Owner",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Fernando\",\n  \"lastName\": \"Alonso\",\n  \"email\": \"alo@aston.com\",\n  \"phone\": \"600333111\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/owners",
+              "host": ["{{base_url}}"],
+              "path": ["api", "owners"]
+            }
+          }
+        },
+        {
+          "name": "Update Owner",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Fernando\",\n  \"lastName\": \"Alonso (actualizado)\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/owners/{{owner_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "owners", "{{owner_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Owner",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/owners/{{owner_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "owners", "{{owner_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Renters (Antiguos Huéspedes)",
+      "item": [
+        {
+          "name": "Get All Renters",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/renters",
+              "host": ["{{base_url}}"],
+              "path": ["api", "renters"]
+            }
+          }
+        },
+        {
+          "name": "Get Renter by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/renters/{{renter_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "renters", "{{renter_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Renter",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos\",\n  \"lastName\": \"Sainz\",\n  \"email\": \"carlos@ferrari.com\",\n  \"dni\": \"11223344F\",\n  \"phone\": \"611000999\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/renters",
+              "host": ["{{base_url}}"],
+              "path": ["api", "renters"]
+            }
+          }
+        },
+        {
+          "name": "Update Renter",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos\",\n  \"lastName\": \"Sainz Jr.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/renters/{{renter_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "renters", "{{renter_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Renter",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/renters/{{renter_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "renters", "{{renter_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reservations (Antiguas Reservas)",
+      "item": [
+        {
+          "name": "Get All Reservations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/reservations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations"]
+            }
+          }
+        },
+        {
+          "name": "Get Reservation by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/reservations/{{reservation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", "{{reservation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": 1,\n  \"renterId\": 1,\n  \"startDate\": \"2025-10-01\",\n  \"endDate\": \"2025-10-05\",\n  \"totalPrice\": 500.0,\n  \"status\": \"CONFIRMED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reservations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations"]
+            }
+          }
+        },
+        {
+          "name": "Update Reservation",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CANCELLED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reservations/{{reservation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", "{{reservation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Reservation",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/reservations/{{reservation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reservations", "{{reservation_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews (Antiguas Opiniones)",
+      "item": [
+        {
+          "name": "Get All Reviews",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Get Review by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/reviews/{{review_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews", "{{review_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Reviews From Reservation",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/reviews/reservation/{{reservation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews", "reservation", "{{reservation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservationId\": 1,\n  \"renterId\": 1,\n  \"rating\": 5,\n  \"comment\": \"Coche increible, la aceleración es de locos.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Update Review",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Le bajo nota porque gastó mucha gasolina.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reviews/{{review_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews", "{{review_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/reviews/{{review_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reviews", "{{review_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

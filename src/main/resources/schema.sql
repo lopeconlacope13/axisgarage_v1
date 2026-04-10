@@ -1,75 +1,144 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- BORRADO DE TABLAS
+DROP TABLE IF EXISTS damage_reports;
+DROP TABLE IF EXISTS coverages;
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS reservations;
+DROP TABLE IF EXISTS vehicle_images;
+DROP TABLE IF EXISTS vehicles;
+DROP TABLE IF EXISTS renters;
+DROP TABLE IF EXISTS owners;
+DROP TABLE IF EXISTS vehicle_categories;
+DROP TABLE IF EXISTS locations;
+DROP TABLE IF EXISTS user_roles;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS users;
 
-
--- BORRADO DE TABLAS (Orden inverso para no romper FKs) --
-DROP TABLE IF EXISTS opinion;
-DROP TABLE IF EXISTS reserva;
-DROP TABLE IF EXISTS casa_rural;
-DROP TABLE IF EXISTS huesped;
-DROP TABLE IF EXISTS propietario;
-DROP TABLE IF EXISTS casa_rural_imagenes;
-
--- 1. TABLA PROPIETARIO --
-CREATE TABLE propietario (
+-- 1. TABLA LOCATIONS (Sedes) --
+CREATE TABLE locations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    apellidos VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    telefono VARCHAR(12) NOT NULL UNIQUE
+    name VARCHAR(100) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    postal_code VARCHAR(10),
+    country VARCHAR(50) NOT NULL DEFAULT 'España',
+    phone VARCHAR(20),
+    email VARCHAR(100)
 );
 
--- 2. TABLA HUESPED --
-CREATE TABLE huesped (
+-- 2. TABLA VEHICLE_CATEGORIES (Categorías de vehículos) --
+CREATE TABLE vehicle_categories (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    apellidos VARCHAR(100) NOT NULL,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255)
+);
+
+-- 3. TABLA OWNERS (Propietarios) --
+CREATE TABLE owners (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(20) NOT NULL UNIQUE
+);
+
+-- 4. TABLA RENTERS (Pilotos / Clientes) --
+CREATE TABLE renters (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     dni VARCHAR(20) NOT NULL UNIQUE,
-    telefono VARCHAR(12) NOT NULL UNIQUE
+    phone VARCHAR(20) NOT NULL UNIQUE
 );
 
--- 3. TABLA CASA RURAL (Hija de Propietario) --
-CREATE TABLE casa_rural (
+-- 5. TABLA VEHICLES --
+CREATE TABLE vehicles (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    direccion VARCHAR(255) NOT NULL,
-    precio_noche DOUBLE NOT NULL,
-    capacidad_personas BIGINT,
-    propietario_id BIGINT NOT NULL,
-    CONSTRAINT fk_casa_propietario FOREIGN KEY (propietario_id) REFERENCES propietario(id)
+    owner_id BIGINT NOT NULL,
+    category_id BIGINT NOT NULL,
+    location_id BIGINT NOT NULL,
+
+    brand VARCHAR(50) NOT NULL,
+    model VARCHAR(100) NOT NULL,
+    production_year INT NOT NULL,
+    price_per_day DECIMAL(10,2) NOT NULL,
+
+    engine_type VARCHAR(50) NOT NULL,
+    horse_power INT NOT NULL,
+    torque_nm INT NOT NULL,
+    transmission VARCHAR(50) NOT NULL,
+    drivetrain VARCHAR(20) NOT NULL,
+    fuel_type VARCHAR(20) NOT NULL,
+    zero_to_hundred DECIMAL(3,1),
+
+    description TEXT,
+    available BOOLEAN DEFAULT TRUE,
+
+    CONSTRAINT fk_vehicle_owner FOREIGN KEY (owner_id) REFERENCES owners(id),
+    CONSTRAINT fk_vehicle_category FOREIGN KEY (category_id) REFERENCES vehicle_categories(id),
+    CONSTRAINT fk_vehicle_location FOREIGN KEY (location_id) REFERENCES locations(id)
 );
 
-CREATE TABLE casa_rural_imagenes (
-    casa_rural_id BIGINT NOT NULL,
-    imagen_url VARCHAR(255),
-    FOREIGN KEY (casa_rural_id) REFERENCES casa_rural(id) ON DELETE CASCADE
-);
-
--- 4. TABLA RESERVA (Hija de Casa y Huesped) --
-CREATE TABLE reserva (
+-- 6. TABLA VEHICLE_IMAGES --
+CREATE TABLE vehicle_images (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    fecha_entrada DATE NOT NULL,
-    fecha_salida DATE NOT NULL,
-    importe_total DOUBLE,
-    casa_rural_id BIGINT NOT NULL,
-    huesped_id BIGINT NOT NULL,
-    CONSTRAINT fk_reserva_casa FOREIGN KEY (casa_rural_id) REFERENCES casa_rural(id),
-    CONSTRAINT fk_reserva_huesped FOREIGN KEY (huesped_id) REFERENCES huesped(id)
+    vehicle_id BIGINT NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    is_main BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
 );
 
--- 5. TABLA OPINION (Hija de Casa y Huesped) --
-CREATE TABLE opinion (
+-- 7. TABLA RESERVATIONS --
+CREATE TABLE reservations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    puntuacion BIGINT,
-    comentario VARCHAR(500),
-    casa_rural_id BIGINT NOT NULL,
-    huesped_id BIGINT NOT NULL,
-    CONSTRAINT fk_opinion_casa FOREIGN KEY (casa_rural_id) REFERENCES casa_rural(id),
-    CONSTRAINT fk_opinion_huesped FOREIGN KEY (huesped_id) REFERENCES huesped(id)
+    vehicle_id BIGINT NOT NULL,
+    renter_id BIGINT NOT NULL,
+
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+
+    CONSTRAINT fk_res_vehicle FOREIGN KEY (vehicle_id) REFERENCES vehicles(id),
+    CONSTRAINT fk_res_renter FOREIGN KEY (renter_id) REFERENCES renters(id)
 );
 
--- Crear la tabla 'users'
+-- 8. TABLA COVERAGES (Coberturas de seguro) --
+CREATE TABLE coverages (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    reservation_id BIGINT NOT NULL,
+    type VARCHAR(20) NOT NULL DEFAULT 'STANDARD',
+    total_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    CONSTRAINT fk_coverage_reservation FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);
+
+-- 9. TABLA DAMAGE_REPORTS (Informes de daños PRE/POST alquiler) --
+CREATE TABLE damage_reports (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    reservation_id BIGINT NOT NULL,
+    type VARCHAR(10) NOT NULL,
+    description TEXT NOT NULL,
+    reported_date DATE NOT NULL,
+    image_url VARCHAR(255),
+    CONSTRAINT fk_damage_reservation FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);
+
+-- 10. TABLA REVIEWS --
+CREATE TABLE reviews (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    reservation_id BIGINT NOT NULL,
+    renter_id BIGINT NOT NULL,
+
+    rating INT NOT NULL,
+    comment TEXT,
+
+    CONSTRAINT fk_review_res FOREIGN KEY (reservation_id) REFERENCES reservations(id),
+    CONSTRAINT fk_review_renter FOREIGN KEY (renter_id) REFERENCES renters(id)
+);
+
+-- 11. TABLAS DE SEGURIDAD --
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -79,19 +148,15 @@ CREATE TABLE IF NOT EXISTS users (
     last_name VARCHAR(50) NOT NULL,
     image VARCHAR(255),
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_modified_date TIMESTAMP
-        DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP,
+    last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     last_password_change_date TIMESTAMP
 );
 
--- Crear la tabla 'roles'
 CREATE TABLE IF NOT EXISTS roles (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) UNIQUE NOT NULL
 );
 
--- Crear la tabla 'user_roles'
 CREATE TABLE IF NOT EXISTS user_roles (
     user_id BIGINT NOT NULL,
     role_id BIGINT NOT NULL,
