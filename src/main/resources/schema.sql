@@ -1,6 +1,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- BORRADO DE TABLAS
+DROP TABLE IF EXISTS invoices;
 DROP TABLE IF EXISTS damage_reports;
 DROP TABLE IF EXISTS coverages;
 DROP TABLE IF EXISTS reviews;
@@ -138,7 +139,22 @@ CREATE TABLE reviews (
     CONSTRAINT fk_review_renter FOREIGN KEY (renter_id) REFERENCES renters(id)
 );
 
--- 11. TABLAS DE SEGURIDAD --
+-- 11. TABLA INVOICES (Facturas de reservas confirmadas) --
+CREATE TABLE invoices (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    reservation_id BIGINT NOT NULL UNIQUE,
+    invoice_number VARCHAR(20) NOT NULL UNIQUE,
+    issue_date DATE NOT NULL,
+    base_amount DECIMAL(10,2) NOT NULL,
+    tax_rate DECIMAL(5,4) NOT NULL DEFAULT 0.2100,
+    tax_amount DECIMAL(10,2) NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+    payment_method VARCHAR(20),
+    notes TEXT,
+    CONSTRAINT fk_invoice_reservation FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+);
+
+-- 12. TABLAS DE SEGURIDAD --
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,

@@ -90,3 +90,8 @@ INSERT IGNORE INTO reviews (id, reservation_id, renter_id, rating, comment) VALU
 (4, 3, 3, 3, 'El coche está bien, pero el infotainment no funcionaba muy rápido.'),
 (5, 5, 1, 5, 'El dueño, Antonio, es majísimo. Nos dejó un depósito lleno gratis.'),
 (6, 6, 2, 4, 'Muy rápido y deportivo, prestaciones inmejorables.');
+-- Insertar Facturas (Invoices) de ejemplo para reservas confirmadas
+INSERT IGNORE INTO invoices (id, reservation_id, invoice_number, issue_date, base_amount, tax_rate, tax_amount, total_amount, payment_method, notes) VALUES
+(1, 1, 'AG-2023-0001', '2023-12-05', 480.00, 0.2100, 100.80, 580.80, 'CARD', NULL),
+(2, 2, 'AG-2024-0001', '2024-01-15', 1000.00, 0.2100, 210.00, 1210.00, 'CARD', NULL),
+(3, 3, 'AG-2024-0002', '2024-02-16', 170.00, 0.2100, 35.70, 205.70, 'TRANSFER', NULL);

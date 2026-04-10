@@ -100,6 +100,13 @@ public class SecurityConfig {
 						// --- INFORMES DE DAÑOS (MANAGER+) ---
 						.requestMatchers("/api/damage-reports/**").hasAnyRole("MANAGER", "ADMIN")
 
+						// --- FACTURAS (USER puede ver la suya, MANAGER+ gestión completa) ---
+						.requestMatchers(HttpMethod.GET, "/api/invoices/reservation/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.GET, "/api/invoices/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.POST, "/api/invoices/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.PUT, "/api/invoices/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/api/invoices/**").hasRole("ADMIN")
+
 						// --- RUTAS EXCLUSIVAS DE ADMIN ---
 						.requestMatchers("/api/usuarios/**").hasRole("ADMIN")
 						.requestMatchers(HttpMethod.POST, "/api/locations/**").hasRole("ADMIN")

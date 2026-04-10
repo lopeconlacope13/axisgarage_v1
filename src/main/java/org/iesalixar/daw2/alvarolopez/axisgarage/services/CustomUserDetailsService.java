@@ -1,8 +1,6 @@
 package org.iesalixar.daw2.alvarolopez.axisgarage.services;
 
-import org.iesalixar.daw2.alvarolopez.axisgarage.entities.Role;
 import org.iesalixar.daw2.alvarolopez.axisgarage.entities.User;
-import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
