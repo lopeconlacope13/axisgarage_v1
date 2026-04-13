@@ -22,23 +22,23 @@ public class Owner {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "El nombre no puede estar vacío")
-    @Size(max = 100)
+    @NotEmpty(message = "{msg.owner.name.notEmpty}")
+    @Size(max = 100, message = "{msg.owner.name.size}")
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @NotEmpty(message = "Los apellidos no pueden estar vacíos")
-    @Size(max = 100)
+    @NotEmpty(message = "{msg.owner.lastName.notEmpty}")
+    @Size(max = 100, message = "{msg.owner.lastName.size}")
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
-    @NotEmpty(message = "El email es obligatorio")
-    @Email(message = "Formato de email incorrecto")
+    @NotEmpty(message = "{msg.owner.email.notEmpty}")
+    @Email(message = "{msg.owner.email.email}")
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
-    @NotEmpty(message = "El telefono es obligatorio")
-    @Size(max = 12)
+    @NotEmpty(message = "{msg.owner.phone.notEmpty}")
+    @Size(max = 12, message = "{msg.owner.phone.size}")
     @Column(name = "phone", length = 12)
     private String phone;
 
