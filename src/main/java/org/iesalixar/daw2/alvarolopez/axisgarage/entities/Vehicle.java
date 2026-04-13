@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,45 +25,49 @@ public class Vehicle {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "La marca es obligatoria")
-    @Size(max = 100)
+    @NotEmpty(message = "{msg.vehicle.brand.notEmpty}")
+    @Size(max = 100, message = "{msg.vehicle.brand.size}")
     @Column(nullable = false, length = 100)
     private String brand;
 
-    @NotEmpty(message = "El modelo es obligatorio")
-    @Size(max = 100)
+    @NotEmpty(message = "{msg.vehicle.model.notEmpty}")
+    @Size(max = 100, message = "{msg.vehicle.model.size}")
     @Column(nullable = false, length = 100)
     private String model;
 
-    @NotNull(message = "El año de producción es obligatorio")
+    @NotNull(message = "{msg.vehicle.productionYear.notNull}")
+    @Min(value = 1900, message = "{msg.vehicle.productionYear.min}")
     @Column(name = "production_year", nullable = false)
     private Integer productionYear;
 
-    @NotNull(message = "El precio por dia es obligatorio")
+    @NotNull(message = "{msg.vehicle.pricePerDay.notNull}")
+    @Positive(message = "{msg.vehicle.pricePerDay.positive}")
     @Column(name = "price_per_day", nullable = false)
     private Double pricePerDay;
 
-    @NotEmpty(message = "El tipo de motor es obligatorio")
+    @NotEmpty(message = "{msg.vehicle.engineType.notEmpty}")
     @Column(name = "engine_type", nullable = false)
     private String engineType;
 
-    @NotNull(message = "Los CV son obligatorios")
+    @NotNull(message = "{msg.vehicle.horsePower.notNull}")
+    @Min(value = 1, message = "{msg.vehicle.horsePower.min}")
     @Column(name = "horse_power", nullable = false)
     private Integer horsePower;
 
-    @NotNull(message = "El torque es obligatorio")
+    @NotNull(message = "{msg.vehicle.torqueNm.notNull}")
+    @Min(value = 1, message = "{msg.vehicle.torqueNm.min}")
     @Column(name = "torque_nm", nullable = false)
     private Integer torqueNm;
 
-    @NotEmpty(message = "La transmisión es obligatoria")
+    @NotEmpty(message = "{msg.vehicle.transmission.notEmpty}")
     @Column(name = "transmission", nullable = false)
     private String transmission;
 
-    @NotEmpty(message = "La tracción es obligatoria")
+    @NotEmpty(message = "{msg.vehicle.drivetrain.notEmpty}")
     @Column(name = "drivetrain", nullable = false)
     private String drivetrain;
 
-    @NotEmpty(message = "El tipo de combustible es obligatorio")
+    @NotEmpty(message = "{msg.vehicle.fuelType.notEmpty}")
     @Column(name = "fuel_type", nullable = false)
     private String fuelType;
 
@@ -71,24 +77,24 @@ public class Vehicle {
     @Column(name = "description", length = 1000)
     private String description;
 
-    @NotNull(message = "La disponibilidad es obligatoria")
+    @NotNull(message = "{msg.vehicle.available.notNull}")
     @Column(name = "available", nullable = false)
     private Boolean available;
 
     // Relación con el Owner (Dueño). Carga perezosa (Lazy).
-    @NotNull(message = "El vehículo debe tener un propietario asignado")
+    @NotNull(message = "{msg.vehicle.owner.notNull}")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private Owner owner;
 
     // Relación con VehicleCategory (Categoría)
-    @NotNull(message = "El vehículo debe tener una categoría asignada")
+    @NotNull(message = "{msg.vehicle.category.notNull}")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private VehicleCategory category;
 
     // Relación con Location (Sede)
-    @NotNull(message = "El vehículo debe tener una sede asignada")
+    @NotNull(message = "{msg.vehicle.location.notNull}")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
