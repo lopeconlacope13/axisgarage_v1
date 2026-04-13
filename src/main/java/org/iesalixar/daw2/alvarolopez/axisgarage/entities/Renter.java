@@ -23,28 +23,28 @@ public class Renter {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotEmpty(message = "El nombre no puede estar vacío")
-    @Size(max = 100)
+    @NotEmpty(message = "{msg.renter.name.notEmpty}")
+    @Size(max = 100, message = "{msg.renter.name.size}")
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @NotEmpty(message = "Los apellidos no pueden estar vacíos")
-    @Size(max = 100)
+    @NotEmpty(message = "{msg.renter.lastName.notEmpty}")
+    @Size(max = 100, message = "{msg.renter.lastName.size}")
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
-    @NotEmpty(message = "El email es obligatorio")
-    @Email(message = "Formato de email incorrecto")
+    @NotEmpty(message = "{msg.renter.email.notEmpty}")
+    @Email(message = "{msg.renter.email.email}")
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
-    @NotEmpty(message = "El dni es obligatorio")
-    @Size(max = 20)
+    @NotEmpty(message = "{msg.renter.dni.notEmpty}")
+    @Size(max = 20, message = "{msg.renter.dni.size}")
     @Column(name = "dni", length = 20)
     private String dni;
 
-    @NotEmpty(message = "El teléfono es obligatorio")
-    @Pattern(regexp = "^[0-9]{9}$", message = "El teléfono debe contener exactamente 9 dígitos numéricos")
+    @NotEmpty(message = "{msg.renter.phone.notEmpty}")
+    @Pattern(regexp = "^[0-9]{9}$", message = "{msg.renter.phone.pattern}")
     @Column(name = "phone", nullable = false, unique = true, length = 12)
     private String phone;
 
