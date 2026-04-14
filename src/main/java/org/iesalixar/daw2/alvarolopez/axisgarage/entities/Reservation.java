@@ -2,6 +2,7 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,31 +21,33 @@ public class Reservation {
     private Long id;
 
     // FECHA DE ENTRADA
-    @NotNull(message = "La fecha de entrada es obligatoria")
+    @NotNull(message = "{msg.reservation.startDate.notNull}")
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
     // FECHA DE SALIDA
-    @NotNull(message = "La fecha de salida es obligatoria")
+    @NotNull(message = "{msg.reservation.endDate.notNull}")
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
     // IMPORTE (Double es correcto para dinero en este nivel)
-    @Column(name = "total_price")
+    @NotNull(message = "{msg.reservation.totalPrice.notNull}")
+    @Column(name = "total_price", nullable = false)
     private Double totalPrice;
 
     // ESTADO
-    @Column(name = "status")
+    @NotEmpty(message = "{msg.reservation.status.notEmpty}")
+    @Column(name = "status", nullable = false)
     private String status;
 
     // RELACIÓN CON VEHICULO (N:1)
-    @NotNull(message = "La reserva debe asociarse a un vehículo")
+    @NotNull(message = "{msg.reservation.vehicle.notNull}")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id", nullable = false)
     private Vehicle vehicle;
 
     // RELACIÓN CON RENTER (N:1)
-    @NotNull(message = "La reserva debe tener un renter titular")
+    @NotNull(message = "{msg.reservation.renter.notNull}")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "renter_id", nullable = false)
     private Renter renter;
