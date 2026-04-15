@@ -20,22 +20,22 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "La puntuación es obligatoria")
-    @Min(value = 1, message = "La puntuación mínima es 1")
-    @Max(value = 5, message = "La puntuación máxima es 5")
+    @NotNull(message = "{msg.review.rating.notNull}")
+    @Min(value = 1, message = "{msg.review.rating.min}")
+    @Max(value = 5, message = "{msg.review.rating.max}")
     @Column(name = "rating")
     private Long rating;
 
-    @Size(max = 500, message = "El comentario es demasiado largo (máx 500 caracteres)")
+    @Size(max = 500, message = "{msg.review.comment.size}")
     @Column(name = "comment", length = 500)
     private String comment;
 
-    @NotNull(message = "La opinión debe pertenecer a una reserva")
+    @NotNull(message = "{msg.review.reservation.notNull}")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
 
-    @NotNull(message = "La opinión debe ser de un usuario registrado")
+    @NotNull(message = "{msg.review.renter.notNull}")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "renter_id", nullable = false)
     private Renter renter;
