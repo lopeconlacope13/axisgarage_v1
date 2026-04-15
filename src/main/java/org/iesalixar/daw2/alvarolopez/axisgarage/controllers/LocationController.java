@@ -68,7 +68,7 @@ public class LocationController {
     public ResponseEntity<?> deleteLocation(@PathVariable Long id) {
         try {
             locationService.deleteLocation(id);
-            return ResponseEntity.ok("Sede eliminada con éxito.");
+            return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

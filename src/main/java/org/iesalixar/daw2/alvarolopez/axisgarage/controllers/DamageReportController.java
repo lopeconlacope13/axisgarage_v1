@@ -68,7 +68,7 @@ public class DamageReportController {
     public ResponseEntity<?> deleteReport(@PathVariable Long id) {
         try {
             damageReportService.deleteReport(id);
-            return ResponseEntity.ok("Informe de daños eliminado con éxito.");
+            return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
