@@ -2,6 +2,7 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.VehicleCategoryDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.VehicleCategoryService;
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ public class VehicleCategoryController {
 
     @Operation(summary = "Crear una nueva categoría")
     @PostMapping
-    public ResponseEntity<?> createCategory(@RequestBody VehicleCategoryDTO dto) {
+    public ResponseEntity<?> createCategory(@Valid @RequestBody VehicleCategoryDTO dto) {
         try {
             VehicleCategoryDTO created = categoryService.createCategory(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -53,7 +54,7 @@ public class VehicleCategoryController {
 
     @Operation(summary = "Actualizar una categoría existente")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCategory(@PathVariable Long id, @RequestBody VehicleCategoryDTO dto) {
+    public ResponseEntity<?> updateCategory(@PathVariable Long id, @Valid @RequestBody VehicleCategoryDTO dto) {
         try {
             VehicleCategoryDTO updated = categoryService.updateCategory(id, dto);
             return ResponseEntity.ok(updated);

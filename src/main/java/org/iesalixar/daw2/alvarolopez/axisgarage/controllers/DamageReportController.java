@@ -2,6 +2,7 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.DamageReportDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.DamageReportService;
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ public class DamageReportController {
 
     @Operation(summary = "Crear un nuevo informe de daños")
     @PostMapping
-    public ResponseEntity<?> createReport(@RequestBody DamageReportDTO dto) {
+    public ResponseEntity<?> createReport(@Valid @RequestBody DamageReportDTO dto) {
         try {
             DamageReportDTO created = damageReportService.createReport(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -53,7 +54,7 @@ public class DamageReportController {
 
     @Operation(summary = "Actualizar un informe de daños")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateReport(@PathVariable Long id, @RequestBody DamageReportDTO dto) {
+    public ResponseEntity<?> updateReport(@PathVariable Long id, @Valid @RequestBody DamageReportDTO dto) {
         try {
             DamageReportDTO updated = damageReportService.updateReport(id, dto);
             return ResponseEntity.ok(updated);

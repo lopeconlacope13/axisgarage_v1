@@ -2,6 +2,7 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.LocationDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.LocationService;
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ public class LocationController {
 
     @Operation(summary = "Crear una nueva sede")
     @PostMapping
-    public ResponseEntity<?> createLocation(@RequestBody LocationDTO dto) {
+    public ResponseEntity<?> createLocation(@Valid @RequestBody LocationDTO dto) {
         try {
             LocationDTO created = locationService.createLocation(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -53,7 +54,7 @@ public class LocationController {
 
     @Operation(summary = "Actualizar una sede existente")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateLocation(@PathVariable Long id, @RequestBody LocationDTO dto) {
+    public ResponseEntity<?> updateLocation(@PathVariable Long id, @Valid @RequestBody LocationDTO dto) {
         try {
             LocationDTO updated = locationService.updateLocation(id, dto);
             return ResponseEntity.ok(updated);

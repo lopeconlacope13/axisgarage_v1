@@ -2,6 +2,7 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.CoverageDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.CoverageService;
 import org.slf4j.Logger;
@@ -45,7 +46,7 @@ public class CoverageController {
 
     @Operation(summary = "Actualizar cobertura (upgrade/downgrade)")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCoverage(@PathVariable Long id, @RequestBody CoverageDTO dto) {
+    public ResponseEntity<?> updateCoverage(@PathVariable Long id, @Valid @RequestBody CoverageDTO dto) {
         try {
             CoverageDTO updated = coverageService.updateCoverage(id, dto);
             return ResponseEntity.ok(updated);
