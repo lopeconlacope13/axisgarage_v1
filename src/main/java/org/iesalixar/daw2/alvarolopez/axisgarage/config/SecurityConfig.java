@@ -69,19 +69,20 @@ public class SecurityConfig {
 						.requestMatchers("/uploads/**").permitAll()
 
 						// --- RUTAS DE CLIENTE (USER/MANAGER/ADMIN) ---
-						.requestMatchers(HttpMethod.GET, "/api/reservas/**").hasAnyRole("USER", "MANAGER", "ADMIN")
-						.requestMatchers(HttpMethod.POST, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
-						.requestMatchers(HttpMethod.PUT, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
-						.requestMatchers(HttpMethod.DELETE, "/api/reservas/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.GET, "/api/reservations/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.POST, "/api/reservations/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.PUT, "/api/reservations/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/api/reservations/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 
-						.requestMatchers(HttpMethod.POST, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
-						.requestMatchers(HttpMethod.PUT, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
-						.requestMatchers(HttpMethod.DELETE, "/api/opiniones/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.GET, "/api/reviews/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.POST, "/api/reviews/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.PUT, "/api/reviews/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/api/reviews/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 
-						.requestMatchers(HttpMethod.GET, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
-						.requestMatchers(HttpMethod.POST, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
-						.requestMatchers(HttpMethod.PUT, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
-						.requestMatchers(HttpMethod.DELETE, "/api/huespedes/**").hasAnyRole("USER", "ADMIN")
+						.requestMatchers(HttpMethod.GET, "/api/renters/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.POST, "/api/renters/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.PUT, "/api/renters/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/api/renters/**").hasAnyRole("MANAGER", "ADMIN")
 
 						// --- COBERTURAS (USER+) ---
 						.requestMatchers(HttpMethod.GET, "/api/coverages/**").hasAnyRole("USER", "MANAGER", "ADMIN")
@@ -92,10 +93,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.PUT, "/api/vehicles/**").hasAnyRole("MANAGER", "ADMIN")
 						.requestMatchers(HttpMethod.DELETE, "/api/vehicles/**").hasAnyRole("MANAGER", "ADMIN")
 
-						.requestMatchers(HttpMethod.GET, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
-						.requestMatchers(HttpMethod.POST, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
-						.requestMatchers(HttpMethod.PUT, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
-						.requestMatchers(HttpMethod.DELETE, "/api/propietarios/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers("/api/owners/**").hasAnyRole("MANAGER", "ADMIN")
 
 						// --- INFORMES DE DAÑOS (MANAGER+) ---
 						.requestMatchers("/api/damage-reports/**").hasAnyRole("MANAGER", "ADMIN")
@@ -108,7 +106,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.DELETE, "/api/invoices/**").hasRole("ADMIN")
 
 						// --- RUTAS EXCLUSIVAS DE ADMIN ---
-						.requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+						.requestMatchers("/api/users/**").hasRole("ADMIN")
 						.requestMatchers(HttpMethod.POST, "/api/locations/**").hasRole("ADMIN")
 						.requestMatchers(HttpMethod.PUT, "/api/locations/**").hasRole("ADMIN")
 						.requestMatchers(HttpMethod.DELETE, "/api/locations/**").hasRole("ADMIN")
