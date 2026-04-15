@@ -3,6 +3,8 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.controllers;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.AuthRequestDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.AuthResponseDTO;
+import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.RegisterRequestDTO;
+import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.UserDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.UserService;
 import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,5 +74,24 @@ public class AuthenticationController {
     public ResponseEntity<AuthResponseDTO> handleException(Exception e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new AuthResponseDTO(null, "Ocurrió un error inesperado: " + e.getMessage()));
+    }
+
+    /**
+     * Registra un nuevo usuario con rol ROLE_USER.
+     *
+     * @param dto DTO con nombre, apellido, email y contraseña.
+     * @return ResponseEntity con el UserDTO creado o error.
+     */
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequestDTO dto) {
+        try {
+            UserDTO creado = userService.registrarUsuario(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al registrar el usuario.");
+        }
     }
 }
