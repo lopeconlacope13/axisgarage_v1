@@ -2,6 +2,7 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.entities;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -43,11 +44,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Campo que almacena el nombre de usuario. Actúa como la clave primaria.
+    // Campo que almacena el nombre de usuario.
     @NotEmpty(message = "{msg.user.username.notEmpty}")
     @Size(max = 50, message = "{msg.user.username.size}")
     @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;
+
+    // Campo que almacena el email del usuario. Se usa como identificador de login.
+    @NotEmpty(message = "{msg.user.email.notEmpty}")
+    @Email(message = "{msg.user.email.email}")
+    @Size(max = 100, message = "{msg.user.email.size}")
+    @Column(name = "email", nullable = false, unique = true, length = 100)
+    private String email;
 
     // Campo que almacena la contraseña encriptada del usuario.
     @NotEmpty(message = "{msg.user.password.notEmpty}")
