@@ -38,41 +38,33 @@ public class AuthenticationController {
      *
      * @Param authRequest Un Objeto
      */
-    @PostMapping("/authenticate") // Al combinar con la de arriba, la ruta final es /api/v1/authenticate
+    @PostMapping("/authenticate")
     public ResponseEntity<AuthResponseDTO> authenticate(@Valid @RequestBody AuthRequestDTO authRequest) {
 		try {
-			// Validar datos de entrada (opcional si no usas validación adicional en DTO)
-			if (authRequest.getUsername() == null || authRequest.getPassword() == null) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponseDTO(null, "El nombre de usuario y la contraseña son obligatorios."));
+			if (authRequest.getEmail() == null || authRequest.getPassword() == null) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponseDTO(null, "El email y la contraseña son obligatorios."));
 			}
 
-			// Intenta autenticar al usuario con las credenciales proporcionadas
-			Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+			Authentication authentication = authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
 			);
 
-			// Obtiene el nombre de usuario autenticado
-			String username = authentication.getName();
+			String email = authentication.getName();
 
-			// Extrae los roles del usuario autenticado desde las autoridades asignadas
 			List<String> roles = authentication.getAuthorities().stream()
-					.map(GrantedAuthority::getAuthority) // Convierte cada autoridad en su representación de texto
+					.map(GrantedAuthority::getAuthority)
 					.toList();
-			Long id = userService.getIdByUsername(username);
+			Long id = userService.getIdByEmail(email);
 
-			// Genera un token JWT para el usuario autenticado, incluyendo sus roles
-			String token = jwtUtil.generateToken(username, roles, id);
+			String token = jwtUtil.generateToken(email, roles, id);
 
-
-			// Retorna una respuesta con el token JWT y un mensaje de éxito
-			return ResponseEntity.ok(new AuthResponseDTO(token, "Authentication successful first part"));
+			return ResponseEntity.ok(new AuthResponseDTO(token, "Autenticación correcta."));
 		} catch (BadCredentialsException e) {
-			// Manejo de credenciales inválidas
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new AuthResponseDTO(null, "Credenciales inválidas. Por favor, verifica tus datos."));
+					.body(new AuthResponseDTO(null, "Credenciales inválidas. Por favor, verifica tu email y contraseña."));
 		} catch (Exception e) {
-			// Manejo de cualquier otro error
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new AuthResponseDTO(null, "Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde."));
+					.body(new AuthResponseDTO(null, "Error inesperado. Por favor, inténtalo de nuevo más tarde."));
 		}
 	}
 

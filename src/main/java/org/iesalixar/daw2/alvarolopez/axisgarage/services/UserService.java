@@ -21,6 +21,16 @@ public class UserService {
 		return userRepository.getIdByUsername(username);
 	}
 
+	/**
+	 * Obtiene el ID de un usuario a partir de su email.
+	 *
+	 * @param email Email del usuario.
+	 * @return ID del usuario.
+	 */
+	public Long getIdByEmail(String email) {
+		return userRepository.getIdByEmail(email);
+	}
+
 	public UserDTO getUserDTOById(Long id) {
 		Optional<User> userOpt = userRepository.findById(id);
 		if (userOpt.isPresent()) {
