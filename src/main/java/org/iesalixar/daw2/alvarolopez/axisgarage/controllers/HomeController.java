@@ -1,21 +1,25 @@
 package org.iesalixar.daw2.alvarolopez.axisgarage.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/api/")
+@RequestMapping("/api")
+@Tag(name = "Dashboard", description = "Estadísticas globales de la plataforma Axis Garage")
 public class HomeController {
 
     private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 
-    // inyecto los repositorios
     @Autowired
     private VehicleRepository vehicleRepository;
     @Autowired
@@ -27,22 +31,21 @@ public class HomeController {
     @Autowired
     private ReviewRepository reviewRepository;
 
-    @GetMapping
-    public String home(Model model) {
-        logger.info("Cargando Dashboard...");
-
-        // usamos .count para hacer un SELECT COUNT * a la bd
-        // si usara .findAll().size(), funcionaría pero no es eficiente
-        model.addAttribute("totalVehicles", vehicleRepository.count());
-        model.addAttribute("totalReservations", reservationRepository.count());
-        model.addAttribute("totalRenters", renterRepository.count());
-        model.addAttribute("totalOwners", ownerRepository.count());
-        model.addAttribute("totalReviews", reviewRepository.count());
-
-        // he creado un método en el repositorio, que ordena los 5 primeros por id
-        // descendiente y los muestra
-        model.addAttribute("lastReservations", reservationRepository.findTop5ByOrderByIdDesc());
-
-        return "index";
+    /**
+     * Devuelve las estadísticas globales del dashboard de Axis Garage.
+     *
+     * @return ResponseEntity con un mapa de contadores: vehículos, reservas, clientes, propietarios y reseñas.
+     */
+    @GetMapping("/stats")
+    @Operation(summary = "Estadísticas globales", description = "Devuelve los totales de vehículos, reservas, clientes, propietarios y reseñas.")
+    public ResponseEntity<Map<String, Long>> stats() {
+        logger.info("Cargando estadísticas del dashboard...");
+        return ResponseEntity.ok(Map.of(
+                "totalVehicles", vehicleRepository.count(),
+                "totalReservations", reservationRepository.count(),
+                "totalRenters", renterRepository.count(),
+                "totalOwners", ownerRepository.count(),
+                "totalReviews", reviewRepository.count()
+        ));
     }
 }
