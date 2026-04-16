@@ -25,7 +25,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reviews")
-@Tag(name = "Reviews", description = "Operaciones CRUD para la gestión de reseñas")
+@Tag(name = "Reviews", description = "Operaciones CRUD para la gestión de reseñas de vehículos alquilados")
 public class ReviewController {
 
     private static final Logger logger = LoggerFactory.getLogger(ReviewController.class);
