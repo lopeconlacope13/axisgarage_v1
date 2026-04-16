@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "API REST axisgarage",
                 version = "1.0",
-                description = "API para la gestión de reservas de alojamientos rurales, propietarios, huéspedes y opiniones."
+                description = "API para la gestión de alquiler de vehículos de alta gama, reservas, coberturas y pagos."
         ),
         security = @SecurityRequirement(name = "bearerAuth") // Aplica la seguridad a toda la API por defecto
 )
