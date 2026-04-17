@@ -82,12 +82,10 @@ CREATE TABLE vehicles (
     CONSTRAINT fk_vehicle_location FOREIGN KEY (location_id) REFERENCES locations(id)
 );
 
--- 6. TABLA VEHICLE_IMAGES --
+-- 6. TABLA VEHICLE_IMAGES (colección de imágenes por vehículo) --
 CREATE TABLE vehicle_images (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     vehicle_id BIGINT NOT NULL,
-    file_name VARCHAR(255) NOT NULL,
-    is_main BOOLEAN DEFAULT FALSE,
+    image_url VARCHAR(255),
     FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
 );
 
