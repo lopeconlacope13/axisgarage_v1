@@ -27,6 +27,15 @@ public class OwnerService {
 
     // --- 1. LISTAR CON PAGINACIÓN ---
 
+    /**
+     * Obtiene una lista paginada de propietarios, permitiendo filtrar por nombre e email.
+     *
+     * @param name Nombre del propietario (opcional).
+     * @param email Email del propietario (opcional).
+     * @param pageable Configuración de paginación y ordenación.
+     * @return Page con los DTOs de los propietarios encontrados.
+     * @throws RuntimeException si ocurre un error interno en el proceso.
+     */
     public Page<OwnerDTO> getAllOwners(String name, String email, Pageable pageable) {
         try {
             logger.info("Solicitando propietarios con filtros -> Nombre: {}, Email: {}", name, email);
@@ -43,6 +52,13 @@ public class OwnerService {
 
     // --- 2. OBTENER UNO POR ID ---
 
+    /**
+     * Busca un propietario específico por su identificador único.
+     *
+     * @param id Identificador del propietario.
+     * @return Optional con el DTO del propietario si existe, o vacío si no se encuentra.
+     * @throws RuntimeException si ocurre un error al acceder a la base de datos.
+     */
     public Optional<OwnerDTO> getOwnerById(Long id) {
         try {
             logger.info("Buscando propietario con ID {}", id);
@@ -55,6 +71,14 @@ public class OwnerService {
 
     // --- 3. CREAR PROPIETARIO ---
 
+    /**
+     * Crea un nuevo propietario asegurando que su email y teléfono no estén ya registrados.
+     *
+     * @param ownerDTO Objeto DTO con los datos del propietario.
+     * @return OwnerDTO con los datos del propietario creado y guardado.
+     * @throws IllegalArgumentException si el email o el teléfono ya están en uso.
+     * @throws RuntimeException si ocurre un error inesperado al guardar.
+     */
     public OwnerDTO createOwner(@Valid OwnerDTO ownerDTO) {
         try {
             logger.info("Creando nuevo propietario con email: {}", ownerDTO.getEmail());
@@ -87,6 +111,15 @@ public class OwnerService {
 
     // --- 4. ACTUALIZAR PROPIETARIO ---
 
+    /**
+     * Actualiza la información de un propietario existente, verificando reglas de duplicidad.
+     *
+     * @param id Identificador del propietario a actualizar.
+     * @param ownerDTO DTO con los nuevos datos del propietario.
+     * @return OwnerDTO con la información actualizada.
+     * @throws IllegalArgumentException si el propietario no existe o si el email/teléfono ya pertenecen a otro.
+     * @throws RuntimeException si ocurre un error interno en la actualización.
+     */
     public OwnerDTO updateOwner(Long id, @Valid OwnerDTO ownerDTO) {
         try {
             logger.info("Actualizando propietario con ID {}", id);
@@ -129,6 +162,13 @@ public class OwnerService {
 
     // --- 5. BORRAR ---
 
+    /**
+     * Elimina a un propietario del sistema mediante su identificador.
+     *
+     * @param id Identificador del propietario a eliminar.
+     * @throws IllegalArgumentException si no se encuentra al propietario.
+     * @throws RuntimeException si ocurre un error en el proceso de borrado.
+     */
     public void deleteOwner(Long id) {
         try {
             logger.info("Borrando propietario con ID {}", id);

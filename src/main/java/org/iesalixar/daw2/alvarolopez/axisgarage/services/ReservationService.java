@@ -39,6 +39,16 @@ public class ReservationService {
     private CoverageService coverageService;
 
     // --- 1. LISTAR PAGINADO CON FILTROS ---
+    /**
+     * Retorna reservas basadas en la combinación de distintos filtros y en formato de página.
+     * 
+     * @param vehicleId ID del vehículo reservado (opcional).
+     * @param renterId ID del huésped de la reserva (opcional).
+     * @param fechaDesde Fecha mínima para la búsqueda (opcional).
+     * @param fechaHasta Fecha máxima para la búsqueda (opcional).
+     * @param pageable Configuración de paginación.
+     * @return Page de dtos de reservas localizadas.
+     */
     public Page<ReservationDTO> getAllReservations(Long vehicleId, Long renterId, LocalDate fechaDesde,
             LocalDate fechaHasta, Pageable pageable) {
         try {
@@ -57,6 +67,12 @@ public class ReservationService {
     }
 
     // --- 2. OBTENER POR ID ---
+    /**
+     * Accede de forma individual a la data de una reserva por su id.
+     *
+     * @param id de la reserva objetivo.
+     * @return Un encapsulamiento Optional con los datos o null.
+     */
     public Optional<ReservationDTO> getReservationById(Long id) {
         try {
             return reservationRepository.findById(id).map(reservationMapper::toDTO);
@@ -67,6 +83,13 @@ public class ReservationService {
     }
 
     // --- 3. CREAR RESERVA ---
+    /**
+     * Da de alta en el sistema una reserva, comprueba duplicados de fechas, solapamiento y genera una póliza STANDARD por defecto.
+     *
+     * @param dto El objeto data transfer object con fechas e información.
+     * @throws IllegalArgumentException si falta integridad lógica o de negocio en las horas.
+     * @return ReservationDTO con un tracker ID.
+     */
     public ReservationDTO createReservation(@Valid ReservationDTO dto) {
         try {
             logger.info("Iniciando creación de reserva para Vehículo {} y Huésped {}", dto.getVehicleId(),
@@ -115,6 +138,14 @@ public class ReservationService {
     }
 
     // --- 4. ACTUALIZAR RESERVA ---
+    /**
+     * Realiza un overwrite de las fechas precalculadas y el total parcial manteniendo las asociaciones limpias de bugs.
+     *
+     * @param id identificador de reserva original a sobreescribir.
+     * @param dto nueva propuesta de Reservation.
+     * @throws IllegalArgumentException si interfiere con otras reservas colindantes.
+     * @return Entity dto mapeado fresco.
+     */
     public ReservationDTO updateReservation(Long id, @Valid ReservationDTO dto) {
         try {
             logger.info("Actualizando reserva con ID {}", id);
@@ -162,6 +193,12 @@ public class ReservationService {
     }
 
     // --- 5. BORRAR RESERVA ---
+    /**
+     * Elimina una reserva abortando su vida útil en el sistema de forma directa.
+     *
+     * @param id del target a remover.
+     * @throws IllegalArgumentException si el objeto no reside en base de datos.
+     */
     public void deleteReservation(Long id) {
         try {
             if (!reservationRepository.existsById(id)) {

@@ -38,6 +38,14 @@ public class ReviewService {
 
     // --- 1. LISTAR CON PAGINACIÓN ---
 
+    /**
+     * Consulta el catálogo de opiniones emitidas, con soporte para filtrado con paginación.
+     *
+     * @param rating Puntuación mínima requerida (opcional).
+     * @param reservationId ID de la reserva asociada (opcional).
+     * @param pageable Configuración de paginación para la salida limitante.
+     * @return Page con dtos de las opiniones que cumplen los parámetros.
+     */
     public Page<ReviewDTO> getAllReviews(Integer rating, Long reservationId, Pageable pageable) {
         try {
             logger.info("Solicitando opiniones con filtros -> Puntuación Mínima: {}, Reserva ID: {}",
@@ -55,6 +63,12 @@ public class ReviewService {
 
     // --- 2. OBTENER UNA POR ID ---
 
+    /**
+     * Lee un registro singular de opinión por su clave primaria.
+     *
+     * @param id identificador interno.
+     * @return Optional del ReviewDTO.
+     */
     public Optional<ReviewDTO> getReviewById(Long id) {
         try {
             logger.info("Buscando opinión con ID {}", id);
@@ -67,6 +81,12 @@ public class ReviewService {
 
     // --- 3. LISTAR OPINIONES DE UNA RESERVA ---
 
+    /**
+     * Devuelve toda la recopilación de valoraciones adjuntas a una misma reserva.
+     *
+     * @param reservationId de la operación analizada.
+     * @return List conteniendo todos los DTOs vinculados a tal reserva.
+     */
     public List<ReviewDTO> getReviewsByReservation(Long reservationId) {
         try {
             logger.info("Buscando opiniones de la reserva con ID {}", reservationId);
@@ -90,6 +110,13 @@ public class ReviewService {
 
     // --- 4. CREAR OPINIÓN ---
 
+    /**
+     * Guarda una reseña comprobando de antemano que la reserva analizada no haya sido valorada antes por este usuario.
+     *
+     * @param reviewDTO Información recolectada incluyendo puntuación y comentario.
+     * @throws IllegalArgumentException si la reserva ya tenía review del inquilino.
+     * @return ReviewDTO con su constancia de registro y persistencia.
+     */
     public ReviewDTO createReview(@Valid ReviewDTO reviewDTO) {
         try {
             logger.info("Creando nueva opinión para reserva {} por huésped {}",
@@ -131,6 +158,14 @@ public class ReviewService {
 
     // --- 5. ACTUALIZAR OPINIÓN ---
 
+    /**
+     * Actualiza y ajusta el veredicto de una reseña preexistente.
+     *
+     * @param id identificador principal de la review.
+     * @param reviewDTO objeto portador con el parse de modificaciones.
+     * @return ReviewDTO persistido de vuelta a la base de mariadb.
+     * @throws IllegalArgumentException si entra en conflicto de unicidad con otra id distinta.
+     */
     public ReviewDTO updateReview(Long id, @Valid ReviewDTO reviewDTO) {
         try {
             logger.info("Actualizando opinión con ID {}", id);
@@ -182,6 +217,11 @@ public class ReviewService {
 
     // --- 6. BORRAR OPINIÓN ---
 
+    /**
+     * Purga la reseña de los registros.
+     *
+     * @param id de la entidad a destruir.
+     */
     public void deleteReview(Long id) {
         try {
             if (!reviewRepository.existsById(id)) {

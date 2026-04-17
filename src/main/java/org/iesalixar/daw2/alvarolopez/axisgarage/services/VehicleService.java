@@ -49,6 +49,14 @@ public class VehicleService {
 
     // --- 1. LISTAR CON PAGINACIÓN ---
 
+    /**
+     * Obtiene una lista paginada de vehículos catalogados, con filtros opcionales.
+     *
+     * @param model Modelo del vehículo a buscar.
+     * @param horsePower Potencia mínima en CV.
+     * @param pageable Configuración de paginación de Spring Data.
+     * @return Page con listado de VehicleDTO.
+     */
     public Page<VehicleDTO> getAllVehicles(String model, Integer horsePower, Pageable pageable) {
         logger.info("Solicitando Vehículos con filtros -> Modelo: {}, CV mínimos: {}", model, horsePower);
         try {
@@ -65,6 +73,13 @@ public class VehicleService {
 
     // --- 2. OBTENER POR ID ---
 
+    /**
+     * Devuelve el detalle de un vehículo específico.
+     *
+     * @param id Identificador del vehículo.
+     * @return Optional con los datos del vehículo, si existe.
+     * @throws RuntimeException en caso de error interno.
+     */
     @Transactional
     public Optional<VehicleDTO> getVehicleById(Long id) {
         try {
@@ -78,6 +93,14 @@ public class VehicleService {
 
     // --- 3. CREAR VEHÍCULO ---
 
+    /**
+     * Crea un vehículo nuevo en la base de datos subiendo sus archivos adjuntos.
+     *
+     * @param vehicleDTO Datos enviados para el vehículo.
+     * @param locale Contexto de idioma actual.
+     * @return VehicleDTO con los datos e ID asignado.
+     * @throws IllegalArgumentException si el modelado ya pertenece a ese mismo owner.
+     */
     public VehicleDTO createVehicle(VehicleDTO vehicleDTO, Locale locale) {
 
         // validar duplicado para este dueño
@@ -122,6 +145,15 @@ public class VehicleService {
 
     // --- 4. ACTUALIZAR VEHÍCULO ---
 
+    /**
+     * Edita los campos y sustituye/añade imágenes de un vehículo del registro.
+     *
+     * @param id ID original del vehículo.
+     * @param vehicleDTO Contenido actualizado.
+     * @param locale Contexto de idioma actual.
+     * @return VehicleDTO resultante.
+     * @throws IllegalArgumentException si los datos incumplen unicidad.
+     */
     public VehicleDTO updateVehicle(Long id, VehicleDTO vehicleDTO, Locale locale) {
 
         // verificar que existe
@@ -190,6 +222,12 @@ public class VehicleService {
 
     // --- 5. ELIMINAR VEHÍCULO ---
 
+    /**
+     * Borra permanentemente el vehículo del sistema.
+     *
+     * @param id Identificador del coche a borrar.
+     * @throws IllegalArgumentException si no se localiza el auto con el id entregado.
+     */
     public void deleteVehicle(Long id) {
         if (!vehicleRepository.existsById(id)) {
             throw new IllegalArgumentException("El vehículo no existe.");

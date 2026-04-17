@@ -29,6 +29,12 @@ public class DamageReportService {
     @Autowired
     private DamageReportMapper damageReportMapper;
 
+    /**
+     * Lista todos los informes de daños asociados a una reserva.
+     *
+     * @param reservationId Identificador de la reserva.
+     * @return Lista de DamageReportDTO con los reportes de la reserva.
+     */
     public List<DamageReportDTO> getReportsByReservationId(Long reservationId) {
         logger.info("Listando informes de daños para reserva {}", reservationId);
         return damageReportRepository.findByReservationId(reservationId)
@@ -37,10 +43,23 @@ public class DamageReportService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Busca un informe de daños por su identificador.
+     *
+     * @param id Identificador del reporte.
+     * @return Optional con el contenido del reporte.
+     */
     public Optional<DamageReportDTO> getReportById(Long id) {
         return damageReportRepository.findById(id).map(damageReportMapper::toDTO);
     }
 
+    /**
+     * Crea un nuevo registro de daños reportados.
+     *
+     * @param dto DTO del daño.
+     * @return DTO del reporte guardado.
+     * @throws IllegalArgumentException si la reserva asociada no se encuentra en el sistema.
+     */
     public DamageReportDTO createReport(DamageReportDTO dto) {
         Reservation reservation = reservationRepository.findById(dto.getReservationId())
                 .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada con ID: " + dto.getReservationId()));
@@ -51,6 +70,14 @@ public class DamageReportService {
         return damageReportMapper.toDTO(saved);
     }
 
+    /**
+     * Edita un informe de daños ya preexistente.
+     *
+     * @param id del parte reportado.
+     * @param dto Contenido actualizado del parte.
+     * @return DTO del parte tras su actualización de estado.
+     * @throws IllegalArgumentException si el parte original ya no existe.
+     */
     public DamageReportDTO updateReport(Long id, DamageReportDTO dto) {
         DamageReport existing = damageReportRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Informe de daños no encontrado con ID: " + id));
@@ -65,6 +92,12 @@ public class DamageReportService {
         return damageReportMapper.toDTO(saved);
     }
 
+    /**
+     * Borrado lógico o destrucción del informe de daños.
+     *
+     * @param id Clave primaria interna.
+     * @throws IllegalArgumentException ante la falta de correspondencia.
+     */
     public void deleteReport(Long id) {
         if (!damageReportRepository.existsById(id)) {
             throw new IllegalArgumentException("Informe de daños no encontrado con ID: " + id);

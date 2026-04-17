@@ -27,6 +27,15 @@ public class RenterService {
 
     // --- 1. LISTAR CON PAGINACIÓN ---
 
+    /**
+     * Obtiene una lista paginada de huéspedes, permitiendo filtrar por nombre y DNI.
+     *
+     * @param name Nombre del huésped (opcional).
+     * @param dni DNI del huésped (opcional).
+     * @param pageable Configuración de paginación y ordenación.
+     * @return Page con los DTOs de los huéspedes encontrados.
+     * @throws RuntimeException si ocurre un error interno al listar.
+     */
     public Page<RenterDTO> getAllRenters(String name, String dni, Pageable pageable) {
         try {
             logger.info("Solicitando huéspedes con filtros -> Nombre: {}, DNI: {}", name, dni);
@@ -43,6 +52,13 @@ public class RenterService {
 
     // --- 2. OBTENER UNO POR ID ---
 
+    /**
+     * Busca un huésped específico por su identificador único.
+     *
+     * @param id Identificador del huésped.
+     * @return Optional con el DTO del huésped si existe, o vacío en caso contrario.
+     * @throws RuntimeException si ocurre un error conectando con la base de datos.
+     */
     public Optional<RenterDTO> getRenterById(Long id) {
         try {
             logger.info("Buscando huésped con ID {}", id);
@@ -55,6 +71,14 @@ public class RenterService {
 
     // --- 3. CREAR HUÉSPED ---
 
+    /**
+     * Registra un nuevo huésped verificando restricciones de unicidad en DNI, Email y Teléfono.
+     *
+     * @param renterDTO Datos enviados para el nuevo huésped.
+     * @return RenterDTO con los datos guardados en base de datos.
+     * @throws IllegalArgumentException si DNI, email o teléfono ya están registrados.
+     * @throws RuntimeException si ocurre un fallo general al guardar.
+     */
     public RenterDTO createRenter(@Valid RenterDTO renterDTO) {
         try {
             logger.info("Creando nuevo huésped con DNI: {}", renterDTO.getDni());
@@ -87,6 +111,15 @@ public class RenterService {
 
     // --- 4. ACTUALIZAR HUÉSPED ---
 
+    /**
+     * Actualiza un huésped, comprobando que las modificaciones de DNI/Email/Teléfono no colisionen con otros.
+     *
+     * @param id Identificador del huésped a actualizar.
+     * @param renterDTO Nuevos datos del huésped.
+     * @return RenterDTO con el registro actualizado.
+     * @throws IllegalArgumentException si se detecta duplicado en campos únicos o no existe el huésped.
+     * @throws RuntimeException para cualquier otro error de proceso.
+     */
     public RenterDTO updateRenter(Long id, @Valid RenterDTO renterDTO) {
         try {
             logger.info("Actualizando huésped con ID {}", id);
@@ -131,6 +164,13 @@ public class RenterService {
 
     // --- 5. BORRAR ---
 
+    /**
+     * Borra el registro de un huésped del sistema.
+     *
+     * @param id Identificador único del huésped.
+     * @throws IllegalArgumentException si el ID indicado no corresponde a un huésped válido.
+     * @throws RuntimeException ante fallos en la capa de persistencia.
+     */
     public void deleteRenter(Long id) {
         try {
             logger.info("Borrando huésped con ID {}", id);
