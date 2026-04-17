@@ -1,0 +1,1006 @@
+{
+  "info": {
+    "name": "Axis Garage API — All Endpoints",
+    "_postman_id": "axisgarage-api-complete-v1",
+    "description": "Colección completa de la API REST de Axis Garage.\n\n**Flujo de uso:**\n1. Ejecuta 'Login (Admin)' → el JWT se guarda automáticamente en {{token}}\n2. Todos los endpoints protegidos usan el Bearer Token de la colección\n\n**Credenciales de prueba:**\n- ADMIN:   admin@axisgarage.com / admin123\n- MANAGER: manager@axisgarage.com / manager123\n- USER:    normal@axisgarage.com / user123",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.token) { pm.collectionVariables.set('token', j.token); }",
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@axisgarage.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/authenticate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "authenticate"]
+            }
+          }
+        },
+        {
+          "name": "Login (Manager)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.token) { pm.collectionVariables.set('token', j.token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@axisgarage.com\",\n  \"password\": \"manager123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/authenticate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "authenticate"]
+            }
+          }
+        },
+        {
+          "name": "Login (User)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.token) { pm.collectionVariables.set('token', j.token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"normal@axisgarage.com\",\n  \"password\": \"user123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/authenticate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "authenticate"]
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Nuevo\",\n  \"lastName\": \"Usuario\",\n  \"email\": \"nuevo@axisgarage.com\",\n  \"password\": \"nuevaPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "register"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "description": "CRUD de vehículos. GET es público, POST/PUT/DELETE requiere MANAGER+.",
+      "item": [
+        {
+          "name": "List Vehicles (paginated, public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "model", "value": "", "disabled": true },
+                { "key": "horsePower", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Vehicle by ID (public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Vehicle (MANAGER+)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "brand", "value": "Lamborghini", "type": "text" },
+                { "key": "model", "value": "Huracán STO", "type": "text" },
+                { "key": "productionYear", "value": "2023", "type": "text" },
+                { "key": "pricePerDay", "value": "350.00", "type": "text" },
+                { "key": "engineType", "value": "V10 Atmosférico", "type": "text" },
+                { "key": "horsePower", "value": "640", "type": "text" },
+                { "key": "torqueNm", "value": "565", "type": "text" },
+                { "key": "transmission", "value": "LDF", "type": "text" },
+                { "key": "drivetrain", "value": "RWD", "type": "text" },
+                { "key": "fuelType", "value": "Gasolina", "type": "text" },
+                { "key": "zeroToHundred", "value": "3.0", "type": "text" },
+                { "key": "description", "value": "Pista pura", "type": "text" },
+                { "key": "available", "value": "true", "type": "text" },
+                { "key": "ownerId", "value": "1", "type": "text" },
+                { "key": "categoryId", "value": "2", "type": "text" },
+                { "key": "locationId", "value": "1", "type": "text" },
+                { "key": "images", "value": "", "type": "file", "disabled": true }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles"]
+            }
+          }
+        },
+        {
+          "name": "Update Vehicle (MANAGER+)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "brand", "value": "Lamborghini", "type": "text" },
+                { "key": "model", "value": "Huracán STO", "type": "text" },
+                { "key": "productionYear", "value": "2023", "type": "text" },
+                { "key": "pricePerDay", "value": "380.00", "type": "text" },
+                { "key": "engineType", "value": "V10 Atmosférico", "type": "text" },
+                { "key": "horsePower", "value": "640", "type": "text" },
+                { "key": "torqueNm", "value": "565", "type": "text" },
+                { "key": "transmission", "value": "LDF", "type": "text" },
+                { "key": "drivetrain", "value": "RWD", "type": "text" },
+                { "key": "fuelType", "value": "Gasolina", "type": "text" },
+                { "key": "available", "value": "true", "type": "text" },
+                { "key": "ownerId", "value": "1", "type": "text" },
+                { "key": "categoryId", "value": "2", "type": "text" },
+                { "key": "locationId", "value": "1", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Vehicle (MANAGER+)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Owners",
+      "description": "CRUD de propietarios. Requiere MANAGER+.",
+      "item": [
+        {
+          "name": "List Owners (paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/owners?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "owners"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "name", "value": "", "disabled": true },
+                { "key": "email", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Owner by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/owners/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "owners", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nuevo\",\n  \"lastName\": \"Propietario\",\n  \"email\": \"nuevo@owner.com\",\n  \"phone\": \"699000111\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/owners",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "owners"]
+            }
+          }
+        },
+        {
+          "name": "Update Owner",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Manolo\",\n  \"lastName\": \"López Actualizado\",\n  \"email\": \"manolo@axisgarage.com\",\n  \"phone\": \"600111222\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/owners/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "owners", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Owner",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/owners/4",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "owners", "4"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Renters",
+      "description": "CRUD de clientes/renters. GET requiere USER+, CUD requiere MANAGER+.",
+      "item": [
+        {
+          "name": "List Renters (paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/renters?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "renters"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "name", "value": "", "disabled": true },
+                { "key": "dni", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Renter by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/renters/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "renters", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Renter (MANAGER+)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nuevo\",\n  \"lastName\": \"Piloto\",\n  \"email\": \"nuevo@piloto.com\",\n  \"dni\": \"99887766F\",\n  \"phone\": \"622000111\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/renters",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "renters"]
+            }
+          }
+        },
+        {
+          "name": "Update Renter (MANAGER+)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos\",\n  \"lastName\": \"Viajero Actualizado\",\n  \"email\": \"carlos@gmail.com\",\n  \"dni\": \"12345678A\",\n  \"phone\": \"611000111\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/renters/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "renters", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Renter (MANAGER+)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/renters/5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "renters", "5"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reservations",
+      "description": "CRUD de reservas. Requiere USER+.",
+      "item": [
+        {
+          "name": "List Reservations (paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "vehicleId", "value": "", "disabled": true },
+                { "key": "renterId", "value": "", "disabled": true },
+                { "key": "startDate", "value": "", "disabled": true },
+                { "key": "endDate", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Reservation by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": 1,\n  \"renterId\": 1,\n  \"startDate\": \"2026-07-01\",\n  \"endDate\": \"2026-07-05\",\n  \"status\": \"PENDING\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"]
+            }
+          }
+        },
+        {
+          "name": "Update Reservation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": 1,\n  \"renterId\": 1,\n  \"startDate\": \"2026-07-02\",\n  \"endDate\": \"2026-07-06\",\n  \"status\": \"CONFIRMED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Reservation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "description": "CRUD de reseñas. USER+ para GET/POST, ADMIN para DELETE.",
+      "item": [
+        {
+          "name": "List Reviews (paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "rating", "value": "", "disabled": true },
+                { "key": "reservationId", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Review by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Reviews by Reservation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/reservation/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews", "reservation", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservationId\": 3,\n  \"renterId\": 3,\n  \"rating\": 5,\n  \"comment\": \"Experiencia increíble con el M4.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Update Review",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservationId\": 1,\n  \"renterId\": 1,\n  \"rating\": 5,\n  \"comment\": \"Actualizado: el 911 es espectacular.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reviews", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "description": "Categorías de vehículos. GET público, CUD requiere ADMIN.",
+      "item": [
+        {
+          "name": "List Categories (public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Category by ID (public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Category (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"SUV_LUXURY\",\n  \"description\": \"SUVs de alta gama\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Update Category (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"GRAN_TURISMO\",\n  \"description\": \"Gran turismo, coupés y GT de lujo\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Category (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/4",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "4"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Locations",
+      "description": "Sedes de Axis Garage. GET público, CUD requiere ADMIN.",
+      "item": [
+        {
+          "name": "List Locations (public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "locations"]
+            }
+          }
+        },
+        {
+          "name": "Get Location by ID (public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/locations/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "locations", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Location (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Axis Garage Valencia\",\n  \"city\": \"Valencia\",\n  \"address\": \"Av. del Puerto 22\",\n  \"postalCode\": \"46023\",\n  \"country\": \"España\",\n  \"phone\": \"961000111\",\n  \"email\": \"valencia@axisgarage.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "locations"]
+            }
+          }
+        },
+        {
+          "name": "Update Location (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Axis Garage Sevilla Premium\",\n  \"city\": \"Sevilla\",\n  \"address\": \"Calle Sierpes 42\",\n  \"postalCode\": \"41004\",\n  \"country\": \"España\",\n  \"phone\": \"954111222\",\n  \"email\": \"sevilla@axisgarage.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/locations/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "locations", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Location (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/locations/4",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "locations", "4"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Coverages",
+      "description": "Coberturas de seguro. USER+ para GET/PUT.",
+      "item": [
+        {
+          "name": "Get Coverage by Reservation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/coverages/reservation/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "coverages", "reservation", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Coverage by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/coverages/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "coverages", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Coverage (upgrade/downgrade)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"PREMIUM\",\n  \"reservationId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/coverages/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "coverages", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Damage Reports",
+      "description": "Informes de daños PRE/POST alquiler. MANAGER+.",
+      "item": [
+        {
+          "name": "List Reports by Reservation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/damage-reports/reservation/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "damage-reports", "reservation", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Report by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/damage-reports/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "damage-reports", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Damage Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservationId\": 1,\n  \"type\": \"PRE\",\n  \"description\": \"Arañazo en parachoques delantero\",\n  \"reportedDate\": \"2026-07-01\",\n  \"imageUrl\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/damage-reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "damage-reports"]
+            }
+          }
+        },
+        {
+          "name": "Update Damage Report",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservationId\": 1,\n  \"type\": \"POST\",\n  \"description\": \"Sin daños adicionales tras devolución\",\n  \"reportedDate\": \"2026-07-05\",\n  \"imageUrl\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/damage-reports/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "damage-reports", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Damage Report",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/damage-reports/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "damage-reports", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "description": "Facturas. USER puede ver la suya (by reservation), MANAGER+ gestión completa, DELETE solo ADMIN.",
+      "item": [
+        {
+          "name": "List All Invoices (MANAGER+)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invoices",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invoices"]
+            }
+          }
+        },
+        {
+          "name": "Get Invoice by ID (MANAGER+)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invoices/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invoices", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Invoice by Reservation (USER+)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invoices/reservation/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invoices", "reservation", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Invoice (MANAGER+)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservationId\": 5,\n  \"paymentMethod\": \"CARD\",\n  \"notes\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/invoices",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invoices"]
+            }
+          }
+        },
+        {
+          "name": "Update Invoice (MANAGER+)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"TRANSFER\",\n  \"notes\": \"Pago recibido por transferencia bancaria\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/invoices/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invoices", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Invoice (ADMIN only)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/invoices/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "invoices", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (ADMIN only)",
+      "description": "Gestión de usuarios del sistema. Solo ADMIN.",
+      "item": [
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
