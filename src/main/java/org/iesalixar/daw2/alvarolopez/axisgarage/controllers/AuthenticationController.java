@@ -70,12 +70,6 @@ public class AuthenticationController {
 		}
 	}
 
-    @ExceptionHandler({Exception.class})
-    public ResponseEntity<AuthResponseDTO> handleException(Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new AuthResponseDTO(null, "Ocurrió un error inesperado: " + e.getMessage()));
-    }
-
     /**
      * Registra un nuevo usuario con rol ROLE_USER.
      *
