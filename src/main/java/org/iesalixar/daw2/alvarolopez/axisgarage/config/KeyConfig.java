@@ -14,8 +14,8 @@ import java.security.PublicKey;
 @Configuration
 public class KeyConfig {
 
-    @Value("${jwt.keystore.location}")
-    private Resource keystoreResource;
+    @Value("${jwt.keystore.path}")
+    private String keystorePath;
 
     @Value("${jwt.keystore.password}")
     private String keystorePassword;
@@ -25,7 +25,7 @@ public class KeyConfig {
 
     /**
      * Crea un bean que carga el par de claves (privada y pública) desde el keystore
-     * ubicado en el classpath del proyecto.
+     * ubicado en la ruta absoluta configurada.
      *
      * @return KeyPair con la clave privada y pública cargadas desde el keystore JKS.
      * @throws Exception Si ocurre un error al cargar el keystore o las claves.
@@ -33,7 +33,7 @@ public class KeyConfig {
     @Bean
     public KeyPair jwtKeyPair() throws Exception {
         KeyStore keyStore = KeyStore.getInstance("JKS");
-        try (InputStream is = keystoreResource.getInputStream()) {
+        try (InputStream is = new java.io.FileInputStream(keystorePath)) {
             keyStore.load(is, keystorePassword.toCharArray());
         }
         PrivateKey privateKey = (PrivateKey) keyStore.getKey(keystoreAlias, keystorePassword.toCharArray());
