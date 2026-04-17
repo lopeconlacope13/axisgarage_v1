@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "vehicle")
+@Table(name = "vehicles")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -105,7 +105,7 @@ public class Vehicle {
     private List<Reservation> reservations = new ArrayList<>();
 
     @ElementCollection
-    @CollectionTable(name = "vehicle_image", joinColumns = @JoinColumn(name = "vehicle_id"))
+    @CollectionTable(name = "vehicle_images", joinColumns = @JoinColumn(name = "vehicle_id"))
     @Column(name = "image_url")
     private List<String> images = new ArrayList<>();
 
