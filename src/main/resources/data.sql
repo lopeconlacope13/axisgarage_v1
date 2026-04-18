@@ -59,7 +59,15 @@ INSERT IGNORE INTO vehicles (id, owner_id, category_id, location_id, brand, mode
 (16, 4, 1, 3, 'Porsche', 'Taycan Turbo S', 2024, 450.00, 'Eléctrico', 761, 1050, 'Automática', 'AWD', 'Eléctrico', 2.8, 'Poder eléctrico que quita la respiración.', TRUE),
 (17, 1, 1, 4, 'Aston Martin', 'DB12', 2024, 650.00, 'V8 BiTurbo', 680, 800, 'ZF', 'RWD', 'Gasolina', 3.6, 'Super tourer sin concesiones.', TRUE),
 (18, 2, 1, 2, 'Bentley', 'Continental GT Speed', 2023, 700.00, 'W12', 659, 900, 'DCT', 'AWD', 'Gasolina', 3.6, 'Excelencia y opulencia rodante.', TRUE),
-(19, 3, 1, 3, 'Jaguar', 'F-Type R', 2022, 350.00, 'V8 Supercharged', 575, 700, 'ZF', 'AWD', 'Gasolina', 3.7, 'Sonido supercharger que hiela la sangre.', TRUE);
+(19, 3, 1, 3, 'Jaguar', 'F-Type R', 2022, 350.00, 'V8 Supercharged', 575, 700, 'ZF', 'AWD', 'Gasolina', 3.7, 'Sonido supercharger que hiela la sangre.', TRUE),
+(20, 1, 4, 2, 'Rolls-Royce', 'Ghost', 2023, 2500.00, 'V12', 571, 850, 'Automática', 'AWD', 'Gasolina', 4.8, 'Deslizándose por el asfalto en puro silencio.', TRUE),
+(21, 2, 4, 4, 'Rolls-Royce', 'Cullinan Black Badge', 2024, 2800.00, 'V12', 600, 900, 'Automática', 'AWD', 'Gasolina', 5.2, 'Dominancia insuperable en cualquier terreno.', TRUE),
+(22, 3, 4, 2, 'BMW', 'Serie 7 760i xDrive', 2024, 800.00, 'V8', 544, 750, 'Steptronic', 'AWD', 'Gasolina', 4.2, 'La sala VIP más rápida de Munich.', TRUE),
+(23, 4, 4, 3, 'Mercedes-Maybach', 'S 680', 2023, 1200.00, 'V12', 612, 900, '9G-Tronic', 'AWD', 'Gasolina', 4.5, 'El máximo lujo terrenal.', TRUE),
+(24, 1, 3, 1, 'Porsche', '911 Classic 964 RS', 1992, 400.00, 'Boxer 6', 260, 310, 'Manual', 'RWD', 'Gasolina', 5.3, 'Purismo analógico de otro siglo.', TRUE),
+(25, 2, 3, 3, 'Jaguar', 'E-Type Serie 1', 1968, 500.00, 'I6', 269, 353, 'Manual', 'RWD', 'Gasolina', 7.1, 'El coche más hermoso jamás fabricado según Enzo.', TRUE),
+(26, 3, 6, 2, 'Range Rover', 'Sport SVR', 2023, 450.00, 'V8 Supercharged', 575, 700, 'Automática', 'AWD', 'Gasolina', 4.5, 'Bramido inconfundible y capacidades absolutas.', TRUE),
+(27, 4, 6, 3, 'BMW', 'X6 M Competition', 2024, 430.00, 'V8 BiTurbo', 625, 750, 'M Steptronic', 'AWD', 'Gasolina', 3.8, 'Un mastodonte desafiando las leyes de la física.', TRUE);;
 
 -- Insertar Reservas
 INSERT IGNORE INTO reservations (id, vehicle_id, renter_id, start_date, end_date, total_price, status) VALUES
