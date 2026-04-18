@@ -22,7 +22,8 @@ INSERT IGNORE INTO vehicle_categories (id, name, description) VALUES
 (1, 'GRAN_TURISMO', 'Gran turismo y coupés de lujo'),
 (2, 'SUPERCAR', 'Superdeportivos y hypercar'),
 (3, 'HERITAGE', 'Clásicos y vehículos de colección'),
-(4, 'EXECUTIVE', 'Berlinas deportivas de alto rendimiento');
+(4, 'EXECUTIVE', 'Berlinas deportivas de alto rendimiento'),
+(6, 'SUV', 'SUVs premium y todoterrenos de ultra-lujo');
 
 -- Insertar Propietarios (Owners)
 INSERT IGNORE INTO owners (id, name, last_name, email, phone) VALUES
