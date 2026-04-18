@@ -41,14 +41,19 @@ INSERT IGNORE INTO renters (id, name, last_name, email, dni, phone) VALUES
 
 -- Insertar Vehículos (con category_id y location_id)
 INSERT IGNORE INTO vehicles (id, owner_id, category_id, location_id, brand, model, production_year, price_per_day, engine_type, horse_power, torque_nm, transmission, drivetrain, fuel_type, zero_to_hundred, description, available) VALUES
-(1, 1, 1, 1, 'Porsche', '911 Carrera S', 2022, 120.00, 'Boxer 6', 450, 530, 'PDK', 'RWD', 'Gasolina', 3.7, 'Un clásico deportivo moderno', TRUE),
-(2, 1, 4, 2, 'BMW', 'M4 Competition', 2023, 85.00, 'I6 Twin-Turbo', 510, 650, 'M Steptronic', 'xDrive', 'Gasolina', 3.5, 'Agarre brutal', TRUE),
-(3, 2, 2, 3, 'Mercedes-AMG', 'GT', 2021, 200.00, 'V8 BiTurbo', 530, 670, 'Speedshift DCT', 'RWD', 'Gasolina', 3.8, 'Sonido V8 brutal, muy bestia', TRUE),
-(4, 2, 4, 2, 'Audi', 'RS e-tron GT', 2024, 150.00, 'Eléctrico', 598, 830, 'Direct Drive', 'quattro', 'Eléctrico', 3.3, 'Aceleración sin fin y suave', TRUE),
-(5, 3, 2, 4, 'Ferrari', 'F8 Tributo', 2020, 95.00, 'V8 Twin-Turbo', 720, 770, 'F1 DCT', 'RWD', 'Gasolina', 2.9, 'Obra maestra italiana', TRUE),
-(6, 3, 2, 4, 'Lamborghini', 'Huracán EVO', 2022, 110.00, 'V10 Atmosférico', 640, 600, 'LDF', 'AWD', 'Gasolina', 2.9, 'Sonido V10 inolvidable', TRUE),
-(7, 4, 2, 3, 'McLaren', '720S', 2019, 180.00, 'V8 Twin-Turbo', 720, 770, 'SSG', 'RWD', 'Gasolina', 2.9, 'Sensacional dinamismo', TRUE),
-(8, 4, 1, 1, 'Aston Martin', 'Vantage', 2021, 250.00, 'V8 BiTurbo', 510, 685, 'ZF', 'RWD', 'Gasolina', 3.6, 'Elegancia inglesa con furia', TRUE);
+(1, 1, 1, 1, 'Porsche', '911 Carrera S', 2022, 350.00, 'Boxer 6', 450, 530, 'PDK', 'RWD', 'Gasolina', 3.7, 'El icono indiscutible de la estética old money.', TRUE),
+(2, 1, 4, 2, 'BMW', 'M4 Competition', 2023, 280.00, 'I6 Twin-Turbo', 510, 650, 'M Steptronic', 'xDrive', 'Gasolina', 3.5, 'Agresividad alemana en estado puro.', TRUE),
+(3, 2, 2, 3, 'Mercedes-AMG', 'GT', 2021, 450.00, 'V8 BiTurbo', 530, 670, 'Speedshift DCT', 'RWD', 'Gasolina', 3.8, 'Un V8 que impone respeto en cada semáforo.', TRUE),
+(4, 2, 4, 2, 'Audi', 'RS e-tron GT', 2024, 300.00, 'Eléctrico', 598, 830, 'Direct Drive', 'quattro', 'Eléctrico', 3.3, 'Silencio abismal, aceleración que parte el cuello.', TRUE),
+(5, 3, 2, 4, 'Ferrari', 'F8 Tributo', 2020, 800.00, 'V8 Twin-Turbo', 720, 770, 'F1 DCT', 'RWD', 'Gasolina', 2.9, 'La obra cumbre del cavallino rampante.', TRUE),
+(6, 3, 2, 4, 'Lamborghini', 'Huracán EVO', 2022, 750.00, 'V10 Atmosférico', 640, 600, 'LDF', 'AWD', 'Gasolina', 2.9, 'El sonido V10 más puro que existe.', TRUE),
+(7, 4, 2, 3, 'McLaren', '720S', 2019, 650.00, 'V8 Twin-Turbo', 720, 770, 'SSG', 'RWD', 'Gasolina', 2.9, 'Ingeniería espacial para la carretera.', TRUE),
+(8, 4, 1, 1, 'Aston Martin', 'Vantage', 2021, 400.00, 'V8 BiTurbo', 510, 685, 'ZF', 'RWD', 'Gasolina', 3.6, 'La elegancia británica elevada a su máxima potencia.', TRUE),
+(9, 1, 2, 4, 'Lamborghini', 'Urus Performante', 2023, 900.00, 'V8 BiTurbo', 666, 850, 'Automática', 'AWD', 'Gasolina', 3.3, 'Brutalidad y poder absoluto.', TRUE),
+(10, 2, 2, 3, 'Ferrari', '296 GTB', 2023, 850.00, 'V6 Hybrid', 830, 740, 'F1 DCT', 'RWD', 'Híbrido', 2.9, 'El renacer híbrido del cavallino.', TRUE),
+(11, 3, 2, 4, 'Ferrari', 'Roma Spider', 2024, 750.00, 'V8 Twin-Turbo', 620, 760, 'F1 DCT', 'RWD', 'Gasolina', 3.4, 'La dolce vita al descubierto.', TRUE),
+(12, 4, 2, 2, 'McLaren', 'Artura', 2023, 600.00, 'V6 Hybrid', 680, 720, 'SSG', 'RWD', 'Híbrido', 3.0, 'El futuro de Woking hecho realidad.', TRUE),
+(13, 1, 2, 1, 'Porsche', '911 GT3 RS', 2023, 900.00, 'Boxer 6', 525, 465, 'PDK', 'RWD', 'Gasolina', 3.2, 'Nacido en el circuito, legal en la calle.', TRUE);
 
 -- Insertar Reservas
 INSERT IGNORE INTO reservations (id, vehicle_id, renter_id, start_date, end_date, total_price, status) VALUES
