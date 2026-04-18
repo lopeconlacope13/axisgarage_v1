@@ -53,7 +53,13 @@ INSERT IGNORE INTO vehicles (id, owner_id, category_id, location_id, brand, mode
 (10, 2, 2, 3, 'Ferrari', '296 GTB', 2023, 850.00, 'V6 Hybrid', 830, 740, 'F1 DCT', 'RWD', 'Híbrido', 2.9, 'El renacer híbrido del cavallino.', TRUE),
 (11, 3, 2, 4, 'Ferrari', 'Roma Spider', 2024, 750.00, 'V8 Twin-Turbo', 620, 760, 'F1 DCT', 'RWD', 'Gasolina', 3.4, 'La dolce vita al descubierto.', TRUE),
 (12, 4, 2, 2, 'McLaren', 'Artura', 2023, 600.00, 'V6 Hybrid', 680, 720, 'SSG', 'RWD', 'Híbrido', 3.0, 'El futuro de Woking hecho realidad.', TRUE),
-(13, 1, 2, 1, 'Porsche', '911 GT3 RS', 2023, 900.00, 'Boxer 6', 525, 465, 'PDK', 'RWD', 'Gasolina', 3.2, 'Nacido en el circuito, legal en la calle.', TRUE);
+(13, 1, 2, 1, 'Porsche', '911 GT3 RS', 2023, 900.00, 'Boxer 6', 525, 465, 'PDK', 'RWD', 'Gasolina', 3.2, 'Nacido en el circuito, legal en la calle.', TRUE),
+(14, 2, 1, 1, 'Porsche', '911 Carrera 4S', 2023, 380.00, 'Boxer 6', 450, 530, 'PDK', 'AWD', 'Gasolina', 3.6, 'Tracción total para el clásico de Stuttgart.', TRUE),
+(15, 3, 1, 2, 'Porsche', '911 Turbo S', 2024, 600.00, 'Boxer 6', 650, 800, 'PDK', 'AWD', 'Gasolina', 2.7, 'La cúspide de las prestaciones usable a diario.', TRUE),
+(16, 4, 1, 3, 'Porsche', 'Taycan Turbo S', 2024, 450.00, 'Eléctrico', 761, 1050, 'Automática', 'AWD', 'Eléctrico', 2.8, 'Poder eléctrico que quita la respiración.', TRUE),
+(17, 1, 1, 4, 'Aston Martin', 'DB12', 2024, 650.00, 'V8 BiTurbo', 680, 800, 'ZF', 'RWD', 'Gasolina', 3.6, 'Super tourer sin concesiones.', TRUE),
+(18, 2, 1, 2, 'Bentley', 'Continental GT Speed', 2023, 700.00, 'W12', 659, 900, 'DCT', 'AWD', 'Gasolina', 3.6, 'Excelencia y opulencia rodante.', TRUE),
+(19, 3, 1, 3, 'Jaguar', 'F-Type R', 2022, 350.00, 'V8 Supercharged', 575, 700, 'ZF', 'AWD', 'Gasolina', 3.7, 'Sonido supercharger que hiela la sangre.', TRUE);
 
 -- Insertar Reservas
 INSERT IGNORE INTO reservations (id, vehicle_id, renter_id, start_date, end_date, total_price, status) VALUES
