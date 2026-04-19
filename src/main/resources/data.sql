@@ -68,7 +68,11 @@ INSERT IGNORE INTO vehicles (id, owner_id, category_id, location_id, brand, mode
 (24, 1, 3, 1, 'Porsche', '911 Classic 964 RS', 1992, 400.00, 'Boxer 6', 260, 310, 'Manual', 'RWD', 'Gasolina', 5.3, 'Analógico, crudo, real. Sin filtros electrónicos que intervengan entre el asfalto, el piloto y su mítico motor refrigerado por aire.', TRUE),
 (25, 2, 3, 3, 'Jaguar', 'E-Type Serie 1', 1968, 500.00, 'I6', 269, 353, 'Manual', 'RWD', 'Gasolina', 7.1, 'La leyenda inofensiva al tiempo. El propio Enzo Ferrari cruzó la frontera solo para admitir que este era el coche más hermoso jamás concebido.', TRUE),
 (26, 3, 6, 2, 'Range Rover', 'Sport SVR', 2023, 450.00, 'V8 Supercharged', 575, 700, 'Automática', 'AWD', 'Gasolina', 4.5, 'Un tanque de asalto vestido de etiqueta. Presencia implacable, confort real y un aullido de V8 sobrealimentado que derriba cualquier complejo.', TRUE),
-(27, 4, 6, 3, 'BMW', 'X6 M Competition', 2024, 430.00, 'V8 BiTurbo', 625, 750, 'M Steptronic', 'AWD', 'Gasolina', 3.8, 'Física desafiada. Un coloso capaz de humillar a deportivos en circuito mientras te envuelve en  cuero, carbono y agresividad desenfrenada.', TRUE);;
+(27, 4, 6, 3, 'BMW', 'X6 M Competition', 2024, 430.00, 'V8 BiTurbo', 625, 750, 'M Steptronic', 'AWD', 'Gasolina', 3.8, 'Física desafiada. Un coloso capaz de humillar a deportivos en circuito mientras te envuelve en  cuero, carbono y agresividad desenfrenada.', TRUE),
+(28, 1, 4, 1, 'Alfa Romeo', 'Giulia Quadrifoglio', 2023, 250.00, 'V6 BiTurbo', 510, 600, 'ZF', 'RWD', 'Gasolina', 3.9, 'Alma italiana esculpida en metal. Un V6 derivado de Ferrari que te exige pasión y respeto en cada giro.', TRUE),
+(29, 2, 1, 2, 'Audi', 'TT RS Iconic Edition', 2023, 200.00, 'I5 Turbo', 400, 480, 'S tronic', 'quattro', 'Gasolina', 3.7, 'El sonido de un estruendoso 5 cilindros que te catapulta implacablemente de curva a curva.', TRUE),
+(30, 3, 3, 3, 'BMW', 'M3 E30', 1989, 350.00, 'I4', 200, 240, 'Manual', 'RWD', 'Gasolina', 6.9, 'La conexión perfecta hombre-máquina. Homologación DTM pura con un chasis que se lee como un libro abierto.', TRUE),
+(31, 4, 3, 4, 'Mercedes-Benz', '300 SL Gullwing', 1955, 3000.00, 'I6', 215, 275, 'Manual', 'RWD', 'Gasolina', 9.3, 'Las alas de gaviota más famosas de la historia. Una joya aristocrática e insustituible del motor.', TRUE);
 
 -- Insertar Reservas
 INSERT IGNORE INTO reservations (id, vehicle_id, renter_id, start_date, end_date, total_price, status) VALUES
