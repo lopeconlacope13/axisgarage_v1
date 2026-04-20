@@ -57,11 +57,14 @@ public class User {
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
-    // Campo que almacena la contraseña encriptada del usuario.
-    @NotEmpty(message = "{msg.user.password.notEmpty}")
-    @Size(min = 8, message = "{msg.user.password.size}")
-    @Column(name = "password", nullable = false)
+    // Campo que almacena la contraseña encriptada del usuario. Puede ser nula para usuarios OAuth.
+    @Column(name = "password", nullable = true)
     private String password;
+
+    // Proveedor de autenticacion (LOCAL, GOOGLE, FACEBOOK)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider")
+    private AuthProvider authProvider;
 
     // Campo que indica si el usuario está habilitado.
     @NotNull(message = "{msg.user.enabled.notNull}")

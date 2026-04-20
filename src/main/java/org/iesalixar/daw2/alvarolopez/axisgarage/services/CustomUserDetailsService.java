@@ -27,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         //Convierte los roles de usuario en GrantedAuthority
         return org.springframework.security.core.userdetails.User.withUsername(user.getEmail())
-                .password(user.getPassword())
+                .password(user.getPassword() != null ? user.getPassword() : "")
                 .authorities(user.getRoles().stream()
                         .map(role -> {
                             String roleName = role.getName();

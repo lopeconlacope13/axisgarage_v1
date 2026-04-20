@@ -41,6 +41,14 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Autowired
+    private org.iesalixar.daw2.alvarolopez.axisgarage.handlers.CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+
+    @Autowired
+    private org.iesalixar.daw2.alvarolopez.axisgarage.handlers.CustomOAuth2FailureHandler customOAuth2FailureHandler;
+
+    @Autowired
+    private org.iesalixar.daw2.alvarolopez.axisgarage.services.CustomOAuth2UserService customOAuth2UserService;
 
     /**
      * Configura el filtro de seguridad para las solicitudes HTTP, especificando las
@@ -55,13 +63,28 @@ public class SecurityConfig {
 		http
 				.cors(Customizer.withDefaults())
 				.csrf(csrf -> csrf.disable())
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				// IMPORTANTE TFG: OAuth2 necesita guardar un parámetro "state" temporal en memoria (Session)
+				// durante el viaje a Google/Facebook para prevenir ataques CSRF. Por tanto, no podemos usar
+				// STATELESS estricto aquí o fallará al volver. Usamos IF_REQUIRED para que Spring solo
+				// levante la sesión para el Handshake OAuth, pero nuestra API sigue dependiendo de JWT.
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+				.oauth2Login(oauth2 -> oauth2
+						.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+						.successHandler(customOAuth2SuccessHandler)
+						.failureHandler(customOAuth2FailureHandler)
+				)
 				.authorizeHttpRequests(auth -> auth
 						// Dejamos pasar los OPTIONS
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
 						// --- RUTAS PÚBLICAS ---
 						.requestMatchers("/api/v1/authenticate", "/api/v1/register").permitAll()
+						
+						// IMPORTANTE TFG: Las rutas internas que usa Spring Boot para interceptar 
+						// la subida a Google (/oauth2/authorization/{provider}) y la bajada 
+						// (/login/oauth2/code/{provider}) deben figurar en la lista blanca explícita.
+						.requestMatchers("/oauth2/authorization/**", "/login/oauth2/code/**").permitAll()
+						
 						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/vehicles", "/api/vehicles/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/locations", "/api/locations/**").permitAll()
