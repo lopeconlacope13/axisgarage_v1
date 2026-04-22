@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.RenterDTO;
+import org.iesalixar.daw2.alvarolopez.axisgarage.mappers.RenterMapper;
+import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.RenterRepository;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.RenterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +33,13 @@ public class RenterController {
 
     @Autowired
     private RenterService renterService;
+
+    // Acceso directo al repositorio para la búsqueda por email (reutiliza findByEmail ya existente)
+    @Autowired
+    private RenterRepository renterRepository;
+
+    @Autowired
+    private RenterMapper renterMapper;
 
     // --- 1. LISTAR (PAGINADO) ---
 
@@ -68,6 +77,29 @@ public class RenterController {
             } else {
                 logger.warn("REST: No se encontró el huésped con ID {}", id);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El huésped no existe.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al buscar el huésped.");
+        }
+    }
+
+    // --- 2b. OBTENER POR EMAIL ---
+
+    @Operation(summary = "Obtener un huésped por email", description = "Reutiliza el findByEmail del repositorio para localizar el perfil de cliente. Usado en el checkout para resolver el renterId a partir del JWT.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Huésped encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = RenterDTO.class))),
+            @ApiResponse(responseCode = "404", description = "No existe ningún huésped con ese email"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/by-email")
+    public ResponseEntity<?> getRenterByEmail(@RequestParam String email) {
+        try {
+            Optional<RenterDTO> renterDTO = renterRepository.findByEmail(email).map(renterMapper::toDTO);
+            if (renterDTO.isPresent()) {
+                return ResponseEntity.ok(renterDTO.get());
+            } else {
+                logger.warn("REST: No se encontró ningún huésped con email {}", email);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No existe ningún huésped con ese email.");
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al buscar el huésped.");
