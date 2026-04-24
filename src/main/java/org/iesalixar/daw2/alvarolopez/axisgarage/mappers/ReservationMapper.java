@@ -46,8 +46,8 @@ public class ReservationMapper {
         entity.setStartDate(dto.getStartDate());
         entity.setEndDate(dto.getEndDate());
         entity.setStatus(dto.getStatus());
-
-        // ElTotalPrice se ignora aquí porque lo calculará de forma segura el Service
+        // El frontend calcula el total ya con la cobertura incluida; lo mapeamos directamente
+        entity.setTotalPrice(dto.getTotalPrice());
 
         entity.setVehicle(vehicle);
         entity.setRenter(renter);

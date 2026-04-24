@@ -129,10 +129,6 @@ public class ReservationService {
 
             Reservation reservation = reservationMapper.toEntity(dto, vehicle, renter);
 
-            // cálculo seguro del importe
-            long dias = ChronoUnit.DAYS.between(dto.getStartDate(), dto.getEndDate());
-            reservation.setTotalPrice(dias * vehicle.getPricePerDay());
-
             Reservation savedReservation = reservationRepository.save(reservation);
 
             // Auto-crear cobertura STANDARD para la nueva reserva
