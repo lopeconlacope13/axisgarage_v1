@@ -14,10 +14,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
@@ -57,6 +56,34 @@ public class UserController {
         } catch (Exception e) {
             logger.error("Error al obtener el usuario: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener la información del usuario.");
+        }
+    }
+
+    /**
+     * Cambia la contraseña del usuario autenticado.
+     * Extrae el ID del usuario desde el token JWT, verifica la contraseña actual
+     * y, si es correcta, guarda la nueva hasheada con BCrypt.
+     *
+     * @param tokenHeader Cabecera Authorization con el JWT (formato "Bearer TOKEN").
+     * @param body        JSON con los campos "currentPassword" y "newPassword".
+     * @return 200 OK si el cambio fue correcto, 400 si la contraseña actual no coincide.
+     */
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @RequestHeader("Authorization") String tokenHeader,
+            @RequestBody Map<String, String> body) {
+        try {
+            String token = tokenHeader.replace("Bearer ", "");
+            Long id = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
+            userService.changePassword(id, body.get("currentPassword"), body.get("newPassword"));
+            logger.info("Contraseña actualizada para el usuario con ID {}", id);
+            return ResponseEntity.ok("Contraseña actualizada correctamente.");
+        } catch (IllegalArgumentException e) {
+            logger.warn("Intento fallido de cambio de contraseña: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error al cambiar la contraseña: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al cambiar la contraseña.");
         }
     }
 }

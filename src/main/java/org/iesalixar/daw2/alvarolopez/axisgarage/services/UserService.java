@@ -87,4 +87,23 @@ public class UserService {
 		throw new RuntimeException("El usuario con identificador " + id + " no existe.");
 	}
 
+	/**
+	 * Cambia la contraseña del usuario tras verificar que la contraseña actual es correcta.
+	 * La nueva contraseña se hashea con BCrypt antes de guardarla, igual que en el registro.
+	 *
+	 * @param userId          ID del usuario autenticado (extraído del JWT en el controlador).
+	 * @param currentPassword Contraseña actual en texto plano para verificar contra el hash de la BD.
+	 * @param newPassword     Nueva contraseña en texto plano que se hasheará y persistirá.
+	 * @throws IllegalArgumentException si la contraseña actual introducida no coincide con el hash guardado.
+	 */
+	public void changePassword(Long userId, String currentPassword, String newPassword) {
+		User user = getUserById(userId);
+		// Comprobamos que la contraseña actual es correcta antes de permitir el cambio
+		if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+			throw new IllegalArgumentException("La contraseña actual no es correcta.");
+		}
+		user.setPassword(passwordEncoder.encode(newPassword));
+		userRepository.save(user);
+	}
+
 }
