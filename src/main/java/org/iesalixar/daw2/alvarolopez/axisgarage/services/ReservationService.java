@@ -21,6 +21,15 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Servicio que orquesta el ciclo de vida completo de una reserva en Axis Garage.
+ * <p>
+ * Cubre la creación (con detección de solapamiento de fechas), la consulta filtrada
+ * por vehículo o cliente, la actualización y el borrado. Al confirmar una reserva nueva,
+ * este servicio dispara automáticamente dos acciones adicionales: la creación de una
+ * cobertura STANDARD asociada y el envío de un correo de confirmación al cliente.
+ * </p>
+ */
 @Service
 public class ReservationService {
 
@@ -152,12 +161,15 @@ public class ReservationService {
 
     // --- 4. ACTUALIZAR RESERVA ---
     /**
-     * Realiza un overwrite de las fechas precalculadas y el total parcial manteniendo las asociaciones limpias de bugs.
+     * Actualiza las fechas y recalcula el precio total de una reserva existente.
+     * Antes de guardar, comprueba que el nuevo rango de fechas no colisione con
+     * otras reservas del mismo vehículo (excluyendo la propia reserva que se edita).
      *
-     * @param id identificador de reserva original a sobreescribir.
-     * @param dto nueva propuesta de Reservation.
-     * @throws IllegalArgumentException si interfiere con otras reservas colindantes.
-     * @return Entity dto mapeado fresco.
+     * @param id  Identificador de la reserva a modificar.
+     * @param dto DTO con los nuevos datos de fechas, vehículo y cliente.
+     * @return ReservationDTO con los datos actualizados.
+     * @throws IllegalArgumentException si la fecha de salida no es posterior a la de entrada,
+     *                                  si la reserva no existe o si las fechas solapan con otra reserva.
      */
     public ReservationDTO updateReservation(Long id, @Valid ReservationDTO dto) {
         try {
@@ -207,10 +219,10 @@ public class ReservationService {
 
     // --- 5. BORRAR RESERVA ---
     /**
-     * Elimina una reserva abortando su vida útil en el sistema de forma directa.
+     * Elimina definitivamente una reserva del sistema.
      *
-     * @param id del target a remover.
-     * @throws IllegalArgumentException si el objeto no reside en base de datos.
+     * @param id Identificador de la reserva a eliminar.
+     * @throws IllegalArgumentException si no existe ninguna reserva con ese identificador.
      */
     public void deleteReservation(Long id) {
         try {
