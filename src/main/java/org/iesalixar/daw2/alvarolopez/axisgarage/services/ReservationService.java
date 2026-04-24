@@ -38,6 +38,9 @@ public class ReservationService {
     @Autowired
     private CoverageService coverageService;
 
+    @Autowired
+    private EmailService emailService;
+
     // --- 1. LISTAR PAGINADO CON FILTROS ---
     /**
      * Retorna reservas basadas en la combinación de distintos filtros y en formato de página.
@@ -125,6 +128,16 @@ public class ReservationService {
 
             // Auto-crear cobertura STANDARD para la nueva reserva
             coverageService.createStandardCoverage(savedReservation);
+
+            // Notificar al cliente por correo electrónico (el try/catch interno no bloquea si falla)
+            emailService.sendConfirmationEmail(
+                    renter.getEmail(),
+                    renter.getName() + " " + renter.getLastName(),
+                    vehicle.getBrand() + " " + vehicle.getModel(),
+                    dto.getStartDate().toString(),
+                    dto.getEndDate().toString(),
+                    savedReservation.getTotalPrice()
+            );
 
             return reservationMapper.toDTO(savedReservation);
 
