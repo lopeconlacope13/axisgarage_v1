@@ -13,6 +13,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Servicio que gestiona las sedes o ateliers físicos de Axis Garage.
+ * <p>
+ * Proporciona las operaciones CRUD completas sobre la entidad Location,
+ * garantizando que no existan dos sedes con el mismo nombre.
+ * Actúa como intermediario entre el controlador REST y el repositorio JPA,
+ * aplicando validaciones de negocio antes de delegar en la persistencia.
+ */
 @Service
 public class LocationService {
 

@@ -57,8 +57,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         // Generar JWT
         String token = jwtUtil.generateToken(user.getEmail(), roles, user.getId());
 
-        // Para la Fase 2FA (Rama 7) esto cambiará a devolver un token temporal.
-        // Pero en esta Rama 6, de momento redirigimos al front inyectando el token JWT definitivo.
+        // Redirigimos al frontend con el token JWT definitivo incluido como parámetro de URL.
         response.sendRedirect("http://localhost:4200/login?token=" + token);
     }
 }

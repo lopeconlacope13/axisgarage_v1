@@ -17,6 +17,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+/**
+ * Servicio de almacenamiento de ficheros en disco para Axis Garage.
+ * <p>
+ * Guarda y elimina las imágenes de los vehículos en el servidor.
+ * La ruta base se configura mediante la variable de entorno UPLOAD_PATH,
+ * evitando credenciales o rutas absolutas hardcodeadas en el código.
+ * También expone un método para servir ficheros como Resource HTTP.
+ */
 @Service
 public class FileStorageService {
 	private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);

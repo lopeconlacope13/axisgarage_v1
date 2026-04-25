@@ -13,6 +13,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Servicio que administra las categorías de vehículos del catálogo.
+ * <p>
+ * Agrupa los vehículos por tipología (Hypercar, Clásico, GT…) facilitando
+ * el filtrado en el catálogo público. Garantiza unicidad de nombre entre categorías
+ * y delega la persistencia en el repositorio JPA correspondiente.
+ */
 @Service
 public class VehicleCategoryService {
 

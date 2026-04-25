@@ -13,6 +13,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Servicio que gestiona las coberturas de seguro asociadas a las reservas.
+ * <p>
+ * Cada reserva puede tener una cobertura de tipo STANDARD, PREMIUM o TOTAL,
+ * que determina el nivel de protección ante daños durante el período de alquiler.
+ * Actúa como capa intermedia entre el controlador REST y el repositorio JPA,
+ * aplicando la lógica de negocio necesaria antes de persistir los datos.
+ */
 @Service
 public class CoverageService {
 

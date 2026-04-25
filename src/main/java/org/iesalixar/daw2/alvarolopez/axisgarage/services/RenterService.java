@@ -14,6 +14,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Servicio que gestiona el ciclo de vida de los huéspedes (clientes que realizan reservas).
+ * <p>
+ * Implementa las operaciones CRUD con paginación, garantizando la unicidad del DNI,
+ * email y teléfono de cada cliente. Lanza excepciones descriptivas ante cualquier
+ * conflicto de datos para que el controlador pueda devolver respuestas HTTP claras.
+ */
 @Service
 public class RenterService {
 
