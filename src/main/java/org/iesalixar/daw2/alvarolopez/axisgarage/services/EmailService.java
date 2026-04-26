@@ -72,6 +72,34 @@ public class EmailService {
     }
 
     /**
+     * Envía el email con el enlace para recuperar la contraseña.
+     * El enlace incluye el token UUID y apunta al formulario del frontend.
+     * Si el envío falla, solo se registra el error — no afecta al flujo de negocio.
+     *
+     * @param toEmail   Dirección de correo del usuario que olvidó su contraseña.
+     * @param resetLink URL completa con el token incluido como parámetro (?token=...).
+     */
+    public void sendPasswordResetEmail(String toEmail, String resetLink) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(from);
+            message.setTo(toEmail);
+            message.setSubject("Axis Garage — Password Reset");
+            message.setText(
+                "You requested a password reset for your Axis Garage account.\n\n" +
+                "Click the link below to set a new password. This link expires in 1 hour:\n\n" +
+                resetLink + "\n\n" +
+                "If you did not request this, simply ignore this email.\n\n" +
+                "Axis Garage — Private Atelier"
+            );
+            mailSender.send(message);
+            logger.info("Email de recuperación enviado correctamente a {}", toEmail);
+        } catch (Exception e) {
+            logger.error("Error al enviar email de recuperación a {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    /**
      * Construye el cuerpo del mensaje en texto plano con todos los datos
      * relevantes de la reserva para que el cliente tenga un resumen claro.
      *

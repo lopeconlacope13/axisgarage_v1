@@ -18,6 +18,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*; // Importamos todo para incluir RequestMapping
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controlador responsable de gestionar las solicitudes relacionadas con la autenticación.
@@ -86,6 +87,36 @@ public class AuthenticationController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al registrar el usuario.");
+        }
+    }
+
+    /**
+     * Inicia el flujo de recuperación de contraseña enviando un email al usuario.
+     * Devuelve siempre 200 OK aunque el email no exista, para no revelar
+     * si una dirección está registrada en el sistema.
+     *
+     * @param body JSON con la clave "email".
+     * @return 200 OK con mensaje informativo.
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> body) {
+        userService.forgotPassword(body.get("email"));
+        return ResponseEntity.ok("Si existe una cuenta con ese email, recibirás un enlace en breve.");
+    }
+
+    /**
+     * Completa el flujo de recuperación estableciendo la nueva contraseña.
+     *
+     * @param body JSON con "token" y "newPassword".
+     * @return 200 OK si el token es válido, 400 si ha caducado o no existe.
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> body) {
+        try {
+            userService.resetPassword(body.get("token"), body.get("newPassword"));
+            return ResponseEntity.ok("Contraseña actualizada correctamente.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }

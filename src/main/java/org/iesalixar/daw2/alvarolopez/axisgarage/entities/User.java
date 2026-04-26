@@ -102,6 +102,14 @@ public class User {
     @Column(name = "last_password_change_date")
     private LocalDateTime lastPasswordChangeDate;
 
+    // Token de un solo uso para el flujo de recuperación de contraseña.
+    @Column(name = "reset_token", length = 255)
+    private String resetToken;
+
+    // Fecha de expiración del token. Válido solo 1 hora desde su generación.
+    @Column(name = "reset_token_expiry")
+    private LocalDateTime resetTokenExpiry;
+
 
     // Relación muchos a muchos con la entidad `Role`.
 // Se establece FetchType.EAGER para que se carguen los roles junto al usuario

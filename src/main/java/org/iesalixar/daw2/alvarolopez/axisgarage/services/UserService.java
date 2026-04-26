@@ -8,12 +8,22 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.mappers.UserMapper;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.RoleRepository;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
+/**
+ * Servicio central de gestión de usuarios en Axis Garage.
+ * <p>
+ * Cubre el registro de nuevos usuarios, la consulta por ID o email,
+ * el cambio de contraseña autenticado y el flujo completo de recuperación
+ * de contraseña por email (forgot-password / reset-password).
+ */
 @Service
 public class UserService {
 	@Autowired
@@ -27,6 +37,13 @@ public class UserService {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private EmailService emailService;
+
+	/** URL base del frontend. Se usa para construir el enlace de recuperación de contraseña. */
+	@Value("${FRONTEND_URL:http://localhost:4200}")
+	private String frontendUrl;
 
 	public Long getIdByUsername(String username) {
 		return userRepository.getIdByUsername(username);
@@ -103,6 +120,59 @@ public class UserService {
 			throw new IllegalArgumentException("La contraseña actual no es correcta.");
 		}
 		user.setPassword(passwordEncoder.encode(newPassword));
+		userRepository.save(user);
+	}
+
+	/**
+	 * Inicia el flujo de recuperación de contraseña.
+	 * Genera un token UUID único, lo persiste con expiración de 1 hora
+	 * y envía el enlace de recuperación al correo del usuario.
+	 * <p>
+	 * Si el email no existe, el método termina sin error para no revelar
+	 * si una dirección está registrada (buena práctica de seguridad básica).
+	 *
+	 * @param email Correo del usuario que solicita recuperar su contraseña.
+	 */
+	public void forgotPassword(String email) {
+		Optional<User> userOpt = userRepository.findByEmail(email);
+		if (userOpt.isEmpty()) {
+			// No revelamos si el email existe o no (seguridad)
+			return;
+		}
+		User user = userOpt.get();
+
+		// Generamos un token único e irrepetible
+		String token = UUID.randomUUID().toString();
+		user.setResetToken(token);
+		user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+		userRepository.save(user);
+
+		// Construimos el enlace que recibirá el usuario en el correo
+		String resetLink = frontendUrl + "/reset-password?token=" + token;
+		emailService.sendPasswordResetEmail(email, resetLink);
+	}
+
+	/**
+	 * Completa el flujo de recuperación: valida el token y actualiza la contraseña.
+	 * Tras el cambio, el token se elimina para que no pueda reutilizarse.
+	 *
+	 * @param token       Token UUID recibido desde el enlace del correo.
+	 * @param newPassword Nueva contraseña en texto plano (se hasheará con BCrypt).
+	 * @throws IllegalArgumentException si el token es inválido o ha caducado.
+	 */
+	public void resetPassword(String token, String newPassword) {
+		User user = userRepository.findByResetToken(token)
+				.orElseThrow(() -> new IllegalArgumentException("El enlace de recuperación no es válido."));
+
+		// Comprobamos que el token no ha caducado (válido durante 1 hora)
+		if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+			throw new IllegalArgumentException("El enlace de recuperación ha caducado. Solicita uno nuevo.");
+		}
+
+		// Actualizamos la contraseña y limpiamos el token para evitar reutilización
+		user.setPassword(passwordEncoder.encode(newPassword));
+		user.setResetToken(null);
+		user.setResetTokenExpiry(null);
 		userRepository.save(user);
 	}
 

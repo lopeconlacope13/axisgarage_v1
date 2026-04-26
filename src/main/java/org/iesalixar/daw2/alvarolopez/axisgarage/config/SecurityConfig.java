@@ -78,7 +78,8 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
 						// --- RUTAS PÚBLICAS ---
-						.requestMatchers("/api/v1/authenticate", "/api/v1/register").permitAll()
+						.requestMatchers("/api/v1/authenticate", "/api/v1/register",
+								"/api/v1/forgot-password", "/api/v1/reset-password").permitAll()
 						
 						// IMPORTANTE TFG: Las rutas internas que usa Spring Boot para interceptar 
 						// la subida a Google (/oauth2/authorization/{provider}) y la bajada 

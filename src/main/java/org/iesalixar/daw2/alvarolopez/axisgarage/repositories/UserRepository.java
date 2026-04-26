@@ -29,4 +29,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u.id FROM User u WHERE u.email= :email")
     Long getIdByEmail(String email);
+
+    /**
+     * Busca un usuario por su token de recuperación de contraseña.
+     * Spring Data genera la query automáticamente a partir del nombre del método.
+     *
+     * @param token Token UUID generado durante el flujo de forgot-password.
+     * @return Optional con el usuario si el token coincide, o vacío si no existe.
+     */
+    Optional<User> findByResetToken(String token);
 }
