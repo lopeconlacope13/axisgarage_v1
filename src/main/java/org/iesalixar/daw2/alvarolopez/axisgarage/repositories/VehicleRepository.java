@@ -24,13 +24,17 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     // mismo?
     boolean existsByModelAndOwnerIdAndIdNot(String model, Long ownerId, Long idVehicle);
 
-    // Filtrado dinámico por nombre o capacidad
+    // Filtrado dinámico por marca, modelo, potencia mínima y categoría
     @Query("SELECT v FROM Vehicle v WHERE " +
+            "(:brand IS NULL OR LOWER(v.brand) LIKE LOWER(CONCAT('%', :brand, '%'))) AND " +
             "(:model IS NULL OR LOWER(v.model) LIKE LOWER(CONCAT('%', :model, '%'))) AND " +
-            "(:horsePower IS NULL OR v.horsePower >= :horsePower)")
+            "(:horsePower IS NULL OR v.horsePower >= :horsePower) AND " +
+            "(:categoryId IS NULL OR v.category.id = :categoryId)")
     Page<Vehicle> findByFiltros(
+            @Param("brand") String brand,
             @Param("model") String model,
             @Param("horsePower") Integer horsePower,
+            @Param("categoryId") Long categoryId,
             Pageable pageable);
 
 }

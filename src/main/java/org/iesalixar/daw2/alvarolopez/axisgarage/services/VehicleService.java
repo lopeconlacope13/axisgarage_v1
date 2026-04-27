@@ -60,16 +60,22 @@ public class VehicleService {
 
     /**
      * Obtiene una lista paginada de vehículos catalogados, con filtros opcionales.
+     * Cualquier filtro que llegue como null o vacío se ignora completamente.
      *
-     * @param model Modelo del vehículo a buscar.
+     * @param brand      Marca del vehículo a buscar (búsqueda parcial).
+     * @param model      Modelo del vehículo a buscar (búsqueda parcial).
      * @param horsePower Potencia mínima en CV.
-     * @param pageable Configuración de paginación de Spring Data.
+     * @param categoryId ID de la categoría a filtrar.
+     * @param pageable   Configuración de paginación de Spring Data.
      * @return Page con listado de VehicleDTO.
      */
-    public Page<VehicleDTO> getAllVehicles(String model, Integer horsePower, Pageable pageable) {
-        logger.info("Solicitando Vehículos con filtros -> Modelo: {}, CV mínimos: {}", model, horsePower);
+    public Page<VehicleDTO> getAllVehicles(String brand, String model, Integer horsePower, Long categoryId, Pageable pageable) {
+        logger.info("Solicitando Vehículos con filtros -> Marca: {}, Modelo: {}, CV mínimos: {}, Categoría: {}", brand, model, horsePower, categoryId);
         try {
-            Page<Vehicle> vehicles = vehicleRepository.findByFiltros(model, horsePower, pageable);
+            // Convertimos strings vacíos a null para que la query JPQL los ignore
+            String brandFilter = (brand != null && !brand.isBlank()) ? brand : null;
+            String modelFilter = (model != null && !model.isBlank()) ? model : null;
+            Page<Vehicle> vehicles = vehicleRepository.findByFiltros(brandFilter, modelFilter, horsePower, categoryId, pageable);
 
             logger.info("Se han encontrado {} Vehículos en la base de datos.", vehicles.getTotalElements());
 

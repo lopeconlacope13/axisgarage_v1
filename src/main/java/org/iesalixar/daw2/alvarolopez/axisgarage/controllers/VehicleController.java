@@ -42,15 +42,17 @@ public class VehicleController {
     })
     @GetMapping
     public ResponseEntity<Page<VehicleDTO>> getAllVehicles(
+            @RequestParam(required = false) String brand,
             @RequestParam(required = false) String model,
             @RequestParam(required = false) Integer horsePower,
+            @RequestParam(required = false) Long categoryId,
             @PageableDefault(size = 10, sort = "model") Pageable pageable) {
 
-        logger.info("REST: Solicitando Vehículos (Filtros -> modelo: {}, caballos: {}) | Pág: {}, Tamaño: {}",
-                model, horsePower, pageable.getPageNumber(), pageable.getPageSize());
+        logger.info("REST: Solicitando Vehículos (Filtros -> marca: {}, modelo: {}, caballos: {}, categoría: {}) | Pág: {}, Tamaño: {}",
+                brand, model, horsePower, categoryId, pageable.getPageNumber(), pageable.getPageSize());
 
         try {
-            Page<VehicleDTO> vehicles = vehicleService.getAllVehicles(model, horsePower, pageable);
+            Page<VehicleDTO> vehicles = vehicleService.getAllVehicles(brand, model, horsePower, categoryId, pageable);
             return ResponseEntity.ok(vehicles);
         } catch (Exception e) {
             logger.error("Error al listar los Vehículos: {}", e.getMessage());
