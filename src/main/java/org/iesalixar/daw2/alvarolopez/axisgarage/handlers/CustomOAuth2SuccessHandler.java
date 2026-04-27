@@ -50,8 +50,12 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             () -> new RuntimeException("User not found after OAuth2 success")
         );
 
+        // Añadimos el prefijo "ROLE_" para que Spring Security entienda las autoridades
+        // correctamente. El filtro JWT (JwtAuthenticationFilter) usa estos valores directamente
+        // como SimpleGrantedAuthority, y hasAnyRole("USER") espera "ROLE_USER".
+        // Sin este prefijo, los usuarios OAuth reciben un 403 al intentar acceder a rutas protegidas.
         List<String> roles = user.getRoles().stream()
-                .map(Role::getName)
+                .map(role -> role.getName().startsWith("ROLE_") ? role.getName() : "ROLE_" + role.getName())
                 .collect(Collectors.toList());
 
         // Generar JWT
