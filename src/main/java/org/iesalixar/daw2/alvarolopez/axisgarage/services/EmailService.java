@@ -119,6 +119,46 @@ public class EmailService {
     }
 
     /**
+     * Reenvía al equipo interno el mensaje de contacto que envió un usuario desde el formulario web.
+     * El remitente real aparece en el cuerpo del correo (no en el From, que siempre es la cuenta SMTP).
+     *
+     * @param senderName    Nombre del usuario que envía el mensaje.
+     * @param senderEmail   Email de contacto del usuario (para poder responderle).
+     * @param messageBody   Contenido del mensaje.
+     */
+    public void sendContactEmail(String senderName, String senderEmail, String messageBody) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(from);
+            helper.setTo(from); // El destino es la propia cuenta del sistema (inbox interno)
+            helper.setSubject("Axis Garage — Contact Form: " + senderName);
+
+            String html = "<div style=\"background:#0a0a0a;padding:40px 20px;font-family:Georgia,serif;\">" +
+                "<div style=\"max-width:600px;margin:0 auto;background:#111111;border:1px solid rgba(184,149,42,0.2);padding:40px;\">" +
+                "<h1 style=\"color:#b8952a;font-size:1.2rem;letter-spacing:0.2em;margin:0 0 8px;\">AXIS GARAGE</h1>" +
+                "<p style=\"color:#9a9a95;font-size:0.7rem;letter-spacing:0.3em;margin:0 0 28px;\">NUEVO MENSAJE DE CONTACTO</p>" +
+                "<hr style=\"border:none;border-top:1px solid rgba(184,149,42,0.3);margin-bottom:28px;\">" +
+                "<table style=\"width:100%;border-collapse:collapse;margin-bottom:24px;\">" +
+                "<tr style=\"border-bottom:1px solid rgba(245,245,240,0.05);\"><td style=\"padding:10px 0;color:#9a9a95;font-size:0.75rem;\">FROM</td><td style=\"padding:10px 0;color:#f5f5f0;text-align:right;\">" + senderName + "</td></tr>" +
+                "<tr style=\"border-bottom:1px solid rgba(245,245,240,0.05);\"><td style=\"padding:10px 0;color:#9a9a95;font-size:0.75rem;\">EMAIL</td><td style=\"padding:10px 0;color:#b8952a;text-align:right;\">" + senderEmail + "</td></tr>" +
+                "</table>" +
+                "<p style=\"color:#f5f5f0;font-size:0.9rem;line-height:1.7;white-space:pre-wrap;\">" + messageBody + "</p>" +
+                "<hr style=\"border:none;border-top:1px solid rgba(184,149,42,0.15);margin-top:28px;margin-bottom:16px;\">" +
+                "<p style=\"color:#9a9a95;font-size:0.75rem;\">Axis Garage — Discreción garantizada.</p>" +
+                "</div></div>";
+
+            helper.setText(html, true);
+            mailSender.send(message);
+            logger.info("Mensaje de contacto de {} ({}) reenviado correctamente.", senderName, senderEmail);
+
+        } catch (MessagingException | RuntimeException e) {
+            logger.error("Error al reenviar mensaje de contacto de {}: {}", senderEmail, e.getMessage());
+            // No relanzamos — si el email falla, el usuario igual recibe confirmación visual
+        }
+    }
+
+    /**
      * Construye el cuerpo del mensaje en texto plano con todos los datos
      * relevantes de la reserva para que el cliente tenga un resumen claro.
      *

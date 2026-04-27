@@ -8,6 +8,10 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.InvoiceRepository;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.ReservationRepository;
 import org.springframework.stereotype.Service;
 
+import com.lowagie.text.*;
+import com.lowagie.text.pdf.*;
+import java.awt.Color;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -143,6 +147,126 @@ public class InvoiceService {
             throw new IllegalArgumentException("Factura no encontrada con ID: " + id);
         }
         invoiceRepository.deleteById(id);
+    }
+
+    /**
+     * Genera el PDF de una factura buscándola por el ID de la reserva.
+     * Si la factura no existe, la crea automáticamente antes de generar el PDF.
+     * Devuelve los bytes del PDF para que el controlador los envíe como descarga.
+     *
+     * @param reservationId ID de la reserva cuya factura se quiere descargar.
+     * @return Array de bytes con el contenido del PDF.
+     */
+    public byte[] generateInvoicePdfByReservation(Long reservationId) {
+        // Obtener o crear la factura para esa reserva
+        InvoiceDTO invoice;
+        if (invoiceRepository.existsByReservationId(reservationId)) {
+            invoice = obtenerFacturaPorReserva(reservationId);
+        } else {
+            InvoiceDTO newDto = new InvoiceDTO();
+            newDto.setReservationId(reservationId);
+            invoice = crearFactura(newDto);
+        }
+
+        // Crear el PDF en memoria con OpenPDF
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4, 50, 50, 60, 60);
+
+        try {
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            // --- Fuentes del documento ---
+            Font brandFont    = new Font(Font.HELVETICA, 18, Font.BOLD,   new Color(184, 149, 42));
+            Font subtitleFont = new Font(Font.HELVETICA,  8, Font.NORMAL, new Color(120, 120, 120));
+            Font labelFont    = new Font(Font.HELVETICA,  8, Font.BOLD,   new Color(120, 120, 120));
+            Font valueFont    = new Font(Font.HELVETICA, 10, Font.NORMAL, new Color( 30,  30,  30));
+            Font totalFont    = new Font(Font.HELVETICA, 12, Font.BOLD,   new Color(184, 149, 42));
+
+            // --- Cabecera de la factura ---
+            Paragraph brand = new Paragraph("AXIS GARAGE", brandFont);
+            brand.setAlignment(Element.ALIGN_CENTER);
+            document.add(brand);
+
+            Paragraph subtitle = new Paragraph("PRIVATE ATELIER — INVOICE", subtitleFont);
+            subtitle.setAlignment(Element.ALIGN_CENTER);
+            subtitle.setSpacingAfter(20);
+            document.add(subtitle);
+
+            // Línea separadora dorada
+            document.add(new Chunk(new com.lowagie.text.pdf.draw.LineSeparator(0.5f, 100, new Color(184, 149, 42), Element.ALIGN_CENTER, -2)));
+
+            // Número de factura y fecha en dos columnas
+            PdfPTable headerTable = new PdfPTable(2);
+            headerTable.setWidthPercentage(100);
+            headerTable.setSpacingBefore(16);
+            headerTable.setSpacingAfter(16);
+            headerTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
+
+            PdfPCell cell1 = new PdfPCell(new Phrase("Invoice No.\n" + invoice.getInvoiceNumber(), valueFont));
+            cell1.setBorder(Rectangle.NO_BORDER);
+            PdfPCell cell2 = new PdfPCell(new Phrase("Date: " + invoice.getIssueDate(), valueFont));
+            cell2.setBorder(Rectangle.NO_BORDER);
+            cell2.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            headerTable.addCell(cell1);
+            headerTable.addCell(cell2);
+            document.add(headerTable);
+
+            // --- Tabla de detalle de la factura ---
+            document.add(new Chunk(new com.lowagie.text.pdf.draw.LineSeparator(0.3f, 100, new Color(200, 200, 200), Element.ALIGN_CENTER, -2)));
+
+            PdfPTable detailTable = new PdfPTable(2);
+            detailTable.setWidthPercentage(100);
+            detailTable.setSpacingBefore(12);
+            detailTable.setSpacingAfter(12);
+
+            // Función auxiliar para añadir filas label + valor a la tabla
+            java.util.function.BiConsumer<String, String> addRow = (label, value) -> {
+                PdfPCell l = new PdfPCell(new Phrase(label, labelFont));
+                l.setBorder(Rectangle.BOTTOM);
+                l.setBorderColor(new Color(230, 230, 230));
+                l.setPadding(8);
+                PdfPCell v = new PdfPCell(new Phrase(value, valueFont));
+                v.setBorder(Rectangle.BOTTOM);
+                v.setBorderColor(new Color(230, 230, 230));
+                v.setPadding(8);
+                v.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                detailTable.addCell(l);
+                detailTable.addCell(v);
+            };
+
+            addRow.accept("RESERVATION",     "#" + invoice.getReservationId());
+            addRow.accept("PAYMENT METHOD",  invoice.getPaymentMethod() != null ? invoice.getPaymentMethod() : "—");
+            addRow.accept("BASE AMOUNT",     String.format("€%.2f", invoice.getBaseAmount()));
+            addRow.accept("TAX RATE (IVA)",  String.format("%.0f%%", invoice.getTaxRate().multiply(new BigDecimal(100))));
+            addRow.accept("TAX AMOUNT",      String.format("€%.2f", invoice.getTaxAmount()));
+
+            // Fila del total con fuente dorada destacada
+            PdfPCell totalLabel = new PdfPCell(new Phrase("TOTAL", totalFont));
+            totalLabel.setBorder(Rectangle.NO_BORDER);
+            totalLabel.setPadding(10);
+            PdfPCell totalValue = new PdfPCell(new Phrase(String.format("€%.2f", invoice.getTotalAmount()), totalFont));
+            totalValue.setBorder(Rectangle.NO_BORDER);
+            totalValue.setPadding(10);
+            totalValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            detailTable.addCell(totalLabel);
+            detailTable.addCell(totalValue);
+
+            document.add(detailTable);
+
+            // --- Pie de página ---
+            document.add(new Chunk(new com.lowagie.text.pdf.draw.LineSeparator(0.3f, 100, new Color(184, 149, 42), Element.ALIGN_CENTER, -2)));
+            Paragraph footer = new Paragraph("\nAxis Garage — Discreción garantizada.\nProyecto académico TFG — ficticio.", subtitleFont);
+            footer.setAlignment(Element.ALIGN_CENTER);
+            footer.setSpacingBefore(10);
+            document.add(footer);
+
+        } finally {
+            // Siempre cerramos el documento para liberar recursos
+            document.close();
+        }
+
+        return out.toByteArray();
     }
 
     /**

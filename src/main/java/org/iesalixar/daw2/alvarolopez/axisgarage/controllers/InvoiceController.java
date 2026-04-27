@@ -4,7 +4,9 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.InvoiceDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.InvoiceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -123,6 +125,34 @@ public class InvoiceController {
             logger.error("Error al actualizar la factura con ID: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al actualizar la factura.");
+        }
+    }
+
+    /**
+     * Genera y descarga el PDF de la factura asociada a una reserva.
+     * Si la factura no existe todavía, se crea automáticamente antes de generar el PDF.
+     * El navegador/cliente recibirá el archivo como descarga directa.
+     *
+     * @param reservationId ID de la reserva para la que se quiere el PDF.
+     * @return ResponseEntity con los bytes del PDF y las cabeceras de descarga.
+     */
+    @GetMapping("/reservation/{reservationId}/pdf")
+    public ResponseEntity<?> descargarPdfPorReserva(@PathVariable Long reservationId) {
+        try {
+            byte[] pdfBytes = invoiceService.generateInvoicePdfByReservation(reservationId);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            // inline = el navegador lo muestra; attachment = lo descarga directamente
+            headers.setContentDispositionFormData("attachment", "invoice-reservation-" + reservationId + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error al generar el PDF de la reserva {}: {}", reservationId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al generar el PDF.");
         }
     }
 

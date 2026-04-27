@@ -91,6 +91,8 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET, "/api/locations", "/api/locations/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
 						.requestMatchers("/uploads/**").permitAll()
+						// Formulario de contacto público — no requiere autenticación
+						.requestMatchers(HttpMethod.POST, "/api/contact").permitAll()
 
 						// --- RUTAS DE CLIENTE (USER/MANAGER/ADMIN) ---
 						.requestMatchers(HttpMethod.GET, "/api/reservations/**").hasAnyRole("USER", "MANAGER", "ADMIN")
@@ -104,6 +106,8 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.DELETE, "/api/reviews/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 
 						.requestMatchers(HttpMethod.GET, "/api/renters/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+						// Endpoint idempotente: cualquier usuario logueado puede crear/recuperar su propio perfil de Renter
+						.requestMatchers(HttpMethod.POST, "/api/renters/ensure").hasAnyRole("USER", "MANAGER", "ADMIN")
 						.requestMatchers(HttpMethod.POST, "/api/renters/**").hasAnyRole("MANAGER", "ADMIN")
 						.requestMatchers(HttpMethod.PUT, "/api/renters/**").hasAnyRole("MANAGER", "ADMIN")
 						.requestMatchers(HttpMethod.DELETE, "/api/renters/**").hasAnyRole("MANAGER", "ADMIN")

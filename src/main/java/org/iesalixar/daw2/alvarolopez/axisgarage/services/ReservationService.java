@@ -198,6 +198,11 @@ public class ReservationService {
             existente.setVehicle(vehicle);
             existente.setRenter(renter);
 
+            // Actualizar el estado de la reserva (p.ej. CONFIRMED → CANCELLED)
+            if (dto.getStatus() != null) {
+                existente.setStatus(dto.getStatus());
+            }
+
             long dias = ChronoUnit.DAYS.between(dto.getStartDate(), dto.getEndDate());
             existente.setTotalPrice(dias * vehicle.getPricePerDay());
 
