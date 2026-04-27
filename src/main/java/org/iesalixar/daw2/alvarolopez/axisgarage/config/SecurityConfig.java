@@ -115,6 +115,7 @@ public class SecurityConfig {
 						// --- RUTAS DE MANAGER ---
 						.requestMatchers(HttpMethod.POST, "/api/vehicles/**").hasAnyRole("MANAGER", "ADMIN")
 						.requestMatchers(HttpMethod.PUT, "/api/vehicles/**").hasAnyRole("MANAGER", "ADMIN")
+						.requestMatchers(HttpMethod.PATCH, "/api/vehicles/**").hasAnyRole("MANAGER", "ADMIN")
 						.requestMatchers(HttpMethod.DELETE, "/api/vehicles/**").hasAnyRole("MANAGER", "ADMIN")
 
 						.requestMatchers("/api/owners/**").hasAnyRole("MANAGER", "ADMIN")

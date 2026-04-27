@@ -244,4 +244,20 @@ public class VehicleService {
         vehicleRepository.deleteById(id);
     }
 
+    /**
+     * Alterna el estado de disponibilidad de un vehículo (disponible ↔ no disponible).
+     * Útil para el panel de gestión del MANAGER, sin necesidad de subir imágenes.
+     *
+     * @param id Identificador del vehículo.
+     * @return DTO actualizado con el nuevo valor de 'available'.
+     * @throws IllegalArgumentException si el vehículo no existe.
+     */
+    public VehicleDTO toggleAvailability(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Vehículo no encontrado con ID: " + id));
+        vehicle.setAvailable(!vehicle.getAvailable());
+        logger.info("Disponibilidad del vehículo {} cambiada a {}", id, vehicle.getAvailable());
+        return vehicleMapper.toDTO(vehicleRepository.save(vehicle));
+    }
+
 }

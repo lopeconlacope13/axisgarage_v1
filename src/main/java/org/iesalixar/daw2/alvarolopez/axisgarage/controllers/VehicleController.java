@@ -132,6 +132,16 @@ public class VehicleController {
 
     // --- 5. BORRAR VEHÍCULO ---
 
+    @Operation(summary = "Alternar disponibilidad del vehículo", description = "Cambia available de true a false o viceversa. Sin necesidad de FormData.")
+    @PatchMapping("/{id}/toggle-availability")
+    public ResponseEntity<?> toggleAvailability(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(vehicleService.toggleAvailability(id));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
     @Operation(summary = "Eliminar un vehículo", description = "Elimina un vehículo.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Vehículo retirado"),

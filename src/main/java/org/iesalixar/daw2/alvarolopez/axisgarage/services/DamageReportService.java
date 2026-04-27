@@ -52,6 +52,20 @@ public class DamageReportService {
     }
 
     /**
+     * Devuelve todos los informes de daños del sistema.
+     * Usado por el panel de gestión (MANAGER y ADMIN) para tener una vista global.
+     *
+     * @return Lista con todos los DamageReportDTO existentes en base de datos.
+     */
+    public List<DamageReportDTO> getAllReports() {
+        logger.info("Listando todos los informes de daños del sistema");
+        return damageReportRepository.findAll()
+                .stream()
+                .map(damageReportMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Busca un informe de daños por su identificador.
      *
      * @param id Identificador del reporte.

@@ -25,6 +25,12 @@ public class DamageReportController {
     @Autowired
     private DamageReportService damageReportService;
 
+    @Operation(summary = "Listar todos los informes de daños")
+    @GetMapping
+    public ResponseEntity<List<DamageReportDTO>> getAllReports() {
+        return ResponseEntity.ok(damageReportService.getAllReports());
+    }
+
     @Operation(summary = "Listar informes de daños por reserva")
     @GetMapping("/reservation/{reservationId}")
     public ResponseEntity<List<DamageReportDTO>> getReportsByReservation(@PathVariable Long reservationId) {
