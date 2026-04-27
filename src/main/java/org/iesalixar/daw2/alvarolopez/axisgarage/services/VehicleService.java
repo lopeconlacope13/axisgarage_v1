@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -270,6 +271,8 @@ public class VehicleService {
      */
     @Transactional
     public void deleteVehicle(Long id) {
+        // Garantizamos que el id no es null antes de pasarlo al repositorio (@NonNull)
+        Objects.requireNonNull(id, "El id del vehículo no puede ser null.");
         // Comprobamos primero que el vehículo existe para dar un error descriptivo
         if (!vehicleRepository.existsById(id)) {
             throw new IllegalArgumentException("El vehículo no existe.");
@@ -288,6 +291,8 @@ public class VehicleService {
      * @throws IllegalArgumentException si el vehículo no existe.
      */
     public VehicleDTO toggleAvailability(Long id) {
+        // Garantizamos que el id no es null antes de pasarlo al repositorio (@NonNull)
+        Objects.requireNonNull(id, "El id del vehículo no puede ser null.");
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Vehículo no encontrado con ID: " + id));
         vehicle.setAvailable(!vehicle.getAvailable());
