@@ -162,30 +162,44 @@ public class VehicleService {
 
     /**
      * Edita los campos y sustituye/añade imágenes de un vehículo del registro.
+     * <p>
+     * Si el cuerpo de la petición no incluye un propietario (ownerDTO es null),
+     * se conserva el propietario que ya tenía el vehículo en base de datos.
+     * Esto evita un NullPointerException cuando el formulario de edición no
+     * envía el campo del owner (por ejemplo, al editar solo datos técnicos).
+     * </p>
      *
      * @param id ID original del vehículo.
      * @param vehicleDTO Contenido actualizado.
      * @param locale Contexto de idioma actual.
      * @return VehicleDTO resultante.
-     * @throws IllegalArgumentException si los datos incumplen unicidad.
+     * @throws IllegalArgumentException si los datos incumplen unicidad o no existe el vehículo.
      */
     public VehicleDTO updateVehicle(Long id, VehicleDTO vehicleDTO, Locale locale) {
 
-        // verificar que existe
+        // Buscamos el vehículo existente; si no existe, cortamos aquí con excepción clara
         Vehicle existente = vehicleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Error: Vehículo no encontrado con ID: " + id));
 
-        // regla de negocio: exclusión de duplicados
-        if (vehicleRepository.existsByModelAndOwnerIdAndIdNot(
-                vehicleDTO.getModel(),
-                vehicleDTO.getOwnerDTO().getId(),
-                id)) {
-            throw new IllegalArgumentException("El propietario ya tiene OTRO vehículo con este modelo.");
+        // Determinamos el propietario final:
+        // - Si el DTO trae un ownerDTO con ID válido → usamos ese nuevo propietario
+        // - Si ownerDTO es null (el frontend no lo envió) → conservamos el actual de la BD
+        Owner owner;
+        if (vehicleDTO.getOwnerDTO() != null && vehicleDTO.getOwnerDTO().getId() != null) {
+            // El formulario envió un propietario: validamos unicidad modelo-owner y buscamos la entidad
+            if (vehicleRepository.existsByModelAndOwnerIdAndIdNot(
+                    vehicleDTO.getModel(),
+                    vehicleDTO.getOwnerDTO().getId(),
+                    id)) {
+                throw new IllegalArgumentException("El propietario ya tiene OTRO vehículo con este modelo.");
+            }
+            owner = ownerRepository.findById(vehicleDTO.getOwnerDTO().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Propietario no encontrado"));
+        } else {
+            // ownerDTO no vino en el body → mantenemos el propietario que ya tenía el vehículo
+            logger.info("ownerDTO no recibido en el body. Se conserva el propietario actual del vehículo con ID {}", id);
+            owner = existente.getOwner();
         }
-
-        // buscar al propietario
-        Owner owner = ownerRepository.findById(vehicleDTO.getOwnerDTO().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Propietario no encontrado"));
 
         VehicleCategory category = categoryRepository.findById(vehicleDTO.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada"));
@@ -238,16 +252,31 @@ public class VehicleService {
     // --- 5. ELIMINAR VEHÍCULO ---
 
     /**
-     * Borra permanentemente el vehículo del sistema.
+     * Borra permanentemente el vehículo y todas sus reservas asociadas del sistema.
+     * <p>
+     * Gracias a la anotación {@code @OneToMany(cascade = CascadeType.ALL)} definida
+     * en la entidad {@link org.iesalixar.daw2.alvarolopez.axisgarage.entities.Vehicle},
+     * JPA elimina automáticamente en cascada todas las reservas cuyo campo
+     * {@code vehicle_id} apunte a este vehículo. No es necesario borrarlas a mano.
+     * </p>
+     * <p>
+     * IMPORTANTE: primero se verifica que el vehículo exista. Si no existe, lanzamos
+     * una excepción controlada para que el controlador devuelva un 404 limpio,
+     * en lugar de dejar que JPA falle en silencio.
+     * </p>
      *
      * @param id Identificador del coche a borrar.
-     * @throws IllegalArgumentException si no se localiza el auto con el id entregado.
+     * @throws IllegalArgumentException si no se localiza el vehículo con el id entregado.
      */
+    @Transactional
     public void deleteVehicle(Long id) {
+        // Comprobamos primero que el vehículo existe para dar un error descriptivo
         if (!vehicleRepository.existsById(id)) {
             throw new IllegalArgumentException("El vehículo no existe.");
         }
+        // deleteById dispara el borrado en cascada de reservas asociadas (CascadeType.ALL)
         vehicleRepository.deleteById(id);
+        logger.info("Vehículo con ID {} eliminado correctamente junto con sus reservas asociadas.", id);
     }
 
     /**
