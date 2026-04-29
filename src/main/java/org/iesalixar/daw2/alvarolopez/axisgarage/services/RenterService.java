@@ -3,8 +3,10 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.services;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.RenterDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.entities.Renter;
+import org.iesalixar.daw2.alvarolopez.axisgarage.entities.User;
 import org.iesalixar.daw2.alvarolopez.axisgarage.mappers.RenterMapper;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.RenterRepository;
+import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,9 @@ public class RenterService {
 
     @Autowired
     private RenterMapper renterMapper;
+
+    @Autowired
+    private UserRepository userRepository;
 
     // --- 1. LISTAR CON PAGINACIÓN ---
 
@@ -194,5 +199,52 @@ public class RenterService {
             logger.error("Error al borrar el huésped: {}", e.getMessage());
             throw new RuntimeException("Error interno al borrar el huésped.");
         }
+    }
+
+    // --- 6. ASEGURAR PERFIL DE HUÉSPED PARA UN USUARIO ---
+
+    /**
+     * Garantiza la existencia de un perfil de Renter asociado al usuario indicado.
+     * <p>
+     * Si ya existe un Renter con el email del User, lo devuelve tal cual.
+     * Si no existe, crea uno nuevo automáticamente reutilizando el nombre,
+     * apellidos y email del User. Los campos obligatorios DNI y teléfono se
+     * rellenan con valores placeholder únicos derivados del ID del usuario,
+     * para que el cliente pueda completarlos después desde su perfil.
+     * <p>
+     * Este método se llama desde el flujo de checkout para que cualquier
+     * usuario registrado pueda reservar sin necesidad de crear manualmente
+     * su ficha de Renter previa.
+     *
+     * @param userId ID del usuario autenticado (extraído del JWT).
+     * @return RenterDTO existente o recién creado.
+     */
+    public RenterDTO ensureRenterFromUser(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("El ID del usuario no puede ser nulo.");
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + userId));
+
+        Optional<Renter> existing = renterRepository.findByEmail(user.getEmail());
+        if (existing.isPresent()) {
+            return renterMapper.toDTO(existing.get());
+        }
+
+        // Generamos placeholders únicos a partir del ID del usuario
+        // (DNI no es unique pero phone sí; padTo9 garantiza el formato del @Pattern)
+        String placeholderPhone = String.format("%09d", 900000000L + userId);
+        String placeholderDni   = "PENDING-" + userId;
+
+        Renter nuevo = new Renter();
+        nuevo.setName(user.getFirstName() != null ? user.getFirstName() : "Cliente");
+        nuevo.setLastName(user.getLastName() != null ? user.getLastName() : "Axis");
+        nuevo.setEmail(user.getEmail());
+        nuevo.setDni(placeholderDni);
+        nuevo.setPhone(placeholderPhone);
+
+        Renter saved = renterRepository.save(nuevo);
+        logger.info("Renter auto-creado (id {}) para el User id {}", saved.getId(), userId);
+        return renterMapper.toDTO(saved);
     }
 }

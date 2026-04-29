@@ -1,7 +1,6 @@
 package org.iesalixar.daw2.alvarolopez.axisgarage.handlers;
 
 import org.iesalixar.daw2.alvarolopez.axisgarage.entities.User;
-import org.iesalixar.daw2.alvarolopez.axisgarage.entities.Role;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.UserRepository;
 import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;

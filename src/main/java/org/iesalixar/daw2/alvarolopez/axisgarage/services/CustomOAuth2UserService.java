@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -83,10 +82,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             newUser.setEnabled(true);
             newUser.setAuthProvider(authProvider);
 
-            Optional<Role> roleOpt = roleRepository.findByName("USER");
-            Set<Role> roles = new HashSet<>();
-            roleOpt.ifPresent(roles::add);
-            newUser.setRoles(roles);
+            // Los roles en BD se almacenan con el prefijo "ROLE_" (ej: "ROLE_USER").
+            // Si buscásemos "USER" no encontraríamos nada y el usuario quedaría sin roles,
+            // lo que provocaría un 403 en cualquier endpoint protegido.
+            Role rolUser = roleRepository.findByName("ROLE_USER")
+                    .orElseThrow(() -> new OAuth2AuthenticationException("Rol ROLE_USER no encontrado en BD"));
+            newUser.setRoles(Set.of(rolUser));
 
             userRepository.save(newUser);
         }
