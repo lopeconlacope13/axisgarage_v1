@@ -22,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -99,8 +98,6 @@ public class VehicleService {
     @Transactional
     public Optional<VehicleDTO> getVehicleById(Long id) {
         try {
-            // Garantizamos que el id no sea null antes de consultar la BD
-            Objects.requireNonNull(id, "El id del vehículo no puede ser null.");
             logger.info("Buscando Vehículo con ID {}", id);
             return vehicleRepository.findById(id).map(vehicleMapper::toDTO);
         } catch (Exception e) {
@@ -127,16 +124,13 @@ public class VehicleService {
         }
 
         // buscamos al propietario para enlazar la relación
-        Long ownerId = Objects.requireNonNull(vehicleDTO.getOwnerDTO().getId(), "El id del propietario no puede ser null.");
-        Owner owner = ownerRepository.findById(ownerId)
+        Owner owner = ownerRepository.findById(vehicleDTO.getOwnerDTO().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Propietario no encontrado"));
 
-        Long categoryId = Objects.requireNonNull(vehicleDTO.getCategoryId(), "El id de la categoría no puede ser null.");
-        VehicleCategory category = categoryRepository.findById(categoryId)
+        VehicleCategory category = categoryRepository.findById(vehicleDTO.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada"));
 
-        Long locationId = Objects.requireNonNull(vehicleDTO.getLocationId(), "El id de la sede no puede ser null.");
-        Location location = locationRepository.findById(locationId)
+        Location location = locationRepository.findById(vehicleDTO.getLocationId())
                 .orElseThrow(() -> new IllegalArgumentException("Sede no encontrada"));
 
         // convertimos a entity pasándole las relaciones atachadas
@@ -159,8 +153,8 @@ public class VehicleService {
             logger.warn("No se recibió ninguna imagen para el vehículo en la creación.");
         }
 
-        // guardar en BD (insert) y retornar DTO; requireNonNull por si el repositorio devuelve null inesperadamente
-        Vehicle savedVehicle = Objects.requireNonNull(vehicleRepository.save(vehicle), "Error interno: el repositorio devolvió null al guardar el vehículo.");
+        // guardar en BD (insert) y retornar DTO con el ID asignado por JPA
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
         return vehicleMapper.toDTO(savedVehicle);
     }
 
@@ -183,8 +177,6 @@ public class VehicleService {
      */
     public VehicleDTO updateVehicle(Long id, VehicleDTO vehicleDTO, Locale locale) {
 
-        // Garantizamos que el id no sea null antes de consultar la BD
-        Objects.requireNonNull(id, "El id del vehículo no puede ser null.");
         // Buscamos el vehículo existente; si no existe, cortamos aquí con excepción clara
         Vehicle existente = vehicleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Error: Vehículo no encontrado con ID: " + id));
@@ -201,8 +193,7 @@ public class VehicleService {
                     id)) {
                 throw new IllegalArgumentException("El propietario ya tiene OTRO vehículo con este modelo.");
             }
-            Long ownerIdUpd = Objects.requireNonNull(vehicleDTO.getOwnerDTO().getId(), "El id del propietario no puede ser null.");
-            owner = ownerRepository.findById(ownerIdUpd)
+            owner = ownerRepository.findById(vehicleDTO.getOwnerDTO().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Propietario no encontrado"));
         } else {
             // ownerDTO no vino en el body → mantenemos el propietario que ya tenía el vehículo
@@ -210,12 +201,10 @@ public class VehicleService {
             owner = existente.getOwner();
         }
 
-        Long categoryIdUpd = Objects.requireNonNull(vehicleDTO.getCategoryId(), "El id de la categoría no puede ser null.");
-        VehicleCategory category = categoryRepository.findById(categoryIdUpd)
+        VehicleCategory category = categoryRepository.findById(vehicleDTO.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada"));
 
-        Long locationIdUpd = Objects.requireNonNull(vehicleDTO.getLocationId(), "El id de la sede no puede ser null.");
-        Location location = locationRepository.findById(locationIdUpd)
+        Location location = locationRepository.findById(vehicleDTO.getLocationId())
                 .orElseThrow(() -> new IllegalArgumentException("Sede no encontrada"));
 
         // mutar el estado de la entidad EXISTENTE
@@ -281,8 +270,6 @@ public class VehicleService {
      */
     @Transactional
     public void deleteVehicle(Long id) {
-        // Garantizamos que el id no es null antes de pasarlo al repositorio (@NonNull)
-        Objects.requireNonNull(id, "El id del vehículo no puede ser null.");
         // Comprobamos primero que el vehículo existe para dar un error descriptivo
         if (!vehicleRepository.existsById(id)) {
             throw new IllegalArgumentException("El vehículo no existe.");
@@ -301,8 +288,6 @@ public class VehicleService {
      * @throws IllegalArgumentException si el vehículo no existe.
      */
     public VehicleDTO toggleAvailability(Long id) {
-        // Garantizamos que el id no es null antes de pasarlo al repositorio (@NonNull)
-        Objects.requireNonNull(id, "El id del vehículo no puede ser null.");
         Vehicle vehicle = vehicleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Vehículo no encontrado con ID: " + id));
         vehicle.setAvailable(!vehicle.getAvailable());
