@@ -4,6 +4,7 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.entities.User;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.UserRepository;
 import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -29,6 +30,11 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    // URL base del frontend inyectada desde application.properties.
+    // En local apunta a localhost:4200; en producción se sobreescribe en el .env del servidor.
+    @Value("${frontend.url:http://localhost:4200}")
+    private String frontendUrl;
 
     /**
      * Maneja el evento de autenticación exitosa con OAuth2.
@@ -61,6 +67,6 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         String token = jwtUtil.generateToken(user.getEmail(), roles, user.getId());
 
         // Redirigimos al frontend con el token JWT definitivo incluido como parámetro de URL.
-        response.sendRedirect("http://localhost:4200/login?token=" + token);
+        response.sendRedirect(frontendUrl + "/login?token=" + token);
     }
 }
