@@ -65,14 +65,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             User newUser = new User();
             newUser.setEmail(email);
             
-            // Try to set some values, as the db constraints are NOT NULL
+            // Intentamos obtener el nombre completo (lo devuelven tanto Google como Facebook)
             String name = oAuth2User.getAttribute("name");
             if (name == null) {
                 name = email.split("@")[0];
             }
+            // Google usa 'given_name'/'family_name'; Facebook usa 'first_name'/'last_name'.
+            // Comprobamos ambas variantes para que el mismo código funcione con los dos proveedores.
             String firstName = oAuth2User.getAttribute("given_name");
-            String lastName = oAuth2User.getAttribute("family_name");
+            if (firstName == null) firstName = oAuth2User.getAttribute("first_name");
             if (firstName == null) firstName = name;
+
+            String lastName = oAuth2User.getAttribute("family_name");
+            if (lastName == null) lastName = oAuth2User.getAttribute("last_name");
             if (lastName == null) lastName = "OAuth";
 
             newUser.setUsername(email); // Use email as username mostly or extract
