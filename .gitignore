@@ -33,3 +33,4 @@ build/
 .vscode/
 *.md
 CLAUDE.md
+.env
