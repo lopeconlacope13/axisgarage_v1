@@ -19,6 +19,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -133,6 +134,50 @@ public class VehicleController {
     }
 
     // --- 5. BORRAR VEHÍCULO ---
+
+    // --- 6. AÑADIR IMAGEN ---
+
+    /**
+     * Añade una imagen a la galería de un vehículo existente.
+     * Solo accesible para usuarios con rol MANAGER o ADMIN.
+     *
+     * @param id   ID del vehículo.
+     * @param file Archivo de imagen enviado como multipart.
+     * @return VehicleDTO actualizado con la nueva imagen.
+     */
+    @PostMapping("/{id}/images")
+    public ResponseEntity<?> addImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        try {
+            return ResponseEntity.ok(vehicleService.addImage(id, file));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error al subir imagen para vehículo {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir la imagen.");
+        }
+    }
+
+    // --- 7. ELIMINAR IMAGEN ---
+
+    /**
+     * Elimina una imagen concreta de la galería de un vehículo.
+     * Solo accesible para usuarios con rol MANAGER o ADMIN.
+     *
+     * @param id       ID del vehículo.
+     * @param filename Nombre del archivo a eliminar.
+     * @return VehicleDTO actualizado sin la imagen eliminada.
+     */
+    @DeleteMapping("/{id}/images/{filename}")
+    public ResponseEntity<?> deleteImage(@PathVariable Long id, @PathVariable String filename) {
+        try {
+            return ResponseEntity.ok(vehicleService.deleteImage(id, filename));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error al eliminar imagen {} del vehículo {}: {}", filename, id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la imagen.");
+        }
+    }
 
     @Operation(summary = "Alternar disponibilidad del vehículo", description = "Cambia available de true a false o viceversa. Sin necesidad de FormData.")
     @PatchMapping("/{id}/toggle-availability")

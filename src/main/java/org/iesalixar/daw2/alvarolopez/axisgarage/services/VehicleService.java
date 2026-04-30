@@ -279,6 +279,48 @@ public class VehicleService {
         logger.info("Vehículo con ID {} eliminado correctamente junto con sus reservas asociadas.", id);
     }
 
+    // --- 6. AÑADIR IMAGEN A UN VEHÍCULO ---
+
+    /**
+     * Añade una imagen al vehículo indicado guardándola en disco y registrando
+     * su nombre en la tabla vehicle_images.
+     *
+     * @param id   ID del vehículo al que se asocia la imagen.
+     * @param file Archivo de imagen enviado desde el formulario.
+     * @return VehicleDTO actualizado con la nueva imagen incluida.
+     * @throws IllegalArgumentException si el vehículo no existe.
+     */
+    public VehicleDTO addImage(Long id, MultipartFile file) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Vehículo no encontrado con ID: " + id));
+        // Guardamos el archivo en disco y obtenemos su nombre único
+        String fileName = fileStorageService.saveFile(file);
+        // Añadimos el nombre al array de imágenes existente (no reemplazamos)
+        vehicle.getImages().add(fileName);
+        return vehicleMapper.toDTO(vehicleRepository.save(vehicle));
+    }
+
+    // --- 7. ELIMINAR IMAGEN DE UN VEHÍCULO ---
+
+    /**
+     * Elimina una imagen concreta del vehículo: la borra del disco y la
+     * elimina de la lista persistida en vehicle_images.
+     *
+     * @param id       ID del vehículo propietario de la imagen.
+     * @param filename Nombre del archivo a eliminar.
+     * @return VehicleDTO actualizado sin la imagen eliminada.
+     * @throws IllegalArgumentException si el vehículo no existe.
+     */
+    public VehicleDTO deleteImage(Long id, String filename) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Vehículo no encontrado con ID: " + id));
+        // Borramos el archivo físico del disco
+        fileStorageService.deleteFile(filename);
+        // Eliminamos la referencia de la lista en base de datos
+        vehicle.getImages().remove(filename);
+        return vehicleMapper.toDTO(vehicleRepository.save(vehicle));
+    }
+
     /**
      * Alterna el estado de disponibilidad de un vehículo (disponible ↔ no disponible).
      * Útil para el panel de gestión del MANAGER, sin necesidad de subir imágenes.
