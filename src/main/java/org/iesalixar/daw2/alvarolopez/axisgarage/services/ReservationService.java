@@ -124,8 +124,23 @@ public class ReservationService {
 
             Vehicle vehicle = vehicleRepository.findById(dto.getVehicleId())
                     .orElseThrow(() -> new IllegalArgumentException("Vehículo no encontrado."));
+            if (!Boolean.TRUE.equals(vehicle.getAvailable())) {
+                throw new IllegalArgumentException("El vehículo seleccionado no está disponible para reservar.");
+            }
+
             Renter renter = renterRepository.findById(dto.getRenterId())
                     .orElseThrow(() -> new IllegalArgumentException("Huésped no encontrado."));
+
+            // Validación de datos fiscales obligatorios: DNI real, teléfono y domicilio
+            if (renter.getDni() == null || renter.getDni().isBlank() || renter.getDni().startsWith("PENDING-")) {
+                throw new IllegalArgumentException("El perfil de cliente no tiene un DNI válido. Complete sus datos de facturación antes de reservar.");
+            }
+            if (renter.getPhone() == null || !renter.getPhone().matches("^[0-9]{9}$")) {
+                throw new IllegalArgumentException("El perfil de cliente no tiene un teléfono válido (9 dígitos). Complete sus datos de facturación antes de reservar.");
+            }
+            if (renter.getAddress() == null || renter.getAddress().isBlank()) {
+                throw new IllegalArgumentException("El perfil de cliente no tiene una dirección de facturación. Complete sus datos antes de reservar.");
+            }
 
             Reservation reservation = reservationMapper.toEntity(dto, vehicle, renter);
 

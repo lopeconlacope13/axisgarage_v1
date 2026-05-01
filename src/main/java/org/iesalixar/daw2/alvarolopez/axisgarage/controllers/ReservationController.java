@@ -9,7 +9,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.ReservationDTO;
+import org.iesalixar.daw2.alvarolopez.axisgarage.entities.Renter;
+import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.RenterRepository;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.ReservationService;
+import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,12 @@ public class ReservationController {
 
     @Autowired
     private ReservationService reservationService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    private RenterRepository renterRepository;
 
     // --- 1. LISTAR (PAGINADO) ---
 
@@ -87,14 +96,28 @@ public class ReservationController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<?> createReservation(@Valid @RequestBody ReservationDTO dto) {
+    public ResponseEntity<?> createReservation(@Valid @RequestBody ReservationDTO dto,
+                                                  @RequestHeader("Authorization") String tokenHeader) {
         try {
             logger.info("REST: Petición para crear nueva reserva");
+
+            // Seguridad: extraemos el email del JWT y verificamos que el renterId
+            // enviado pertenece al usuario autenticado. Esto evita que un atacante
+            // cree reservas suplantando a otro cliente.
+            String token = tokenHeader.replace("Bearer ", "");
+            String email = jwtUtil.extractUsername(token);
+            Renter renter = renterRepository.findByEmail(email)
+                    .orElseThrow(() -> new IllegalArgumentException("No se encontró un perfil de cliente asociado a este usuario."));
+            if (!renter.getId().equals(dto.getRenterId())) {
+                throw new IllegalArgumentException("El perfil de cliente no coincide con el usuario autenticado.");
+            }
+
             ReservationDTO creada = reservationService.createReservation(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(creada);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
+            logger.error("Error al crear reserva: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al crear la reserva.");
         }
     }
