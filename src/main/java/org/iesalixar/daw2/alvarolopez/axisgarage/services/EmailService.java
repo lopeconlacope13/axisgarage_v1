@@ -96,17 +96,17 @@ public class EmailService {
 
             // HTML sencillo para el email de recuperación de contraseña
             String html = "<div style=\"background:#0a0a0a;padding:40px 20px;font-family:Georgia,serif;\">" +
-                "<div style=\"max-width:600px;margin:0 auto;background:#111111;border:1px solid rgba(184,149,42,0.2);padding:40px;\">" +
-                "<h1 style=\"color:#b8952a;font-size:1.4rem;letter-spacing:0.2em;margin:0 0 6px;\">AXIS GARAGE</h1>" +
+                "<div style=\"max-width:600px;margin:0 auto;background:#111111;border:1px solid rgba(201,161,74,0.2);padding:40px;\">" +
+                "<h1 style=\"color:#C9A14A;font-size:1.4rem;letter-spacing:0.2em;margin:0 0 6px;\">AXIS GARAGE</h1>" +
                 "<p style=\"color:#9a9a95;font-size:0.7rem;letter-spacing:0.3em;margin:0 0 28px;\">PRIVATE ATELIER</p>" +
-                "<hr style=\"border:none;border-top:1px solid rgba(184,149,42,0.3);margin-bottom:28px;\">" +
+                "<hr style=\"border:none;border-top:1px solid rgba(201,161,74,0.3);margin-bottom:28px;\">" +
                 "<p style=\"color:#f5f5f0;font-size:0.9rem;line-height:1.7;\">You requested a password reset for your Axis Garage account.</p>" +
-                "<p style=\"color:#f5f5f0;font-size:0.9rem;line-height:1.7;\">Click the button below to set a new password. This link expires in <strong style=\"color:#b8952a;\">1 hour</strong>.</p>" +
+                "<p style=\"color:#f5f5f0;font-size:0.9rem;line-height:1.7;\">Click the button below to set a new password. This link expires in <strong style=\"color:#C9A14A;\">1 hour</strong>.</p>" +
                 "<div style=\"text-align:center;margin:32px 0;\">" +
-                "<a href=\"" + resetLink + "\" style=\"display:inline-block;background:#b8952a;color:#0a0a0a;padding:12px 32px;font-size:0.75rem;letter-spacing:0.15em;text-decoration:none;border-radius:4px;font-family:Georgia,serif;\">RESET PASSWORD</a>" +
+                "<a href=\"" + resetLink + "\" style=\"display:inline-block;background:#C9A14A;color:#0a0a0a;padding:12px 32px;font-size:0.75rem;letter-spacing:0.15em;text-decoration:none;border-radius:4px;font-family:Georgia,serif;\">RESET PASSWORD</a>" +
                 "</div>" +
                 "<p style=\"color:#9a9a95;font-size:0.8rem;\">If you did not request this, simply ignore this email.</p>" +
-                "<hr style=\"border:none;border-top:1px solid rgba(184,149,42,0.15);margin-top:28px;margin-bottom:16px;\">" +
+                "<hr style=\"border:none;border-top:1px solid rgba(201,161,74,0.15);margin-top:28px;margin-bottom:16px;\">" +
                 "<p style=\"color:#9a9a95;font-size:0.75rem;margin:0;\">Axis Garage — Discreción garantizada.</p>" +
                 "</div></div>";
 
@@ -135,16 +135,16 @@ public class EmailService {
             helper.setSubject("Axis Garage — Contact Form: " + senderName);
 
             String html = "<div style=\"background:#0a0a0a;padding:40px 20px;font-family:Georgia,serif;\">" +
-                "<div style=\"max-width:600px;margin:0 auto;background:#111111;border:1px solid rgba(184,149,42,0.2);padding:40px;\">" +
-                "<h1 style=\"color:#b8952a;font-size:1.2rem;letter-spacing:0.2em;margin:0 0 8px;\">AXIS GARAGE</h1>" +
+                "<div style=\"max-width:600px;margin:0 auto;background:#111111;border:1px solid rgba(201,161,74,0.2);padding:40px;\">" +
+                "<h1 style=\"color:#C9A14A;font-size:1.2rem;letter-spacing:0.2em;margin:0 0 8px;\">AXIS GARAGE</h1>" +
                 "<p style=\"color:#9a9a95;font-size:0.7rem;letter-spacing:0.3em;margin:0 0 28px;\">NUEVO MENSAJE DE CONTACTO</p>" +
-                "<hr style=\"border:none;border-top:1px solid rgba(184,149,42,0.3);margin-bottom:28px;\">" +
+                "<hr style=\"border:none;border-top:1px solid rgba(201,161,74,0.3);margin-bottom:28px;\">" +
                 "<table style=\"width:100%;border-collapse:collapse;margin-bottom:24px;\">" +
                 "<tr style=\"border-bottom:1px solid rgba(245,245,240,0.05);\"><td style=\"padding:10px 0;color:#9a9a95;font-size:0.75rem;\">FROM</td><td style=\"padding:10px 0;color:#f5f5f0;text-align:right;\">" + senderName + "</td></tr>" +
-                "<tr style=\"border-bottom:1px solid rgba(245,245,240,0.05);\"><td style=\"padding:10px 0;color:#9a9a95;font-size:0.75rem;\">EMAIL</td><td style=\"padding:10px 0;color:#b8952a;text-align:right;\">" + senderEmail + "</td></tr>" +
+                "<tr style=\"border-bottom:1px solid rgba(245,245,240,0.05);\"><td style=\"padding:10px 0;color:#9a9a95;font-size:0.75rem;\">EMAIL</td><td style=\"padding:10px 0;color:#C9A14A;text-align:right;\">" + senderEmail + "</td></tr>" +
                 "</table>" +
                 "<p style=\"color:#f5f5f0;font-size:0.9rem;line-height:1.7;white-space:pre-wrap;\">" + messageBody + "</p>" +
-                "<hr style=\"border:none;border-top:1px solid rgba(184,149,42,0.15);margin-top:28px;margin-bottom:16px;\">" +
+                "<hr style=\"border:none;border-top:1px solid rgba(201,161,74,0.15);margin-top:28px;margin-bottom:16px;\">" +
                 "<p style=\"color:#9a9a95;font-size:0.75rem;\">Axis Garage — Discreción garantizada.</p>" +
                 "</div></div>";
 
@@ -187,12 +187,12 @@ public class EmailService {
 
         return "<!-- Proyecto académico TFG — ficticio -->" +
             "<div style=\"background:#0a0a0a;padding:40px 20px;font-family:Georgia,serif;\">" +
-            "<div style=\"max-width:600px;margin:0 auto;background:#111111;border:1px solid rgba(184,149,42,0.2);padding:40px;\">" +
+            "<div style=\"max-width:600px;margin:0 auto;background:#111111;border:1px solid rgba(201,161,74,0.2);padding:40px;\">" +
 
             // Cabecera con el nombre de la marca
-            "<h1 style=\"color:#b8952a;font-size:1.5rem;letter-spacing:0.2em;margin:0 0 8px;\">AXIS GARAGE</h1>" +
+            "<h1 style=\"color:#C9A14A;font-size:1.5rem;letter-spacing:0.2em;margin:0 0 8px;\">AXIS GARAGE</h1>" +
             "<p style=\"color:#9a9a95;font-size:0.7rem;letter-spacing:0.3em;margin:0 0 32px;\">PRIVATE ATELIER</p>" +
-            "<hr style=\"border:none;border-top:1px solid rgba(184,149,42,0.3);margin-bottom:32px;\">" +
+            "<hr style=\"border:none;border-top:1px solid rgba(201,161,74,0.3);margin-bottom:32px;\">" +
 
             // Saludo personalizado con el nombre del cliente
             "<p style=\"color:#f5f5f0;font-size:0.9rem;line-height:1.7;margin-bottom:24px;\">Dear " + renterName + ",</p>" +
@@ -214,15 +214,22 @@ public class EmailService {
             "</tr>" +
             "<tr>" +
             "<td style=\"padding:12px 0;color:#9a9a95;font-size:0.75rem;letter-spacing:0.1em;\">INVESTMENT</td>" +
-            "<td style=\"padding:12px 0;color:#b8952a;font-size:1.1rem;font-weight:700;text-align:right;\">" + formattedPrice + "</td>" +
+            "<td style=\"padding:12px 0;color:#C9A14A;font-size:1.1rem;font-weight:700;text-align:right;\">" + formattedPrice + "</td>" +
             "</tr>" +
             "</table>" +
+
+            // Agradecimiento premium con tipografía serif dorada — detalle Old Money
+            "<div style=\"text-align:center;margin:28px 0;\">" +
+            "<p style=\"color:#C9A14A;font-family:Georgia,serif;font-size:1.0rem;letter-spacing:0.15em;margin:0 0 8px;\">Thank you</p>" +
+            "<p style=\"color:#9a9a95;font-size:0.75rem;letter-spacing:0.1em;margin:0;\">for choosing Axis Garage</p>" +
+            "<hr style=\"border:none;border-top:1px solid rgba(201,161,74,0.25);width:80px;margin:16px auto 0;\">" +
+            "</div>" +
 
             // Nota de seguimiento
             "<p style=\"color:#9a9a95;font-size:0.8rem;line-height:1.7;margin-bottom:32px;\">Our concierge team will contact you 24 hours before your pick-up date to confirm the handover details.</p>" +
 
             // Pie de firma
-            "<hr style=\"border:none;border-top:1px solid rgba(184,149,42,0.2);margin-bottom:24px;\">" +
+            "<hr style=\"border:none;border-top:1px solid rgba(201,161,74,0.2);margin-bottom:24px;\">" +
             "<p style=\"color:#9a9a95;font-size:0.75rem;margin:0;\">Axis Garage — Discreción garantizada.</p>" +
 
             "</div></div>";
