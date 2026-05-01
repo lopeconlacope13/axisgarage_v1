@@ -85,15 +85,22 @@ public class RenterService {
 
     /**
      * Registra un nuevo huésped verificando restricciones de unicidad en DNI, Email y Teléfono.
+     * Si el DNI no es un placeholder, valida también la letra de control mediante el algoritmo oficial.
      *
      * @param renterDTO Datos enviados para el nuevo huésped.
      * @return RenterDTO con los datos guardados en base de datos.
-     * @throws IllegalArgumentException si DNI, email o teléfono ya están registrados.
+     * @throws IllegalArgumentException si DNI, email o teléfono ya están registrados o el DNI es inválido.
      * @throws RuntimeException si ocurre un fallo general al guardar.
      */
     public RenterDTO createRenter(@Valid RenterDTO renterDTO) {
         try {
             logger.info("Creando nuevo huésped con DNI: {}", renterDTO.getDni());
+
+            // Validación real del DNI (solo si no es placeholder de sistema)
+            if (renterDTO.getDni() != null && !renterDTO.getDni().startsWith("PENDING-")
+                    && !validarDNI(renterDTO.getDni())) {
+                throw new IllegalArgumentException("El DNI proporcionado no es válido.");
+            }
 
             // Reglas de negocio: unicidad
             if (renterRepository.findByDni(renterDTO.getDni()).isPresent()) {
@@ -125,11 +132,12 @@ public class RenterService {
 
     /**
      * Actualiza un huésped, comprobando que las modificaciones de DNI/Email/Teléfono no colisionen con otros.
+     * Si se proporciona un DNI real (no placeholder), valida la letra de control.
      *
      * @param id Identificador del huésped a actualizar.
      * @param renterDTO Nuevos datos del huésped.
      * @return RenterDTO con el registro actualizado.
-     * @throws IllegalArgumentException si se detecta duplicado en campos únicos o no existe el huésped.
+     * @throws IllegalArgumentException si se detecta duplicado en campos únicos, DNI inválido o no existe el huésped.
      * @throws RuntimeException para cualquier otro error de proceso.
      */
     public RenterDTO updateRenter(Long id, @Valid RenterDTO renterDTO) {
@@ -138,6 +146,12 @@ public class RenterService {
 
             Renter existente = renterRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Huésped no encontrado con ID: " + id));
+
+            // Validación real del DNI (solo si no es placeholder de sistema)
+            if (renterDTO.getDni() != null && !renterDTO.getDni().startsWith("PENDING-")
+                    && !validarDNI(renterDTO.getDni())) {
+                throw new IllegalArgumentException("El DNI proporcionado no es válido.");
+            }
 
             // Lógica de exclusión para evitar falsos duplicados
             Optional<Renter> porDni = renterRepository.findByDni(renterDTO.getDni());
@@ -160,6 +174,7 @@ public class RenterService {
             existente.setEmail(renterDTO.getEmail());
             existente.setDni(renterDTO.getDni());
             existente.setPhone(renterDTO.getPhone());
+            existente.setAddress(renterDTO.getAddress());
 
             Renter updatedRenter = renterRepository.save(existente);
             logger.info("Huésped actualizado con éxito (ID {})", id);
@@ -206,20 +221,22 @@ public class RenterService {
     /**
      * Garantiza la existencia de un perfil de Renter asociado al usuario indicado.
      * <p>
-     * Si ya existe un Renter con el email del User, lo devuelve tal cual.
+     * Si ya existe un Renter con el email del User, lo devuelve (y opcionalmente
+     * actualiza con los datos del DTO si éste no es null).
      * Si no existe, crea uno nuevo automáticamente reutilizando el nombre,
      * apellidos y email del User. Los campos obligatorios DNI y teléfono se
-     * rellenan con valores placeholder únicos derivados del ID del usuario,
-     * para que el cliente pueda completarlos después desde su perfil.
+     * rellenan con valores placeholder únicos derivados del ID del usuario
+     * a menos que el DTO traiga valores reales.
      * <p>
      * Este método se llama desde el flujo de checkout para que cualquier
-     * usuario registrado pueda reservar sin necesidad de crear manualmente
-     * su ficha de Renter previa.
+     * usuario registrado pueda reservar. Si el checkout envía DNI/address,
+     * se validan y guardan en el mismo paso.
      *
      * @param userId ID del usuario autenticado (extraído del JWT).
+     * @param dto    Datos opcionales para actualizar/crear (puede ser null).
      * @return RenterDTO existente o recién creado.
      */
-    public RenterDTO ensureRenterFromUser(Long userId) {
+    public RenterDTO ensureRenterFromUser(Long userId, RenterDTO dto) {
         if (userId == null) {
             throw new IllegalArgumentException("El ID del usuario no puede ser nulo.");
         }
@@ -228,23 +245,79 @@ public class RenterService {
 
         Optional<Renter> existing = renterRepository.findByEmail(user.getEmail());
         if (existing.isPresent()) {
-            return renterMapper.toDTO(existing.get());
+            Renter renter = existing.get();
+            // Si el checkout envía datos de facturación, los aplicamos aquí
+            if (dto != null) {
+                if (dto.getDni() != null && !dto.getDni().isBlank()) {
+                    if (!validarDNI(dto.getDni())) {
+                        throw new IllegalArgumentException("El DNI proporcionado no es válido.");
+                    }
+                    Optional<Renter> otro = renterRepository.findByDni(dto.getDni());
+                    if (otro.isPresent() && !otro.get().getId().equals(renter.getId())) {
+                        throw new IllegalArgumentException("El DNI ya pertenece a otro huésped.");
+                    }
+                    renter.setDni(dto.getDni());
+                }
+                if (dto.getPhone() != null && !dto.getPhone().isBlank()) {
+                    Optional<Renter> otro = renterRepository.findByPhone(dto.getPhone());
+                    if (otro.isPresent() && !otro.get().getId().equals(renter.getId())) {
+                        throw new IllegalArgumentException("El teléfono ya pertenece a otro huésped.");
+                    }
+                    renter.setPhone(dto.getPhone());
+                }
+                if (dto.getAddress() != null && !dto.getAddress().isBlank()) {
+                    renter.setAddress(dto.getAddress());
+                }
+                renter = renterRepository.save(renter);
+                logger.info("Renter actualizado (id {}) con datos de facturación", renter.getId());
+            }
+            return renterMapper.toDTO(renter);
         }
 
-        // Generamos placeholders únicos a partir del ID del usuario
-        // (DNI no es unique pero phone sí; padTo9 garantiza el formato del @Pattern)
-        String placeholderPhone = String.format("%09d", 900000000L + userId);
-        String placeholderDni   = "PENDING-" + userId;
-
+        // No existe: lo creamos
         Renter nuevo = new Renter();
         nuevo.setName(user.getFirstName() != null ? user.getFirstName() : "Cliente");
         nuevo.setLastName(user.getLastName() != null ? user.getLastName() : "Axis");
         nuevo.setEmail(user.getEmail());
-        nuevo.setDni(placeholderDni);
-        nuevo.setPhone(placeholderPhone);
+
+        if (dto != null && dto.getDni() != null && !dto.getDni().isBlank()) {
+            if (!validarDNI(dto.getDni())) {
+                throw new IllegalArgumentException("El DNI proporcionado no es válido.");
+            }
+            nuevo.setDni(dto.getDni());
+        } else {
+            nuevo.setDni("PENDING-" + userId);
+        }
+
+        if (dto != null && dto.getPhone() != null && !dto.getPhone().isBlank()) {
+            nuevo.setPhone(dto.getPhone());
+        } else {
+            nuevo.setPhone(String.format("%09d", 900000000L + userId));
+        }
+
+        if (dto != null && dto.getAddress() != null && !dto.getAddress().isBlank()) {
+            nuevo.setAddress(dto.getAddress());
+        }
 
         Renter saved = renterRepository.save(nuevo);
         logger.info("Renter auto-creado (id {}) para el User id {}", saved.getId(), userId);
         return renterMapper.toDTO(saved);
+    }
+
+    /**
+     * Valida un DNI español utilizando el algoritmo oficial de letra de control.
+     * Formato esperado: 8 dígitos seguidos de una letra (ej: 12345678Z).
+     *
+     * @param dni DNI a validar.
+     * @return true si el formato y la letra de control son correctos.
+     */
+    private boolean validarDNI(String dni) {
+        if (dni == null || !dni.matches("^[0-9]{8}[A-Za-z]$")) {
+            return false;
+        }
+        String letras = "TRWAGMYFPDXBNJZSQVHLCKE";
+        int numero = Integer.parseInt(dni.substring(0, 8));
+        char letraEsperada = letras.charAt(numero % 23);
+        return letraEsperada == Character.toUpperCase(dni.charAt(8));
     }
 }

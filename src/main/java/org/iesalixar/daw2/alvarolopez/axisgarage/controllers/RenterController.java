@@ -113,18 +113,20 @@ public class RenterController {
     // --- 2c. ASEGURAR EXISTENCIA DEL PERFIL DE HUÉSPED ---
 
     @Operation(summary = "Asegurar perfil de huésped del usuario actual",
-            description = "Devuelve el RenterDTO del usuario autenticado. Si todavía no existe un perfil de Renter asociado a su email, lo crea automáticamente con los datos del User (nombre, apellido, email) y placeholders únicos para DNI y teléfono. Idempotente: llamar varias veces siempre devuelve el mismo perfil.")
+            description = "Devuelve el RenterDTO del usuario autenticado. Si todavía no existe un perfil de Renter asociado a su email, lo crea automáticamente con los datos del User (nombre, apellido, email) y placeholders únicos para DNI y teléfono. Si se envía un body con dni/phone/address, valida y actualiza el perfil existente (o lo crea con esos datos). Idempotente: llamar varias veces siempre devuelve el mismo perfil.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Renter existente o recién creado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = RenterDTO.class))),
+            @ApiResponse(responseCode = "400", description = "DNI inválido o duplicado"),
             @ApiResponse(responseCode = "401", description = "Token JWT ausente o inválido"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping("/ensure")
-    public ResponseEntity<?> ensureRenter(@RequestHeader("Authorization") String tokenHeader) {
+    public ResponseEntity<?> ensureRenter(@RequestHeader("Authorization") String tokenHeader,
+                                          @RequestBody(required = false) RenterDTO dto) {
         try {
             String token = tokenHeader.replace("Bearer ", "");
             Long userId = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
-            RenterDTO renter = renterService.ensureRenterFromUser(userId);
+            RenterDTO renter = renterService.ensureRenterFromUser(userId, dto);
             return ResponseEntity.ok(renter);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

@@ -48,6 +48,10 @@ public class Renter {
     @Column(name = "phone", nullable = false, unique = true, length = 12)
     private String phone;
 
+    // Domicilio fiscal del arrendatario (necesario para la factura y el contrato de alquiler)
+    @Column(name = "address", length = 255)
+    private String address;
+
     // Relación 1:N con Reservations
     @OneToMany(mappedBy = "renter", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude

@@ -2,7 +2,9 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.services;
 
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.InvoiceDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.entities.Invoice;
+import org.iesalixar.daw2.alvarolopez.axisgarage.entities.Renter;
 import org.iesalixar.daw2.alvarolopez.axisgarage.entities.Reservation;
+import org.iesalixar.daw2.alvarolopez.axisgarage.entities.Vehicle;
 import org.iesalixar.daw2.alvarolopez.axisgarage.mappers.InvoiceMapper;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.InvoiceRepository;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.ReservationRepository;
@@ -272,6 +274,9 @@ public class InvoiceService {
             billedTo.add(new Chunk(renter.getEmail() + "\n", valueFont));
             billedTo.add(new Chunk("DNI: " + renter.getDni() + "\n", valueFont));
             billedTo.add(new Chunk("Tel: " + renter.getPhone(), valueFont));
+            if (renter.getAddress() != null && !renter.getAddress().isBlank()) {
+                billedTo.add(new Chunk("\n" + renter.getAddress(), valueFont));
+            }
             PdfPCell cellBilled = new PdfPCell(billedTo);
             cellBilled.setBorder(Rectangle.NO_BORDER);
             cellBilled.setPadding(8);

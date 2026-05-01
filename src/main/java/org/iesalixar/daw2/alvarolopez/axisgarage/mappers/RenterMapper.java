@@ -20,6 +20,7 @@ public class RenterMapper {
         dto.setEmail(entity.getEmail());
         dto.setDni(entity.getDni());
         dto.setPhone(entity.getPhone());
+        dto.setAddress(entity.getAddress());
 
         return dto;
     }
@@ -40,6 +41,7 @@ public class RenterMapper {
         entity.setEmail(dto.getEmail());
         entity.setDni(dto.getDni());
         entity.setPhone(dto.getPhone());
+        entity.setAddress(dto.getAddress());
 
         return entity;
     }

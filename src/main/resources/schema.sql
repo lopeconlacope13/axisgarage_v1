@@ -51,7 +51,8 @@ CREATE TABLE renters (
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     dni VARCHAR(20) NOT NULL UNIQUE,
-    phone VARCHAR(20) NOT NULL UNIQUE
+    phone VARCHAR(20) NOT NULL UNIQUE,
+    address VARCHAR(255)
 );
 
 -- 5. TABLA VEHICLES --
@@ -165,7 +166,6 @@ CREATE TABLE IF NOT EXISTS users (
     image VARCHAR(255),
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    last_password_change_date TIMESTAMP,
     reset_token VARCHAR(255),
     reset_token_expiry DATETIME
 );
