@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -56,6 +57,31 @@ public class UserController {
         } catch (Exception e) {
             logger.error("Error al obtener el usuario: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener la información del usuario.");
+        }
+    }
+
+    /**
+     * Sube o reemplaza la foto de perfil del usuario autenticado.
+     * Extrae el ID del usuario desde el JWT, pasa el archivo a UserService
+     * y devuelve el UserDTO actualizado con el nuevo nombre de imagen.
+     *
+     * @param tokenHeader Cabecera Authorization con el JWT.
+     * @param file        Archivo de imagen enviado desde el formulario (multipart).
+     * @return UserDTO con el campo 'image' actualizado.
+     */
+    @PostMapping(value = "/avatar", consumes = "multipart/form-data")
+    public ResponseEntity<?> uploadAvatar(
+            @RequestHeader("Authorization") String tokenHeader,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            String token = tokenHeader.replace("Bearer ", "");
+            Long id = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
+            UserDTO updated = userService.uploadAvatar(id, file);
+            logger.info("Avatar actualizado para usuario con ID {}", id);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            logger.error("Error al subir avatar: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir la imagen.");
         }
     }
 

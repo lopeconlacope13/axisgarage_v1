@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -40,6 +41,9 @@ public class UserService {
 
 	@Autowired
 	private EmailService emailService;
+
+	@Autowired
+	private FileStorageService fileStorageService;
 
 	/** URL base del frontend. Se usa para construir el enlace de recuperación de contraseña. */
 	@Value("${FRONTEND_URL:http://localhost:4200}")
@@ -174,6 +178,28 @@ public class UserService {
 		user.setResetToken(null);
 		user.setResetTokenExpiry(null);
 		userRepository.save(user);
+	}
+
+	/**
+	 * Sube la imagen de perfil del usuario y guarda su nombre en la base de datos.
+	 * Utiliza FileStorageService para guardar el archivo en disco y obtener el nombre único
+	 * generado (UUID). Luego persiste ese nombre en el campo 'image' del usuario.
+	 *
+	 * @param userId ID del usuario autenticado (viene del JWT).
+	 * @param file   Archivo de imagen enviado desde el frontend.
+	 * @return UserDTO actualizado con el nuevo nombre de imagen.
+	 */
+	public UserDTO uploadAvatar(Long userId, MultipartFile file) {
+		User user = getUserById(userId);
+
+		// Guardamos el archivo en disco y obtenemos el nombre único generado
+		String filename = fileStorageService.saveFile(file);
+
+		// Asociamos el nombre de archivo al usuario y lo persistimos
+		user.setImage(filename);
+		userRepository.save(user);
+
+		return userMapper.toDTO(user);
 	}
 
 }

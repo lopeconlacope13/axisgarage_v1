@@ -14,6 +14,8 @@ public class UserMapper {
         dto.setUsername(user.getUsername());
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
+        // Mapeamos el campo image para que el frontend pueda construir la URL del avatar
+        dto.setImage(user.getImage());
         return dto;
     }
 }
