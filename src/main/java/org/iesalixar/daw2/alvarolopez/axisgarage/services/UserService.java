@@ -2,6 +2,7 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.services;
 
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.RegisterRequestDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.UserDTO;
+import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.UserSummaryDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.entities.Role;
 import org.iesalixar.daw2.alvarolopez.axisgarage.entities.User;
 import org.iesalixar.daw2.alvarolopez.axisgarage.mappers.UserMapper;
@@ -14,9 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Servicio central de gestión de usuarios en Axis Garage.
@@ -200,6 +204,108 @@ public class UserService {
 		userRepository.save(user);
 
 		return userMapper.toDTO(user);
+	}
+
+	// ─── Métodos de administración de usuarios (solo ADMIN) ──────────────────
+
+	/**
+	 * Devuelve la lista completa de todos los usuarios registrados en el sistema.
+	 * <p>
+	 * Cada usuario se transforma a UserSummaryDTO para exponer solo los campos
+	 * necesarios para la gestión desde el panel de administración.
+	 * Los roles se mapean a sus nombres (String) para simplificar el JSON.
+	 *
+	 * @return Lista de UserSummaryDTO con todos los usuarios del sistema.
+	 */
+	public List<UserSummaryDTO> getAllUsers() {
+		// Obtenemos todos los usuarios de la base de datos
+		List<User> users = userRepository.findAll();
+
+		// Convertimos cada usuario a su versión resumida (DTO)
+		return users.stream()
+				.map(this::toSummaryDTO)
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Cambia el rol de un usuario: elimina todos los roles actuales y asigna el nuevo.
+	 * <p>
+	 * Solo acepta roles que existan en la tabla 'roles' de la base de datos.
+	 * Si el nombre del rol no existe, lanza una excepción para informar al administrador.
+	 *
+	 * @param id       ID del usuario al que se cambia el rol.
+	 * @param roleName Nombre del nuevo rol, por ejemplo "ROLE_USER" o "ROLE_MANAGER".
+	 * @return UserSummaryDTO actualizado con el nuevo rol asignado.
+	 * @throws RuntimeException         si el usuario no existe.
+	 * @throws IllegalArgumentException si el nombre de rol no existe en la BD.
+	 */
+	public UserSummaryDTO changeUserRole(Long id, String roleName) {
+		// Buscamos al usuario; si no existe lanzamos excepción
+		User user = getUserById(id);
+
+		// Buscamos el rol por nombre; si no existe no podemos asignarlo
+		Role newRole = roleRepository.findByName(roleName)
+				.orElseThrow(() -> new IllegalArgumentException(
+						"El rol '" + roleName + "' no existe en la base de datos."));
+
+		// Reemplazamos todos los roles actuales por el nuevo rol
+		Set<Role> newRoles = new HashSet<>();
+		newRoles.add(newRole);
+		user.setRoles(newRoles);
+
+		// Persistimos el cambio y devolvemos el DTO actualizado
+		userRepository.save(user);
+		return toSummaryDTO(user);
+	}
+
+	/**
+	 * Elimina un usuario del sistema de forma permanente.
+	 * <p>
+	 * El usuario con ID=1 (administrador principal) está protegido y no puede
+	 * eliminarse para evitar que el sistema quede sin administrador.
+	 *
+	 * @param id ID del usuario a eliminar.
+	 * @throws IllegalArgumentException si se intenta eliminar al admin principal (id=1).
+	 * @throws RuntimeException         si el usuario no existe.
+	 */
+	public void deleteUser(Long id) {
+		// Protegemos al administrador principal: no puede eliminarse nunca
+		if (id == 1L) {
+			throw new IllegalArgumentException("No se puede eliminar al administrador principal del sistema.");
+		}
+
+		// Verificamos que el usuario existe antes de intentar borrarlo
+		if (!userRepository.existsById(id)) {
+			throw new RuntimeException("El usuario con ID " + id + " no existe.");
+		}
+
+		userRepository.deleteById(id);
+	}
+
+	/**
+	 * Convierte una entidad User a UserSummaryDTO.
+	 * <p>
+	 * Método privado de apoyo que extrae solo los campos necesarios para el panel
+	 * de administración. Los roles se transforman a sus nombres (String) en un Set.
+	 *
+	 * @param user Entidad User de JPA.
+	 * @return UserSummaryDTO con los datos resumidos del usuario.
+	 */
+	private UserSummaryDTO toSummaryDTO(User user) {
+		// Extraemos los nombres de los roles (ej: "ROLE_USER", "ROLE_ADMIN")
+		Set<String> roleNames = user.getRoles().stream()
+				.map(Role::getName)
+				.collect(Collectors.toSet());
+
+		return new UserSummaryDTO(
+				user.getId(),
+				user.getUsername(),
+				user.getEmail(),
+				user.getFirstName(),
+				user.getLastName(),
+				user.isEnabled(),
+				roleNames
+		);
 	}
 
 }
