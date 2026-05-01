@@ -173,28 +173,54 @@ public class InvoiceService {
         Document document = new Document(PageSize.A4, 50, 50, 60, 60);
 
         try {
-            PdfWriter.getInstance(document, out);
+            PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();
 
+            // --- Borde decorativo dorado alrededor de la página ---
+            // Dibujamos un rectángulo fino en los márgenes exteriores para dar
+            // sensación de documento sellado de lujo (estilo carta personalizada).
+            PdfContentByte borderCb = writer.getDirectContent();
+            borderCb.setColorStroke(new Color(201, 161, 74));
+            borderCb.setLineWidth(1.2f);
+            float borderMargin = 18;
+            borderCb.rectangle(
+                document.left() - borderMargin,
+                document.bottom() - borderMargin,
+                document.right() - document.left() + 2 * borderMargin,
+                document.top() - document.bottom() + 2 * borderMargin
+            );
+            borderCb.stroke();
+
             // --- Fuentes del documento ---
-            Font brandFont    = new Font(Font.HELVETICA, 18, Font.BOLD,   new Color(184, 149, 42));
-            Font subtitleFont = new Font(Font.HELVETICA,  8, Font.NORMAL, new Color(120, 120, 120));
-            Font labelFont    = new Font(Font.HELVETICA,  8, Font.BOLD,   new Color(120, 120, 120));
-            Font valueFont    = new Font(Font.HELVETICA, 10, Font.NORMAL, new Color( 30,  30,  30));
-            Font totalFont    = new Font(Font.HELVETICA, 12, Font.BOLD,   new Color(184, 149, 42));
+            // Tipografía serif (TIMES_ROMAN) para la marca: más elegante y acorde al estilo Old Money
+            Font brandFont    = new Font(Font.TIMES_ROMAN, 18, Font.BOLD,   new Color(201, 161, 74));
+            Font subtitleFont = new Font(Font.TIMES_ROMAN,  8, Font.NORMAL, new Color(120, 120, 120));
+            Font labelFont    = new Font(Font.HELVETICA,    8, Font.BOLD,   new Color(120, 120, 120));
+            Font valueFont    = new Font(Font.HELVETICA,   10, Font.NORMAL, new Color( 30,  30,  30));
+            Font totalFont    = new Font(Font.HELVETICA,   12, Font.BOLD,   new Color(201, 161, 74));
 
             // --- Cabecera de la factura ---
-            Paragraph brand = new Paragraph("AXIS GARAGE", brandFont);
-            brand.setAlignment(Element.ALIGN_CENTER);
-            document.add(brand);
+            try {
+                // Intentamos cargar el logo proporcionado (Ruta estática para el entorno del TFG)
+                Image logo = Image.getInstance("/Users/alvarolopez/TFG/AXISGARAGE_ANGULAR/axis-garage-app/public/assets/logo-completo.png");
+                logo.scaleToFit(180, 180);
+                logo.setAlignment(Element.ALIGN_CENTER);
+                logo.setSpacingAfter(10);
+                document.add(logo);
+            } catch (Exception e) {
+                // Fallback elegante en caso de que no se encuentre la ruta
+                Paragraph brand = new Paragraph("AXIS GARAGE", brandFont);
+                brand.setAlignment(Element.ALIGN_CENTER);
+                document.add(brand);
+                
+                Paragraph subtitle = new Paragraph("PRIVATE ATELIER — INVOICE", subtitleFont);
+                subtitle.setAlignment(Element.ALIGN_CENTER);
+                subtitle.setSpacingAfter(20);
+                document.add(subtitle);
+            }
 
-            Paragraph subtitle = new Paragraph("PRIVATE ATELIER — INVOICE", subtitleFont);
-            subtitle.setAlignment(Element.ALIGN_CENTER);
-            subtitle.setSpacingAfter(20);
-            document.add(subtitle);
-
-            // Línea separadora dorada
-            document.add(new Chunk(new com.lowagie.text.pdf.draw.LineSeparator(0.5f, 100, new Color(184, 149, 42), Element.ALIGN_CENTER, -2)));
+            // Línea separadora dorada gruesa para marcar la cabecera con elegancia
+            document.add(new Chunk(new com.lowagie.text.pdf.draw.LineSeparator(1.0f, 100, new Color(201, 161, 74), Element.ALIGN_CENTER, -2)));
 
             // Número de factura y fecha en dos columnas
             PdfPTable headerTable = new PdfPTable(2);
@@ -254,12 +280,32 @@ public class InvoiceService {
 
             document.add(detailTable);
 
-            // --- Pie de página ---
-            document.add(new Chunk(new com.lowagie.text.pdf.draw.LineSeparator(0.3f, 100, new Color(184, 149, 42), Element.ALIGN_CENTER, -2)));
-            Paragraph footer = new Paragraph("\nAxis Garage — Discreción garantizada.\nProyecto académico TFG — ficticio.", subtitleFont);
-            footer.setAlignment(Element.ALIGN_CENTER);
-            footer.setSpacingBefore(10);
-            document.add(footer);
+            // --- Pie de página (Posición absoluta al final del documento) ---
+            PdfContentByte cb = writer.getDirectContent();
+            
+            float bottomY = document.bottom() + 20; // Espacio desde abajo
+
+            // Línea dorada separadora
+            cb.setColorStroke(new Color(201, 161, 74)); // axis-gold
+            cb.setLineWidth(0.5f);
+            cb.moveTo(document.left(), bottomY + 25);
+            cb.lineTo(document.right(), bottomY + 25);
+            cb.stroke();
+
+            // Textos del footer
+            Font footerBold = new Font(Font.HELVETICA, 8, Font.BOLD, new Color(201, 161, 74));
+            Font footerNormal = new Font(Font.HELVETICA, 8, Font.NORMAL, new Color(120, 120, 120));
+
+            Phrase line1 = new Phrase();
+            line1.add(new Chunk("AXIS GARAGE", footerBold));
+            line1.add(new Chunk(" — Discreción garantizada. The Private Atelier.", footerNormal));
+
+            Phrase line2 = new Phrase("Proyecto Académico TFG — Ficticio | Desarrollado por Álvaro López Pérez", footerNormal);
+
+            float xCenter = (document.left() + document.right()) / 2;
+
+            ColumnText.showTextAligned(cb, Element.ALIGN_CENTER, line1, xCenter, bottomY + 10, 0);
+            ColumnText.showTextAligned(cb, Element.ALIGN_CENTER, line2, xCenter, bottomY, 0);
 
         } finally {
             // Siempre cerramos el documento para liberar recursos
