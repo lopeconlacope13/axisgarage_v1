@@ -7,6 +7,7 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.mappers.InvoiceMapper;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.InvoiceRepository;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.ReservationRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
@@ -15,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -153,11 +155,21 @@ public class InvoiceService {
      * Genera el PDF de una factura buscándola por el ID de la reserva.
      * Si la factura no existe, la crea automáticamente antes de generar el PDF.
      * Devuelve los bytes del PDF para que el controlador los envíe como descarga.
+     * <p>
+     * Es transaccional porque necesitamos acceder a las relaciones LAZY
+     * (Renter y Vehicle de la reserva) sin que JPA cierre el EntityManager.
      *
      * @param reservationId ID de la reserva cuya factura se quiere descargar.
      * @return Array de bytes con el contenido del PDF.
      */
+    @Transactional
     public byte[] generateInvoicePdfByReservation(Long reservationId) {
+        // Cargamos la reserva completa en la misma transacción para poder
+        // acceder a sus relaciones LAZY (renter y vehicle) sin excepciones.
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Reserva no encontrada con ID: " + reservationId));
+
         // Obtener o crear la factura para esa reserva
         InvoiceDTO invoice;
         if (invoiceRepository.existsByReservationId(reservationId)) {
@@ -237,6 +249,56 @@ public class InvoiceService {
             headerTable.addCell(cell1);
             headerTable.addCell(cell2);
             document.add(headerTable);
+
+            // --- Tabla de información completa de la reserva ---
+            // Mostramos en tres columnas: cliente, vehículo y período de alquiler.
+            // Esto convierte la factura en un documento fiscal completo y defendible.
+            PdfPTable infoTable = new PdfPTable(3);
+            infoTable.setWidthPercentage(100);
+            infoTable.setSpacingBefore(12);
+            infoTable.setSpacingAfter(12);
+            infoTable.setWidths(new float[]{1f, 1f, 1f});
+            infoTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
+
+            // Extraemos los datos de las relaciones LAZY ya cargadas
+            Renter renter = reservation.getRenter();
+            Vehicle vehicle = reservation.getVehicle();
+            long dias = ChronoUnit.DAYS.between(reservation.getStartDate(), reservation.getEndDate());
+
+            // Columna 1 — Datos del cliente (BILLED TO)
+            Phrase billedTo = new Phrase();
+            billedTo.add(new Chunk("BILLED TO\n", labelFont));
+            billedTo.add(new Chunk(renter.getName() + " " + renter.getLastName() + "\n", valueFont));
+            billedTo.add(new Chunk(renter.getEmail() + "\n", valueFont));
+            billedTo.add(new Chunk("DNI: " + renter.getDni() + "\n", valueFont));
+            billedTo.add(new Chunk("Tel: " + renter.getPhone(), valueFont));
+            PdfPCell cellBilled = new PdfPCell(billedTo);
+            cellBilled.setBorder(Rectangle.NO_BORDER);
+            cellBilled.setPadding(8);
+            infoTable.addCell(cellBilled);
+
+            // Columna 2 — Datos del vehículo (ASSET)
+            Phrase asset = new Phrase();
+            asset.add(new Chunk("ASSET\n", labelFont));
+            asset.add(new Chunk(vehicle.getBrand() + " " + vehicle.getModel() + "\n", valueFont));
+            asset.add(new Chunk("Year: " + vehicle.getProductionYear(), valueFont));
+            PdfPCell cellAsset = new PdfPCell(asset);
+            cellAsset.setBorder(Rectangle.NO_BORDER);
+            cellAsset.setPadding(8);
+            infoTable.addCell(cellAsset);
+
+            // Columna 3 — Período de alquiler (RENTAL PERIOD)
+            Phrase rental = new Phrase();
+            rental.add(new Chunk("RENTAL PERIOD\n", labelFont));
+            rental.add(new Chunk(reservation.getStartDate() + "  →  " + reservation.getEndDate() + "\n", valueFont));
+            rental.add(new Chunk(dias + " day" + (dias != 1 ? "s" : ""), valueFont));
+            PdfPCell cellRental = new PdfPCell(rental);
+            cellRental.setBorder(Rectangle.NO_BORDER);
+            cellRental.setPadding(8);
+            cellRental.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            infoTable.addCell(cellRental);
+
+            document.add(infoTable);
 
             // --- Tabla de detalle de la factura ---
             document.add(new Chunk(new com.lowagie.text.pdf.draw.LineSeparator(0.3f, 100, new Color(200, 200, 200), Element.ALIGN_CENTER, -2)));
