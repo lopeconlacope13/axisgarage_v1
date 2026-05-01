@@ -16,4 +16,7 @@ public class ReviewDTO {
     // --- DATOS PARA MOSTRAR AL CLIENTE (GET) ---
     private String reservationString;
     private String renterName;
+
+    // Marca y modelo del vehículo asociado a la reserva (para mostrar en el dashboard)
+    private String vehicleModel;
 }

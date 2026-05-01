@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +55,9 @@ public class ReviewService {
      * @param pageable Configuración de paginación para la salida limitante.
      * @return Page con dtos de las opiniones que cumplen los parámetros.
      */
+    // @Transactional(readOnly=true) mantiene la sesión JPA abierta mientras se mapean las relaciones LAZY
+    // (review → reservation → vehicle). Sin esto, el acceso a vehicle lanzaría LazyInitializationException.
+    @Transactional(readOnly = true)
     public Page<ReviewDTO> getAllReviews(Integer rating, Long reservationId, Pageable pageable) {
         try {
             logger.info("Solicitando opiniones con filtros -> Puntuación Mínima: {}, Reserva ID: {}",
@@ -77,6 +81,7 @@ public class ReviewService {
      * @param id identificador interno.
      * @return Optional del ReviewDTO.
      */
+    @Transactional(readOnly = true)
     public Optional<ReviewDTO> getReviewById(Long id) {
         try {
             logger.info("Buscando opinión con ID {}", id);
@@ -95,6 +100,7 @@ public class ReviewService {
      * @param reservationId de la operación analizada.
      * @return List conteniendo todos los DTOs vinculados a tal reserva.
      */
+    @Transactional(readOnly = true)
     public List<ReviewDTO> getReviewsByReservation(Long reservationId) {
         try {
             logger.info("Buscando opiniones de la reserva con ID {}", reservationId);
@@ -125,6 +131,7 @@ public class ReviewService {
      * @param vehicleId identificador del vehículo.
      * @return lista de ReviewDTO con todas las valoraciones de ese vehículo.
      */
+    @Transactional(readOnly = true)
     public List<ReviewDTO> getReviewsByVehicle(Long vehicleId) {
         try {
             logger.info("Buscando opiniones del vehículo con ID {}", vehicleId);

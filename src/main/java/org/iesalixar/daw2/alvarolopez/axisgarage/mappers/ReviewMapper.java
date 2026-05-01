@@ -18,10 +18,17 @@ public class ReviewMapper {
         dto.setRating(entity.getRating());
         dto.setComment(entity.getComment());
 
-        // Extraemos datos de la reserva
+        // Extraemos datos de la reserva y del vehículo asociado
         if (entity.getReservation() != null) {
             dto.setReservationId(entity.getReservation().getId());
             dto.setReservationString("Reserva ID " + entity.getReservation().getId());
+
+            // Si la reserva tiene vehículo, concatenamos marca y modelo para mostrarlo en la tabla
+            if (entity.getReservation().getVehicle() != null) {
+                String brand = entity.getReservation().getVehicle().getBrand();
+                String model = entity.getReservation().getVehicle().getModel();
+                dto.setVehicleModel(brand + " " + model);
+            }
         }
 
         // Extraemos datos del renter
