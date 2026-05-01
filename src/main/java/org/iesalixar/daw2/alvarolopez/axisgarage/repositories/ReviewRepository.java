@@ -13,6 +13,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // listar los comentarios de una reserva/casa
     List<Review> findByReservation_Id(Long reservationId);
 
+    // listar los comentarios de un vehículo concreto (a través de la reserva)
+    @Query("SELECT r FROM Review r WHERE r.reservation.vehicle.id = :vehicleId")
+    List<Review> findByVehicleId(@Param("vehicleId") Long vehicleId);
+
     // Filtrado dinámico por puntuación mínima
     @Query("SELECT r FROM Review r WHERE " +
             "(:puntuacionMinima IS NULL OR r.rating >= :puntuacionMinima) AND " +

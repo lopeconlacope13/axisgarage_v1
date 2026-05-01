@@ -116,6 +116,27 @@ public class ReviewService {
         }
     }
 
+    // --- 3b. LISTAR OPINIONES DE UN VEHÍCULO ---
+
+    /**
+     * Devuelve todas las reseñas asociadas a un vehículo concreto,
+     * navegando por la relación Review → Reservation → Vehicle.
+     *
+     * @param vehicleId identificador del vehículo.
+     * @return lista de ReviewDTO con todas las valoraciones de ese vehículo.
+     */
+    public List<ReviewDTO> getReviewsByVehicle(Long vehicleId) {
+        try {
+            logger.info("Buscando opiniones del vehículo con ID {}", vehicleId);
+            List<Review> reviews = reviewRepository.findByVehicleId(vehicleId);
+            logger.info("Se encontraron {} opiniones para el vehículo {}", reviews.size(), vehicleId);
+            return reviews.stream().map(reviewMapper::toDTO).toList();
+        } catch (Exception e) {
+            logger.error("Error al obtener opiniones del vehículo {}: {}", vehicleId, e.getMessage());
+            throw new RuntimeException("Error al obtener las opiniones del vehículo.", e);
+        }
+    }
+
     // --- 4. CREAR OPINIÓN ---
 
     /**

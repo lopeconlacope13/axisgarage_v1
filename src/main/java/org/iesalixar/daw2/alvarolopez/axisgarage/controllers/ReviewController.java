@@ -104,6 +104,26 @@ public class ReviewController {
         }
     }
 
+    // --- 3b. LISTAR OPINIONES DE UN VEHÍCULO ---
+
+    @Operation(summary = "Obtener opiniones de un vehículo", description = "Devuelve todas las valoraciones registradas para un vehículo específico.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reseñas recuperadas", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ReviewDTO.class)))),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/vehicle/{vehicleId}")
+    public ResponseEntity<?> getReviewsByVehicle(@PathVariable Long vehicleId) {
+        try {
+            logger.info("REST: Petición para obtener opiniones del vehículo {}", vehicleId);
+            List<ReviewDTO> reviews = reviewService.getReviewsByVehicle(vehicleId);
+            return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            logger.error("Error al obtener opiniones del vehículo: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error interno al obtener las opiniones del vehículo.");
+        }
+    }
+
     // --- 4. CREAR OPINIÓN ---
 
     @Operation(summary = "Crear una nueva opinión", description = "Registra una nueva opinión validando reglas de negocio.")
