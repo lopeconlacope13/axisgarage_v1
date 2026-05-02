@@ -22,6 +22,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -108,8 +109,12 @@ public class ReservationController {
             String email = jwtUtil.extractUsername(token);
             Renter renter = renterRepository.findByEmail(email)
                     .orElseThrow(() -> new IllegalArgumentException("No se encontró un perfil de cliente asociado a este usuario."));
+
+            // Usamos 403 FORBIDDEN (no 500) porque el error no es un fallo del servidor:
+            // es una acción deliberadamente no autorizada — el renterId del cuerpo
+            // no coincide con el usuario que firmó el JWT.
             if (!renter.getId().equals(dto.getRenterId())) {
-                throw new IllegalArgumentException("El perfil de cliente no coincide con el usuario autenticado.");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El renterId no coincide con el usuario autenticado");
             }
 
             ReservationDTO creada = reservationService.createReservation(dto);
