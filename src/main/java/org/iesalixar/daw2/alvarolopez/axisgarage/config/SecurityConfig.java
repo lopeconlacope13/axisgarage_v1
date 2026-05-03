@@ -124,6 +124,9 @@ public class SecurityConfig {
 
 						.requestMatchers("/api/owners/**").hasAnyRole("MANAGER", "ADMIN")
 
+						// --- ESTADÍSTICAS (MANAGER+) ---
+						.requestMatchers("/api/stats/**").hasAnyRole("MANAGER", "ADMIN")
+
 						// --- INFORMES DE DAÑOS (MANAGER+) ---
 						.requestMatchers("/api/damage-reports/**").hasAnyRole("MANAGER", "ADMIN")
 

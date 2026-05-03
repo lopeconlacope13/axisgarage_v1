@@ -24,6 +24,9 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     // mismo?
     boolean existsByModelAndOwnerIdAndIdNot(String model, Long ownerId, Long idVehicle);
 
+    // Cuenta cuántos vehículos están marcados como disponibles (para las estadísticas del dashboard)
+    long countByAvailableTrue();
+
     // Filtrado dinámico por marca, modelo, potencia mínima y categoría
     @Query("SELECT v FROM Vehicle v WHERE " +
             "(:brand IS NULL OR LOWER(v.brand) LIKE LOWER(CONCAT('%', :brand, '%'))) AND " +
