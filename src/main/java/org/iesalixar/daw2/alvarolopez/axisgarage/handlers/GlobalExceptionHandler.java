@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
         logger.error("Error interno del servidor: {}", ex.getMessage(), ex);
         Map<String, String> error = new HashMap<>();
-        error.put("error", "Error interno del servidor. Por favor, contacte con el administrador.");
+        error.put("error", "Internal server error. Please contact the administrator.");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

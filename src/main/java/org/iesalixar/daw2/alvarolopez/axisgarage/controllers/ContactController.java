@@ -36,7 +36,7 @@ public class ContactController {
 
         // Validación básica: todos los campos deben estar presentes
         if (name == null || name.isBlank() || email == null || email.isBlank() || message == null || message.isBlank()) {
-            return ResponseEntity.badRequest().body("Todos los campos (name, email, message) son obligatorios.");
+            return ResponseEntity.badRequest().body("All fields (name, email, message) are required.");
         }
 
         // Reenviar el mensaje por email (errores de envío no abortan la respuesta)

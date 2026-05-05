@@ -45,7 +45,7 @@ public class AuthenticationController {
     public ResponseEntity<AuthResponseDTO> authenticate(@Valid @RequestBody AuthRequestDTO authRequest) {
 		try {
 			if (authRequest.getEmail() == null || authRequest.getPassword() == null) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponseDTO(null, "El email y la contraseña son obligatorios."));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponseDTO(null, "Email and password are required."));
 			}
 
 			Authentication authentication = authenticationManager.authenticate(
@@ -61,13 +61,13 @@ public class AuthenticationController {
 
 			String token = jwtUtil.generateToken(email, roles, id);
 
-			return ResponseEntity.ok(new AuthResponseDTO(token, "Autenticación correcta."));
+			return ResponseEntity.ok(new AuthResponseDTO(token, "Authentication successful."));
 		} catch (BadCredentialsException e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new AuthResponseDTO(null, "Credenciales inválidas. Por favor, verifica tu email y contraseña."));
+					.body(new AuthResponseDTO(null, "Invalid credentials. Please check your email and password."));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new AuthResponseDTO(null, "Error inesperado. Por favor, inténtalo de nuevo más tarde."));
+					.body(new AuthResponseDTO(null, "Unexpected error. Please try again later."));
 		}
 	}
 
@@ -86,7 +86,7 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al registrar el usuario.");
+                    .body("Error registering user. Please try again.");
         }
     }
 
@@ -101,7 +101,7 @@ public class AuthenticationController {
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> body) {
         userService.forgotPassword(body.get("email"));
-        return ResponseEntity.ok("Si existe una cuenta con ese email, recibirás un enlace en breve.");
+        return ResponseEntity.ok("If an account exists with that email, you will receive a reset link shortly.");
     }
 
     /**
@@ -114,7 +114,7 @@ public class AuthenticationController {
     public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> body) {
         try {
             userService.resetPassword(body.get("token"), body.get("newPassword"));
-            return ResponseEntity.ok("Contraseña actualizada correctamente.");
+            return ResponseEntity.ok("Password updated successfully.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
