@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -55,25 +56,22 @@ public class EmailService {
                                       String vehicleModel, String startDate,
                                       String endDate, double totalPrice) {
         try {
-            // MimeMessage permite enviar HTML en lugar de texto plano
             MimeMessage message = mailSender.createMimeMessage();
-
-            // true = soporte multipart (adjuntos, HTML); "UTF-8" para acentos y caracteres especiales
+            // true = multipart necesario tanto para HTML como para adjuntos inline (CID)
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(from);
             helper.setTo(toEmail);
             helper.setSubject("Axis Garage — Reservation Confirmed");
-
-            // true = el segundo parámetro es HTML (no texto plano)
             helper.setText(buildEmailBody(renterName, vehicleModel, startDate, endDate, totalPrice), true);
 
-            // Enviamos el correo a través del servidor SMTP configurado en application.properties
+            // Adjuntamos el logo como recurso inline con Content-ID "logo".
+            // Los clientes de correo (Gmail, Outlook) bloquean base64 pero sí permiten CID.
+            attachLogoInline(helper);
+
             mailSender.send(message);
             logger.info("Correo de confirmación enviado correctamente a {}", toEmail);
 
         } catch (MessagingException | RuntimeException e) {
-            // Si el envío falla (sin conexión, credenciales incorrectas, etc.)
-            // solo registramos el error. La reserva ya fue guardada, no la revertimos.
             logger.error("Error al enviar correo de confirmación a {}: {}", toEmail, e.getMessage());
         }
     }
@@ -119,6 +117,30 @@ public class EmailService {
     }
 
     /**
+     * Envía un correo de bienvenida al usuario recién registrado.
+     * Incluye el logo de la marca como imagen base64 embebida, que no depende
+     * de ningún servidor externo para mostrarse en el cliente de correo.
+     *
+     * @param toEmail   Dirección de email del nuevo usuario.
+     * @param firstName Nombre de pila para el saludo personalizado.
+     */
+    public void sendWelcomeEmail(String toEmail, String firstName) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(from);
+            helper.setTo(toEmail);
+            helper.setSubject("Axis Garage — Welcome to the Atelier");
+            helper.setText(buildWelcomeEmailBody(firstName), true);
+            attachLogoInline(helper);
+            mailSender.send(message);
+            logger.info("Email de bienvenida enviado correctamente a {}", toEmail);
+        } catch (MessagingException | RuntimeException e) {
+            logger.error("Error al enviar email de bienvenida a {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    /**
      * Reenvía al equipo interno el mensaje de contacto que envió un usuario desde el formulario web.
      * El remitente real aparece en el cuerpo del correo (no en el From, que siempre es la cuenta SMTP).
      *
@@ -159,17 +181,6 @@ public class EmailService {
     }
 
     /**
-     * Construye el cuerpo del mensaje en texto plano con todos los datos
-     * relevantes de la reserva para que el cliente tenga un resumen claro.
-     *
-     * @param renterName    Nombre del cliente.
-     * @param vehicleModel  Vehículo reservado.
-     * @param startDate     Fecha de inicio.
-     * @param endDate       Fecha de fin.
-     * @param totalPrice    Importe total en euros.
-     * @return              String con el cuerpo del email formateado.
-     */
-    /**
      * Construye el cuerpo HTML del email de confirmación con estilo Old Money.
      * Fondo oscuro, tipografía serif dorada, tabla de detalles de la reserva.
      *
@@ -182,14 +193,17 @@ public class EmailService {
      */
     private String buildEmailBody(String renterName, String vehicleModel,
                                   String startDate, String endDate, double totalPrice) {
-        // Formateamos el precio sin decimales (ej: €1.200)
         String formattedPrice = String.format("€%.0f", totalPrice);
+        String logoHtml = buildLogoHtml();
 
         return "<!-- Proyecto académico TFG — ficticio -->" +
             "<div style=\"background:#0a0a0a;padding:40px 20px;font-family:Georgia,serif;\">" +
             "<div style=\"max-width:600px;margin:0 auto;background:#111111;border:1px solid rgba(201,161,74,0.2);padding:40px;\">" +
 
-            // Cabecera con el nombre de la marca
+            // Logo de la marca embebido como base64
+            logoHtml +
+
+            // Nombre de la marca y subtítulo
             "<h1 style=\"color:#C9A14A;font-size:1.5rem;letter-spacing:0.2em;margin:0 0 8px;\">AXIS GARAGE</h1>" +
             "<p style=\"color:#9a9a95;font-size:0.7rem;letter-spacing:0.3em;margin:0 0 32px;\">PRIVATE ATELIER</p>" +
             "<hr style=\"border:none;border-top:1px solid rgba(201,161,74,0.3);margin-bottom:32px;\">" +
@@ -233,5 +247,64 @@ public class EmailService {
             "<p style=\"color:#9a9a95;font-size:0.75rem;margin:0;\">Axis Garage — Discreción garantizada.</p>" +
 
             "</div></div>";
+    }
+
+    /**
+     * Construye el cuerpo HTML del email de bienvenida para nuevos usuarios.
+     * Mismo estilo Old Money que el resto de comunicaciones de la marca.
+     *
+     * @param firstName Nombre de pila del nuevo usuario.
+     * @return String HTML listo para enviar.
+     */
+    private String buildWelcomeEmailBody(String firstName) {
+        String logoHtml = buildLogoHtml();
+
+        return "<!-- Proyecto académico TFG — ficticio -->" +
+            "<div style=\"background:#0a0a0a;padding:40px 20px;font-family:Georgia,serif;\">" +
+            "<div style=\"max-width:600px;margin:0 auto;background:#111111;border:1px solid rgba(201,161,74,0.2);padding:40px;\">" +
+            logoHtml +
+            "<h1 style=\"color:#C9A14A;font-size:1.5rem;letter-spacing:0.2em;margin:0 0 8px;\">AXIS GARAGE</h1>" +
+            "<p style=\"color:#9a9a95;font-size:0.7rem;letter-spacing:0.3em;margin:0 0 32px;\">PRIVATE ATELIER</p>" +
+            "<hr style=\"border:none;border-top:1px solid rgba(201,161,74,0.3);margin-bottom:32px;\">" +
+            "<p style=\"color:#f5f5f0;font-size:0.9rem;line-height:1.7;margin-bottom:24px;\">Welcome, " + firstName + ".</p>" +
+            "<p style=\"color:#f5f5f0;font-size:0.9rem;line-height:1.7;margin-bottom:24px;\">Your Axis Garage account has been created. You now have access to our exclusive collection of hypersports and classic collector vehicles.</p>" +
+            "<p style=\"color:#9a9a95;font-size:0.85rem;line-height:1.7;margin-bottom:32px;\">Browse the catalog, select your vehicle, and our concierge team will handle the rest.</p>" +
+            "<hr style=\"border:none;border-top:1px solid rgba(201,161,74,0.2);margin-bottom:24px;\">" +
+            "<p style=\"color:#9a9a95;font-size:0.75rem;margin:0;\">Axis Garage — Discreción garantizada.</p>" +
+            "</div></div>";
+    }
+
+    /**
+     * Devuelve el bloque HTML con el logo referenciado mediante Content-ID (CID).
+     * El CID "logo" debe coincidir exactamente con el nombre usado en attachLogoInline().
+     * Gmail, Outlook y Apple Mail soportan CID — a diferencia de base64 inline que bloquean.
+     *
+     * @return String HTML con el tag img referenciando el adjunto inline.
+     */
+    private String buildLogoHtml() {
+        return "<div style=\"margin-bottom:20px;\">" +
+               "<img src=\"cid:logo\" alt=\"Axis Garage\" style=\"width:55px;height:auto;\"/>" +
+               "</div>";
+    }
+
+    /**
+     * Adjunta el logo como recurso inline al mensaje con Content-ID "logo".
+     * Si el archivo no existe en el classpath, registra un aviso y continúa sin logo
+     * (el email se envía igualmente, solo sin imagen).
+     *
+     * @param helper El MimeMessageHelper del mensaje que se está construyendo.
+     */
+    private void attachLogoInline(MimeMessageHelper helper) {
+        try {
+            ClassPathResource logo = new ClassPathResource("logo/Logo Compacto.png");
+            if (logo.exists()) {
+                // El primer parámetro ("logo") es el Content-ID — debe coincidir con cid:logo en el HTML
+                helper.addInline("logo", logo);
+            } else {
+                logger.warn("Logo no encontrado en el classpath: logo/Logo Compacto.png");
+            }
+        } catch (Exception e) {
+            logger.warn("No se pudo adjuntar el logo al email: {}", e.getMessage());
+        }
     }
 }

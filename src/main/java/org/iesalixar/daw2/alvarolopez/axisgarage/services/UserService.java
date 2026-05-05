@@ -53,10 +53,6 @@ public class UserService {
 	@Value("${FRONTEND_URL:http://localhost:4200}")
 	private String frontendUrl;
 
-	public Long getIdByUsername(String username) {
-		return userRepository.getIdByUsername(username);
-	}
-
 	/**
 	 * Obtiene el ID de un usuario a partir de su email.
 	 *
@@ -93,6 +89,10 @@ public class UserService {
 		nuevo.setRoles(Set.of(rolUser));
 
 		User guardado = userRepository.save(nuevo);
+
+		// Enviamos el email de bienvenida; si falla, el registro ya está guardado.
+		emailService.sendWelcomeEmail(dto.getEmail(), dto.getFirstName());
+
 		return userMapper.toDTO(guardado);
 	}
 
