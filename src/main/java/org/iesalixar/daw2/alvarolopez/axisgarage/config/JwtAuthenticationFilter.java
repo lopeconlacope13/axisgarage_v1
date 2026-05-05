@@ -18,15 +18,41 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Filtro que intercepta cada petición HTTP para comprobar si lleva un token JWT válido
+ * en la cabecera Authorization. Si el token es correcto, establece la autenticación
+ * en el contexto de Spring Security para que el resto de la cadena de filtros lo reconozca.
+ * <p>
+ * Se ejecuta UNA SOLA VEZ por petición gracias a {@link OncePerRequestFilter}.
+ * </p>
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    // ── Constantes ────────────────────────────────────────────────────────────
+    /** Prefijo estándar del esquema Bearer definido en RFC 6750. */
+    private static final String BEARER_PREFIX = "Bearer ";
+
+    /** Longitud del prefijo "Bearer " (7 caracteres). Se usa para extraer el token sin substring(7) desnudo. */
+    private static final int BEARER_PREFIX_LENGTH = 7;
+
+    // ── Dependencias ─────────────────────────────────────────────────────────
     @Autowired
     private JwtUtil jwtUtil;
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
+    /**
+     * Lógica principal del filtro: extrae el JWT de la cabecera, lo valida
+     * y, si es correcto, inyecta la autenticación en el SecurityContext.
+     *
+     * @param request     Petición HTTP entrante.
+     * @param response    Respuesta HTTP saliente.
+     * @param filterChain Cadena de filtros de Spring Security.
+     * @throws ServletException si ocurre un error de servlet.
+     * @throws IOException      si ocurre un error de E/S.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -36,15 +62,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String username;
 
-        // 2. Verificar si el encabezado Authorization está presente y tiene un token válido
-        // REFERENCIA PDF PÁGINA 22
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // 2. Si no hay cabecera o no empieza por "Bearer ", dejamos pasar la petición sin autenticar.
+        //    Las rutas públicas (permitAll) seguirán funcionando; las protegidas devolverán 401.
+        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             filterChain.doFilter(request, response);
-            return; // <--- ESTO ES LO QUE TE FALTA Y VIENE EN EL PDF
+            return;
         }
 
-        // 3. Extraer el token JWT del encabezado
-        jwt = authHeader.substring(7);
+        // 3. Extraer el token JWT quitando el prefijo "Bearer " (7 caracteres)
+        jwt = authHeader.substring(BEARER_PREFIX_LENGTH);
 
         // 4. Extraer el nombre de usuario
         username = jwtUtil.extractUsername(jwt);

@@ -1,5 +1,6 @@
 package org.iesalixar.daw2.alvarolopez.axisgarage.handlers;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
@@ -20,19 +21,34 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class CustomOAuth2FailureHandler implements AuthenticationFailureHandler {
 
+    // ── Constantes ────────────────────────────────────────────────────────────
+    /** Ruta del frontend a la que se redirige cuando la autenticación OAuth2 falla. */
+    private static final String LOGIN_ERROR_PATH = "/login?error=";
+
+    // ── Dependencias ─────────────────────────────────────────────────────────
     /**
-     * Captura fallos lanzados por Spring Security o CustomOAuth2UserService y 
+     * URL base del frontend Angular. Se inyecta desde application.properties
+     * (clave: frontend.url). Por defecto apunta a localhost:4200 en desarrollo local.
+     */
+    @Value("${frontend.url:http://localhost:4200}")
+    private String frontendUrl;
+
+    /**
+     * Captura fallos lanzados por Spring Security o CustomOAuth2UserService y
      * redirige al cliente Angular inyectando el error codificado en la URL.
      *
-     * @param request   Petición original
-     * @param response  Respuesta HTTP
-     * @param exception Motivo real del fracaso
+     * @param request   Petición HTTP original.
+     * @param response  Respuesta HTTP donde se escribe el redirect.
+     * @param exception Motivo real del fracaso de autenticación.
+     * @throws IOException      si hay un problema al escribir la respuesta HTTP.
+     * @throws ServletException si ocurre un error de servlet.
      */
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
-                                            
+
+        // Codificamos el mensaje de error en UTF-8 para incluirlo de forma segura en la URL
         String errorMsg = URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8);
-        response.sendRedirect("http://localhost:4200/login?error=" + errorMsg);
+        response.sendRedirect(frontendUrl + LOGIN_ERROR_PATH + errorMsg);
     }
 }

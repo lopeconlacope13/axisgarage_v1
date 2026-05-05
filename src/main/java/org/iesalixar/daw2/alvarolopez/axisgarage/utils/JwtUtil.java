@@ -9,14 +9,30 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * Utilidad centralizada para todo lo relacionado con el ciclo de vida de los tokens JWT.
+ * <p>
+ * Genera tokens firmados con RSA (clave privada), los valida verificando
+ * firma y expiración (clave pública), y extrae cualquier claim del payload.
+ * La clave RSA se inyecta desde {@link org.iesalixar.daw2.alvarolopez.axisgarage.config.KeyConfig}.
+ * </p>
+ */
 @Component
 public class JwtUtil {
 
-    // Inyección del KeyPair configurado en KeyConfig (Taller 2)
+    // ── Constantes ────────────────────────────────────────────────────────────
+    /**
+     * Tiempo de validez del token en milisegundos (1 hora = 3 600 000 ms).
+     * Si el tribunal pregunta por qué 1 hora: es el estándar habitual para
+     * tokens de acceso en APIs públicas; lo suficientemente corto para
+     * limitar el daño en caso de robo.
+     */
+    private static final long JWT_EXPIRATION_MS = 3_600_000L; // 1 hora
+
+    // ── Dependencias ─────────────────────────────────────────────────────────
+    /** Par de claves RSA configurado en KeyConfig: privada para firmar, pública para verificar. */
     @Autowired
     private KeyPair jwtKeyPair;
-
-    private static final long JWT_EXPIRATION = 3600000; // 1 hora
 
     /**
      * Extrae el nombre de usuario (claim "sub") del token.
@@ -72,7 +88,7 @@ public class JwtUtil {
                 .claim("roles", roles) // Incluye los roles como claim adicional
 				.claim("id", id) // UIncluye el identificador único del usuario
                 .issuedAt(new Date()) // Fecha de emisión del token
-                .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION)) // Expira en 1 hora
+                .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION_MS)) // Expira en 1 hora
                 .signWith(jwtKeyPair.getPrivate(), Jwts.SIG.RS256) // Firma el token con la clave privada (RSA)
                 .compact(); // Genera el token en formato JWT
     }

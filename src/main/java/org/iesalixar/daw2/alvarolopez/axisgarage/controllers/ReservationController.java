@@ -27,11 +27,21 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.util.Optional;
 
+/**
+ * Controlador REST para la gestión del ciclo de vida completo de las reservas.
+ * Incluye creación con verificación de identidad (el renterId debe coincidir con el JWT),
+ * consulta paginada con filtros, actualización y borrado.
+ */
 @RestController
 @RequestMapping("/api/reservations")
 @Tag(name = "Reservations", description = "Operaciones CRUD para la gestión de reservas")
 public class ReservationController {
 
+    // ── Constantes ────────────────────────────────────────────────────────────
+    /** Prefijo Bearer que se elimina de la cabecera Authorization para obtener el token JWT puro. */
+    private static final String BEARER_PREFIX = "Bearer ";
+
+    // ── Dependencias ─────────────────────────────────────────────────────────
     private static final Logger logger = LoggerFactory.getLogger(ReservationController.class);
 
     @Autowired
@@ -105,7 +115,7 @@ public class ReservationController {
             // Seguridad: extraemos el email del JWT y verificamos que el renterId
             // enviado pertenece al usuario autenticado. Esto evita que un atacante
             // cree reservas suplantando a otro cliente.
-            String token = tokenHeader.replace("Bearer ", "");
+            String token = tokenHeader.replace(BEARER_PREFIX, "");
             String email = jwtUtil.extractUsername(token);
             Renter renter = renterRepository.findByEmail(email)
                     .orElseThrow(() -> new IllegalArgumentException("No se encontró un perfil de cliente asociado a este usuario."));

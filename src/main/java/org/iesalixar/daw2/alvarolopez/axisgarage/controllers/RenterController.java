@@ -25,11 +25,21 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+/**
+ * Controlador REST para la gestión de Renters (clientes que alquilan vehículos).
+ * Proporciona operaciones CRUD completas y un endpoint especial {@code /ensure}
+ * que crea o recupera el perfil de cliente del usuario autenticado.
+ */
 @RestController
 @RequestMapping("/api/renters")
 @Tag(name = "Renters", description = "Operaciones CRUD para la gestión de los clientes/huéspedes (Renters)")
 public class RenterController {
 
+    // ── Constantes ────────────────────────────────────────────────────────────
+    /** Prefijo estándar Bearer que se elimina de la cabecera Authorization para obtener el token puro. */
+    private static final String BEARER_PREFIX = "Bearer ";
+
+    // ── Dependencias ─────────────────────────────────────────────────────────
     private static final Logger logger = LoggerFactory.getLogger(RenterController.class);
 
     @Autowired
@@ -124,7 +134,7 @@ public class RenterController {
     public ResponseEntity<?> ensureRenter(@RequestHeader("Authorization") String tokenHeader,
                                           @RequestBody(required = false) RenterDTO dto) {
         try {
-            String token = tokenHeader.replace("Bearer ", "");
+            String token = tokenHeader.replace(BEARER_PREFIX, "");
             Long userId = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
             RenterDTO renter = renterService.ensureRenterFromUser(userId, dto);
             return ResponseEntity.ok(renter);

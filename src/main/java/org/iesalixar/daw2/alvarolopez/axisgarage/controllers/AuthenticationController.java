@@ -22,24 +22,36 @@ import java.util.Map;
 
 /**
  * Controlador responsable de gestionar las solicitudes relacionadas con la autenticación.
- * Proporciona un endpoint para autenticar usuarios y generar un token JWT en caso de éxito.
+ * <p>
+ * Expone los endpoints de login (JWT), registro, recuperación y reset de contraseña.
+ * Todas las rutas de este controlador son públicas (sin autenticación previa requerida).
+ * </p>
  */
 @RestController
 @RequestMapping("/api/v1")
 public class AuthenticationController {
 
+    // ── Dependencias ─────────────────────────────────────────────────────────
     @Autowired
     private AuthenticationManager authenticationManager;
+
     @Autowired
     private JwtUtil jwtUtil;
 
-	@Autowired
-	private UserService userService;
+    @Autowired
+    private UserService userService;
 
     /**
-     * genera un token JWT que incluye informacion del usuario y sus roles
+     * Autentica a un usuario con email y contraseña y devuelve un token JWT firmado.
+     * <p>
+     * El token incluye el email (subject), la lista de roles (claim "roles") y el ID
+     * del usuario (claim "id"). El frontend lo almacena en localStorage y lo adjunta
+     * en cada petición a través de la cabecera Authorization: Bearer {token}.
+     * </p>
      *
-     * @Param authRequest Un Objeto
+     * @param authRequest DTO con el email y la contraseña en texto plano.
+     * @return {@link AuthResponseDTO} con el token JWT si las credenciales son correctas,
+     *         o un mensaje de error si son inválidas.
      */
     @PostMapping("/authenticate")
     public ResponseEntity<AuthResponseDTO> authenticate(@Valid @RequestBody AuthRequestDTO authRequest) {

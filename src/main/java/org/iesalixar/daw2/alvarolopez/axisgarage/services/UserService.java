@@ -31,6 +31,29 @@ import java.util.stream.Collectors;
  */
 @Service
 public class UserService {
+
+	// ── Constantes ────────────────────────────────────────────────────────────
+
+	/** Nombre del rol por defecto que se asigna a todo usuario que se registra. */
+	private static final String DEFAULT_ROLE = "ROLE_USER";
+
+	/**
+	 * Tiempo de validez (en horas) del enlace de recuperación de contraseña.
+	 * Después de este tiempo el token caduca y el usuario debe solicitar uno nuevo.
+	 */
+	private static final long PASSWORD_RESET_EXPIRY_HOURS = 1L;
+
+	/**
+	 * ID del administrador principal del sistema.
+	 * Este usuario está protegido y no puede eliminarse desde ningún endpoint,
+	 * para garantizar que siempre haya un admin activo en el sistema.
+	 */
+	private static final long ADMIN_PROTECTED_ID = 1L;
+
+	/** Separador del email que se usa para derivar el username (parte antes del @). */
+	private static final String EMAIL_USERNAME_SEPARATOR = "@";
+
+	// ── Dependencias ─────────────────────────────────────────────────────────
 	@Autowired
 	private UserRepository userRepository;
 
@@ -49,8 +72,12 @@ public class UserService {
 	@Autowired
 	private FileStorageService fileStorageService;
 
-	/** URL base del frontend. Se usa para construir el enlace de recuperación de contraseña. */
-	@Value("${FRONTEND_URL:http://localhost:4200}")
+	/**
+	 * URL base del frontend Angular. Se inyecta desde application.properties
+	 * (clave: frontend.url). Se usa para construir el enlace de recuperación
+	 * de contraseña que se envía por correo al usuario.
+	 */
+	@Value("${frontend.url:http://localhost:4200}")
 	private String frontendUrl;
 
 	/**
@@ -76,11 +103,13 @@ public class UserService {
 			throw new IllegalArgumentException("Ya existe un usuario registrado con ese email.");
 		}
 
-		Role rolUser = roleRepository.findByName("ROLE_USER")
-				.orElseThrow(() -> new RuntimeException("El rol ROLE_USER no existe en la base de datos."));
+		// Buscamos el rol por defecto; si no existe en BD hay un problema de configuración
+		Role rolUser = roleRepository.findByName(DEFAULT_ROLE)
+				.orElseThrow(() -> new RuntimeException("El rol " + DEFAULT_ROLE + " no existe en la base de datos."));
 
 		User nuevo = new User();
-		nuevo.setUsername(dto.getEmail().split("@")[0]);
+		// El username se genera tomando la parte del email antes del símbolo @
+		nuevo.setUsername(dto.getEmail().split(EMAIL_USERNAME_SEPARATOR)[0]);
 		nuevo.setEmail(dto.getEmail());
 		nuevo.setPassword(passwordEncoder.encode(dto.getPassword()));
 		nuevo.setFirstName(dto.getFirstName());
@@ -152,7 +181,8 @@ public class UserService {
 		// Generamos un token único e irrepetible
 		String token = UUID.randomUUID().toString();
 		user.setResetToken(token);
-		user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+		// El token expira tras PASSWORD_RESET_EXPIRY_HOURS horas desde su generación
+		user.setResetTokenExpiry(LocalDateTime.now().plusHours(PASSWORD_RESET_EXPIRY_HOURS));
 		userRepository.save(user);
 
 		// Construimos el enlace que recibirá el usuario en el correo
@@ -276,7 +306,7 @@ public class UserService {
 	 */
 	public void deleteUser(Long id) {
 		// Protegemos al administrador principal: no puede eliminarse nunca
-		if (id == 1L) {
+		if (id == ADMIN_PROTECTED_ID) {
 			throw new IllegalArgumentException("No se puede eliminar al administrador principal del sistema.");
 		}
 

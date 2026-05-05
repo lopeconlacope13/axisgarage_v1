@@ -19,11 +19,22 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
+/**
+ * Controlador REST que expone las operaciones del usuario autenticado:
+ * consultar su perfil, subir avatar y cambiar contraseña.
+ * Todos los endpoints extraen la identidad del usuario desde el token JWT
+ * incluido en la cabecera Authorization.
+ */
 @RestController
 @RequestMapping("/api/user")
 @Tag(name = "Usuario", description = "Operaciones para obtener información del usuario autenticado")
 public class UserController {
 
+    // ── Constantes ────────────────────────────────────────────────────────────
+    /** Prefijo estándar del esquema Bearer (RFC 6750) que se elimina para obtener el token puro. */
+    private static final String BEARER_PREFIX = "Bearer ";
+
+    // ── Dependencias ─────────────────────────────────────────────────────────
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
@@ -45,7 +56,7 @@ public class UserController {
 
         try {
             // Limpiamos el prefijo "Bearer "
-            String token = tokenHeader.replace("Bearer ", "");
+            String token = tokenHeader.replace(BEARER_PREFIX, "");
 
             // Usamos el servicio jwt/utilidad para extraer el id
             Long id = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
@@ -74,7 +85,7 @@ public class UserController {
             @RequestHeader("Authorization") String tokenHeader,
             @RequestParam("file") MultipartFile file) {
         try {
-            String token = tokenHeader.replace("Bearer ", "");
+            String token = tokenHeader.replace(BEARER_PREFIX, "");
             Long id = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
             UserDTO updated = userService.uploadAvatar(id, file);
             logger.info("Avatar actualizado para usuario con ID {}", id);
@@ -99,7 +110,7 @@ public class UserController {
             @RequestHeader("Authorization") String tokenHeader,
             @RequestBody Map<String, String> body) {
         try {
-            String token = tokenHeader.replace("Bearer ", "");
+            String token = tokenHeader.replace(BEARER_PREFIX, "");
             Long id = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
             userService.changePassword(id, body.get("currentPassword"), body.get("newPassword"));
             logger.info("Contraseña actualizada para el usuario con ID {}", id);
