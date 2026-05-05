@@ -199,6 +199,12 @@ public class UserService {
 		// Guardamos el archivo en disco y obtenemos el nombre único generado
 		String filename = fileStorageService.saveFile(file);
 
+		// Si saveFile devuelve null (por ejemplo, por un IOException interno),
+		// lanzamos una excepción clara en lugar de persistir null en base de datos.
+		if (filename == null) {
+			throw new RuntimeException("Error al guardar la imagen en el servidor");
+		}
+
 		// Asociamos el nombre de archivo al usuario y lo persistimos
 		user.setImage(filename);
 		userRepository.save(user);
