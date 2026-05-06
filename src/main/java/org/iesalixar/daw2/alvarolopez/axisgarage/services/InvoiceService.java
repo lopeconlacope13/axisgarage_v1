@@ -197,87 +197,68 @@ public class InvoiceService {
             document.open();
 
             // --- Constantes de color de la paleta Axis Garage ---
-            // Se definen aquí para reutilizarlas en todos los elementos del PDF.
             Color GOLD  = new Color(201, 161,  74); // Dorado característico
-            Color DARK  = new Color( 10,  10,  10); // Fondo banda cabecera
             Color DARK2 = new Color( 20,  20,  20); // Fondo fila cabecera tabla
             Color GRAY1 = new Color(150, 150, 150); // Texto secundario
             Color GRAY2 = new Color(200, 200, 200); // Líneas divisorias
             Color BG    = new Color(244, 244, 244); // Fondo tarjetas info
 
-            // Obtenemos dimensiones reales de la página A4
+            // Dimensiones reales de la página A4
             float pageWidth  = document.getPageSize().getWidth();
             float pageHeight = document.getPageSize().getHeight();
 
-            // --- Capa de fondo (getDirectContentUnder) ---
-            // Usamos la capa inferior para que la banda quede por debajo del texto.
             PdfContentByte fgLayer = writer.getDirectContent();
             PdfContentByte bgLayer = writer.getDirectContentUnder();
 
-            // Banda oscura de cabecera: ocupa el 100% del ancho × 90pt de alto
-            bgLayer.setColorFill(DARK);
-            bgLayer.rectangle(0, pageHeight - 90, pageWidth, 90);
-            bgLayer.fill();
-
-            // Línea dorada separadora bajo la banda (marca visual premium)
-            bgLayer.setColorStroke(GOLD);
-            bgLayer.setLineWidth(1.5f);
-            bgLayer.moveTo(0, pageHeight - 90);
-            bgLayer.lineTo(pageWidth, pageHeight - 90);
-            bgLayer.stroke();
-
-            // --- Borde exterior dorado de página ---
-            // Rectángulo sin relleno, a 15pt del borde físico del papel.
-            // El alpha (80) lo hace semitransparente para no sobrecargar visualmente.
+            // --- Borde exterior dorado semitransparente ---
             bgLayer.setColorStroke(new Color(201, 161, 74, 80));
             bgLayer.setLineWidth(0.8f);
             bgLayer.rectangle(15, 15, pageWidth - 30, pageHeight - 30);
             bgLayer.stroke();
 
-            // --- Textos de la banda de cabecera (capa superior) ---
-            // Se posicionan de forma absoluta sobre la banda oscura ya pintada.
+            // --- Logo Compacto desde classpath ---
+            // El logo es 1024×1024px; scaleToFit(70,70) lo deja en 70×70pt dentro de la cabecera.
+            // setAbsolutePosition usa la esquina inferior-izquierda: y = pageHeight-83 → top = pageHeight-13,
+            // que queda dentro del borde dorado (pageHeight-15).
+            try (java.io.InputStream logoStream = getClass().getResourceAsStream("/logo/Logo Compacto.png")) {
+                if (logoStream != null) {
+                    Image logo = Image.getInstance(logoStream.readAllBytes());
+                    logo.scaleToFit(70, 70);
+                    logo.setAbsolutePosition(40f, pageHeight - 83f);
+                    fgLayer.addImage(logo);
+                }
+            } catch (Exception ignored) {
+                // Si el logo no carga, los textos de cabecera ya identifican la marca.
+            }
+
             float xCenter = pageWidth / 2f;
 
-            // "AXIS GARAGE" en serif dorado: el nombre de la marca centrado
-            Font brandFont = new Font(Font.TIMES_ROMAN, 22, Font.BOLD, GOLD);
-            ColumnText.showTextAligned(fgLayer, Element.ALIGN_CENTER,
-                    new Phrase("AXIS GARAGE", brandFont),
-                    xCenter, pageHeight - 48, 0);
+            // "AXIS GARAGE" — serif dorada a la derecha del logo (x≥120 para no solapar)
+            Font brandFont = new Font(Font.TIMES_ROMAN, 20, Font.BOLD, GOLD);
+            ColumnText.showTextAligned(fgLayer, Element.ALIGN_LEFT,
+                    new Phrase("AXIS GARAGE", brandFont), 122, pageHeight - 48, 0);
 
-            // "PRIVATE ATELIER" subtítulo en gris claro bajo el nombre
+            // "PRIVATE ATELIER" — subtítulo gris
             Font subtitleFont = new Font(Font.HELVETICA, 7, Font.NORMAL, GRAY1);
-            ColumnText.showTextAligned(fgLayer, Element.ALIGN_CENTER,
-                    new Phrase("PRIVATE ATELIER", subtitleFont),
-                    xCenter, pageHeight - 62, 0);
+            ColumnText.showTextAligned(fgLayer, Element.ALIGN_LEFT,
+                    new Phrase("PRIVATE ATELIER", subtitleFont), 123, pageHeight - 62, 0);
 
-            // "INVOICE" etiqueta en la esquina superior derecha
+            // "INVOICE" — etiqueta esquina superior derecha
             Font invoiceLabelFont = new Font(Font.HELVETICA, 8, Font.BOLD, GRAY1);
             ColumnText.showTextAligned(fgLayer, Element.ALIGN_RIGHT,
-                    new Phrase("INVOICE", invoiceLabelFont),
-                    pageWidth - 50, pageHeight - 47, 0);
+                    new Phrase("INVOICE", invoiceLabelFont), pageWidth - 50, pageHeight - 47, 0);
 
-            // Número de factura bajo la etiqueta INVOICE, en blanco destacado
-            Font invoiceNumFont = new Font(Font.HELVETICA, 10, Font.BOLD, Color.WHITE);
+            // Número de factura en dorado
+            Font invoiceNumFont = new Font(Font.HELVETICA, 10, Font.BOLD, GOLD);
             ColumnText.showTextAligned(fgLayer, Element.ALIGN_RIGHT,
-                    new Phrase(invoice.getInvoiceNumber(), invoiceNumFont),
-                    pageWidth - 50, pageHeight - 62, 0);
+                    new Phrase(invoice.getInvoiceNumber(), invoiceNumFont), pageWidth - 50, pageHeight - 62, 0);
 
-            // --- Logo de la marca (capa de fondo, posición absoluta) ---
-            // Si la imagen no se puede cargar (por ruta rota), el bloque catch
-            // no hace nada: los textos de marca pintados arriba actúan como fallback.
-            try {
-                Image logo = Image.getInstance(
-                    "/Users/alvarolopez/TFG/AXISGARAGE_ANGULAR/axis-garage-app/public/assets/logo-completo.png");
-                // Escalamos y posicionamos el logo dentro de la banda oscura
-                logo.scaleToFit(120, 70);
-                logo.setAbsolutePosition(
-                    (pageWidth - logo.getScaledWidth()) / 2f,
-                    pageHeight - 85
-                );
-                fgLayer.addImage(logo);
-            } catch (Exception ignored) {
-                // Fallback: los textos de cabecera ya están pintados arriba — no se necesita nada más.
-            }
+            // Línea dorada separadora del encabezado — justo debajo del logo
+            fgLayer.setColorStroke(GOLD);
+            fgLayer.setLineWidth(1f);
+            fgLayer.moveTo(40f, pageHeight - 90f);
+            fgLayer.lineTo(pageWidth - 40f, pageHeight - 90f);
+            fgLayer.stroke();
 
             // --- Fuentes reutilizables para el cuerpo del documento ---
             Font labelFont = new Font(Font.HELVETICA,  7, Font.BOLD,   GRAY1);
@@ -364,26 +345,11 @@ public class InvoiceService {
             detailTable.addCell(headerDesc);
             detailTable.addCell(headerAmount);
 
-            // Función auxiliar para añadir filas de datos con borde inferior gris
-            java.util.function.BiConsumer<String, String> addRow = (label, value) -> {
-                PdfPCell l = new PdfPCell(new Phrase(label, labelFont));
-                l.setBorder(Rectangle.BOTTOM);
-                l.setBorderColor(new Color(230, 230, 230));
-                l.setPadding(8);
-                PdfPCell v = new PdfPCell(new Phrase(value, valueFont));
-                v.setBorder(Rectangle.BOTTOM);
-                v.setBorderColor(new Color(230, 230, 230));
-                v.setPadding(8);
-                v.setHorizontalAlignment(Element.ALIGN_RIGHT);
-                detailTable.addCell(l);
-                detailTable.addCell(v);
-            };
-
-            addRow.accept("Reservation",    "#" + invoice.getReservationId());
-            addRow.accept("Payment Method", invoice.getPaymentMethod() != null ? invoice.getPaymentMethod() : "—");
-            addRow.accept("Base Amount",    String.format("€%.2f", invoice.getBaseAmount()));
-            addRow.accept("Tax Rate (IVA)", String.format("%.0f%%", invoice.getTaxRate().multiply(new BigDecimal(100))));
-            addRow.accept("Tax Amount",     String.format("€%.2f", invoice.getTaxAmount()));
+            addRow(detailTable, "Reservation",    "#" + invoice.getReservationId(),    labelFont, valueFont);
+            addRow(detailTable, "Payment Method", invoice.getPaymentMethod() != null ? invoice.getPaymentMethod() : "—", labelFont, valueFont);
+            addRow(detailTable, "Base Amount",    String.format("€%.2f", invoice.getBaseAmount()),   labelFont, valueFont);
+            addRow(detailTable, "Tax Rate (IVA)", String.format("%.0f%%", invoice.getTaxRate().multiply(new BigDecimal(100))), labelFont, valueFont);
+            addRow(detailTable, "Tax Amount",     String.format("€%.2f", invoice.getTaxAmount()),    labelFont, valueFont);
 
             // Fila del total con tipografía serif dorada en 12pt — el importe final protagonista
             PdfPCell totalLabel = new PdfPCell(new Phrase("TOTAL", totalFont));
@@ -432,6 +398,33 @@ public class InvoiceService {
         }
 
         return out.toByteArray();
+    }
+
+    /**
+     * Añade una fila de dos celdas (etiqueta + valor) a la tabla de detalle del PDF.
+     * La celda izquierda muestra la etiqueta y la derecha el valor alineado a la derecha.
+     * Ambas celdas tienen borde inferior gris claro para separar visualmente las filas.
+     *
+     * @param table     Tabla a la que se añade la fila.
+     * @param label     Texto de la celda izquierda (descripción del concepto).
+     * @param value     Texto de la celda derecha (importe o dato).
+     * @param labelFont Fuente para la etiqueta.
+     * @param valueFont Fuente para el valor.
+     */
+    private void addRow(PdfPTable table, String label, String value, Font labelFont, Font valueFont) {
+        PdfPCell left = new PdfPCell(new Phrase(label, labelFont));
+        left.setBorder(Rectangle.BOTTOM);
+        left.setBorderColor(new Color(230, 230, 230));
+        left.setPadding(8);
+
+        PdfPCell right = new PdfPCell(new Phrase(value, valueFont));
+        right.setBorder(Rectangle.BOTTOM);
+        right.setBorderColor(new Color(230, 230, 230));
+        right.setPadding(8);
+        right.setHorizontalAlignment(Element.ALIGN_RIGHT);
+
+        table.addCell(left);
+        table.addCell(right);
     }
 
     /**
