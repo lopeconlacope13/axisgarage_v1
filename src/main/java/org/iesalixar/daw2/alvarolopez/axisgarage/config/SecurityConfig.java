@@ -98,7 +98,8 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.PUT, "/api/reservations/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 						.requestMatchers(HttpMethod.DELETE, "/api/reservations/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 
-						.requestMatchers(HttpMethod.GET, "/api/reviews/**").hasAnyRole("USER", "MANAGER", "ADMIN")
+						// Las reseñas son públicas: cualquier visitante puede leerlas sin autenticarse
+						.requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/reviews/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 						.requestMatchers(HttpMethod.PUT, "/api/reviews/**").hasAnyRole("USER", "MANAGER", "ADMIN")
 						.requestMatchers(HttpMethod.DELETE, "/api/reviews/**").hasAnyRole("USER", "MANAGER", "ADMIN")
