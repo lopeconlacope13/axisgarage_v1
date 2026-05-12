@@ -1,15 +1,44 @@
 services:
+
   db:
-    image: mariadb:latest
+    image: mariadb:11
+    restart: unless-stopped
     environment:
-      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
-      - MARIADB_DATABASE=${DB_DATABASE}
-      - MARIADB_USER=${DB_USER}
-      - MARIADB_PASSWORD=${DB_PASSWORD}
-    ports:
-      - "3307:3306"
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_DATABASE}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      JAVA_TOOL_OPTIONS: "-DUPLOAD_PATH=/app/uploads"
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads_data:/app/uploads
+      - ./jwt-keystore.jks:/app/jwt-keystore.jks:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ../axisgarage-angular
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
 
 volumes:
   db_data:
+  uploads_data:
