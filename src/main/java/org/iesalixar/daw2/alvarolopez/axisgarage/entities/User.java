@@ -98,10 +98,6 @@ public class User {
     @Column(name = "last_modified_date")
     private LocalDateTime lastModifiedDate;
 
-    // Fecha del último cambio de contraseña.
-    @Column(name = "last_password_change_date")
-    private LocalDateTime lastPasswordChangeDate;
-
     // Token de un solo uso para el flujo de recuperación de contraseña.
     @Column(name = "reset_token", length = 255)
     private String resetToken;
@@ -121,13 +117,11 @@ public class User {
     )
     private Set<Role> roles;
     /**
-     * Establece la contraseña del usuario y actualiza la fecha del último cambio
-     de contraseña.
+     * Establece la contraseña encriptada del usuario.
      *
      * @param password Nueva contraseña encriptada del usuario.
      */
     public void setPassword(String password) {
         this.password = password;
-        this.lastPasswordChangeDate = LocalDateTime.now();
     }
 }
