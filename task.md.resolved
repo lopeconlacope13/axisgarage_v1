@@ -1,0 +1,15 @@
+# Tareas: API 6 - Autenticación Mixta (OAuth2 + Local)
+
+- `[x]` Añadir dependencia `spring-boot-starter-oauth2-client` en `pom.xml`.
+- `[x]` Añadir propiedades OAuth en `application.properties` y `.env` (Google/Facebook).
+- `[x]` Actualizar Entidad `User`: 
+  - Añadir Enum `AuthProvider` (`LOCAL`, `GOOGLE`, `FACEBOOK`).
+  - Tolerar contraseñas nulas para cuentas OAuth.
+- `[x]` Implementar Handlers de OAuth2:
+  - `[x]` `CustomOAuth2SuccessHandler`: Inyectar token/parametros y redirigir a `/login?`.
+  - `[x]` `CustomOAuth2FailureHandler`: Redirigir a `/login?error=Oauth2Failed`.
+- `[x]` Implementar Service de OAuth2:
+  - `[x]` `CustomOAuth2UserService`: Registrar automáticamente a los usuarios nuevos, o cargarlos si existen.
+- `[x]` Actualizar `SecurityConfig`:
+  - `[x]` Añadir `.oauth2Login` con sus endpoints y handlers.
+- `[x]` Verificar creación de usuarios y emisión inicial de JWTs en OAuth (sin 2FA de momento).

@@ -89,8 +89,6 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.GET, "/api/locations", "/api/locations/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
 						.requestMatchers("/uploads/**").permitAll()
-						// Formulario de contacto público — no requiere autenticación
-						.requestMatchers(HttpMethod.POST, "/api/contact").permitAll()
 
 						// --- RUTAS DE CLIENTE (USER/MANAGER/ADMIN) ---
 						.requestMatchers(HttpMethod.GET, "/api/reservations/**").hasAnyRole("USER", "MANAGER", "ADMIN")
