@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -43,17 +44,19 @@ public class VehicleController {
     })
     @GetMapping
     public ResponseEntity<Page<VehicleDTO>> getAllVehicles(
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String model,
             @RequestParam(required = false) Integer horsePower,
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long locationId,
             @PageableDefault(size = 10, sort = "model") Pageable pageable) {
 
-        logger.info("REST: Solicitando Vehículos (Filtros -> marca: {}, modelo: {}, caballos: {}, categoría: {}) | Pág: {}, Tamaño: {}",
-                brand, model, horsePower, categoryId, pageable.getPageNumber(), pageable.getPageSize());
+        logger.info("REST: Solicitando Vehículos (search: {}, marca: {}, modelo: {}, caballos: {}, categoría: {}, localización: {}) | Pág: {}, Tamaño: {}",
+                search, brand, model, horsePower, categoryId, locationId, pageable.getPageNumber(), pageable.getPageSize());
 
         try {
-            Page<VehicleDTO> vehicles = vehicleService.getAllVehicles(brand, model, horsePower, categoryId, pageable);
+            Page<VehicleDTO> vehicles = vehicleService.getAllVehicles(search, brand, model, horsePower, categoryId, locationId, pageable);
             return ResponseEntity.ok(vehicles);
         } catch (Exception e) {
             logger.error("Error al listar los Vehículos: {}", e.getMessage());
@@ -176,6 +179,28 @@ public class VehicleController {
         } catch (Exception e) {
             logger.error("Error al eliminar imagen {} del vehículo {}: {}", filename, id, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la imagen.");
+        }
+    }
+
+    // --- 8. REORDENAR IMÁGENES ---
+
+    /**
+     * Recibe la lista de nombres de archivo en el nuevo orden y la persiste.
+     * Solo accesible para usuarios con rol MANAGER o ADMIN.
+     *
+     * @param id        ID del vehículo.
+     * @param filenames Lista de nombres en el nuevo orden (JSON array de strings).
+     * @return VehicleDTO actualizado con el nuevo orden de imágenes.
+     */
+    @PutMapping("/{id}/images/order")
+    public ResponseEntity<?> reorderImages(@PathVariable Long id, @RequestBody List<String> filenames) {
+        try {
+            return ResponseEntity.ok(vehicleService.reorderImages(id, filenames));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error al reordenar imágenes del vehículo {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al reordenar imágenes.");
         }
     }
 

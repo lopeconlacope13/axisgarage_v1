@@ -66,16 +66,18 @@ public class VehicleService {
      * @param model      Modelo del vehículo a buscar (búsqueda parcial).
      * @param horsePower Potencia mínima en CV.
      * @param categoryId ID de la categoría a filtrar.
+     * @param locationId ID de la localización a filtrar.
      * @param pageable   Configuración de paginación de Spring Data.
      * @return Page con listado de VehicleDTO.
      */
-    public Page<VehicleDTO> getAllVehicles(String brand, String model, Integer horsePower, Long categoryId, Pageable pageable) {
-        logger.info("Solicitando Vehículos con filtros -> Marca: {}, Modelo: {}, CV mínimos: {}, Categoría: {}", brand, model, horsePower, categoryId);
+    public Page<VehicleDTO> getAllVehicles(String search, String brand, String model, Integer horsePower, Long categoryId, Long locationId, Pageable pageable) {
+        logger.info("Solicitando Vehículos con filtros -> Búsqueda: {}, Marca: {}, Modelo: {}, CV mínimos: {}, Categoría: {}, Localización: {}", search, brand, model, horsePower, categoryId, locationId);
         try {
-            // Convertimos strings vacíos a null para que la query JPQL los ignore
-            String brandFilter = (brand != null && !brand.isBlank()) ? brand : null;
-            String modelFilter = (model != null && !model.isBlank()) ? model : null;
-            Page<Vehicle> vehicles = vehicleRepository.findByFiltros(brandFilter, modelFilter, horsePower, categoryId, pageable);
+            // Convertimos strings vacíos a null para que la query JPQL los ignore con IS NULL
+            String searchFilter = (search != null && !search.isBlank()) ? search : null;
+            String brandFilter  = (brand  != null && !brand.isBlank())  ? brand  : null;
+            String modelFilter  = (model  != null && !model.isBlank())  ? model  : null;
+            Page<Vehicle> vehicles = vehicleRepository.findByFiltros(searchFilter, brandFilter, modelFilter, horsePower, categoryId, locationId, pageable);
 
             logger.info("Se han encontrado {} Vehículos en la base de datos.", vehicles.getTotalElements());
 
@@ -318,6 +320,32 @@ public class VehicleService {
         fileStorageService.deleteFile(filename);
         // Eliminamos la referencia de la lista en base de datos
         vehicle.getImages().remove(filename);
+        return vehicleMapper.toDTO(vehicleRepository.save(vehicle));
+    }
+
+    // --- 8. REORDENAR IMÁGENES ---
+
+    /**
+     * Reemplaza el orden de las imágenes del vehículo por el nuevo orden recibido.
+     * Valida que el listado enviado contenga exactamente los mismos nombres de archivo
+     * que ya tiene el vehículo — no se pueden añadir ni eliminar imágenes aquí.
+     *
+     * @param id        ID del vehículo.
+     * @param filenames Lista de nombres de archivo en el nuevo orden deseado.
+     * @return VehicleDTO actualizado con las imágenes en el orden nuevo.
+     * @throws IllegalArgumentException si el vehículo no existe o los nombres no coinciden.
+     */
+    public VehicleDTO reorderImages(Long id, List<String> filenames) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Vehículo no encontrado con ID: " + id));
+        // Comprobamos que el nuevo listado sea exactamente el mismo conjunto (sin añadir ni borrar)
+        List<String> actuales = new ArrayList<>(vehicle.getImages());
+        if (!actuales.containsAll(filenames) || !filenames.containsAll(actuales)) {
+            throw new IllegalArgumentException("La lista de imágenes no coincide con las existentes.");
+        }
+        // Vaciamos y rellenamos en el nuevo orden — JPA detecta el cambio y persiste
+        vehicle.getImages().clear();
+        vehicle.getImages().addAll(filenames);
         return vehicleMapper.toDTO(vehicleRepository.save(vehicle));
     }
 

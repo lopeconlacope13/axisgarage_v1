@@ -27,17 +27,23 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     // Cuenta cuántos vehículos están marcados como disponibles (para las estadísticas del dashboard)
     long countByAvailableTrue();
 
-    // Filtrado dinámico por marca, modelo, potencia mínima y categoría
+    // Filtrado dinámico por marca, modelo, potencia mínima, categoría y localización.
+    // El parámetro :search hace búsqueda libre (OR) entre brand y model,
+    // pensado para el buscador rápido del frontend.
     @Query("SELECT v FROM Vehicle v WHERE " +
+            "(:search IS NULL OR LOWER(v.brand) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(v.model) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
             "(:brand IS NULL OR LOWER(v.brand) LIKE LOWER(CONCAT('%', :brand, '%'))) AND " +
             "(:model IS NULL OR LOWER(v.model) LIKE LOWER(CONCAT('%', :model, '%'))) AND " +
             "(:horsePower IS NULL OR v.horsePower >= :horsePower) AND " +
-            "(:categoryId IS NULL OR v.category.id = :categoryId)")
+            "(:categoryId IS NULL OR v.category.id = :categoryId) AND " +
+            "(:locationId IS NULL OR v.location.id = :locationId)")
     Page<Vehicle> findByFiltros(
+            @Param("search") String search,
             @Param("brand") String brand,
             @Param("model") String model,
             @Param("horsePower") Integer horsePower,
             @Param("categoryId") Long categoryId,
+            @Param("locationId") Long locationId,
             Pageable pageable);
 
 }
