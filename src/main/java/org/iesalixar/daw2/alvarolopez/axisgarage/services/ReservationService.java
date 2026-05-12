@@ -144,6 +144,10 @@ public class ReservationService {
 
             Reservation reservation = reservationMapper.toEntity(dto, vehicle, renter);
 
+            // Recalculamos el precio en el backend para garantizar que nadie manipule el total desde el frontend
+            double precio = calculateTotalPrice(vehicle, dto.getStartDate(), dto.getEndDate(), dto.getCoverageType());
+            reservation.setTotalPrice(precio);
+
             Reservation savedReservation = reservationRepository.save(reservation);
 
             // Auto-crear cobertura STANDARD para la nueva reserva
@@ -218,8 +222,15 @@ public class ReservationService {
                 existente.setStatus(dto.getStatus());
             }
 
-            long dias = ChronoUnit.DAYS.between(dto.getStartDate(), dto.getEndDate());
-            existente.setTotalPrice(dias * vehicle.getPricePerDay());
+            // Recalculamos el precio incluyendo la cobertura si el DTO la trae; si no, mantenemos el precio existente
+            if (dto.getCoverageType() != null && !dto.getCoverageType().isBlank()) {
+                double precio = calculateTotalPrice(vehicle, dto.getStartDate(), dto.getEndDate(), dto.getCoverageType());
+                existente.setTotalPrice(precio);
+            } else if (dto.getTotalPrice() != null) {
+                // Si el cliente envía el precio ya calculado (ej. desde checkout), lo usamos directamente
+                existente.setTotalPrice(dto.getTotalPrice());
+            }
+            // Si no viene ni coverageType ni totalPrice (ej. solo cancelar), mantenemos el precio que ya tiene
 
             Reservation savedReservation = reservationRepository.save(existente);
             return reservationMapper.toDTO(savedReservation);
@@ -233,7 +244,43 @@ public class ReservationService {
         }
     }
 
-    // --- 5. BORRAR RESERVA ---
+    // --- 5. CALCULAR PRECIO TOTAL ---
+    /**
+     * Calcula el precio total de la reserva sumando el precio base del vehículo
+     * más el coste adicional de la cobertura elegida, multiplicado por los días.
+     * <p>
+     * Tasas de cobertura por día (fijas de negocio):
+     *   - STANDARD: 0 €/día (incluida sin coste)
+     *   - PREMIUM:  45 €/día
+     *   - TOTAL:    85 €/día
+     * </p>
+     *
+     * @param vehicle     Vehículo reservado (para obtener su precio por día).
+     * @param startDate   Fecha de inicio de la reserva.
+     * @param endDate     Fecha de fin de la reserva.
+     * @param coverageType Tipo de cobertura elegida (STANDARD, PREMIUM o TOTAL).
+     * @return Precio total calculado en euros.
+     */
+    private double calculateTotalPrice(Vehicle vehicle, LocalDate startDate, LocalDate endDate, String coverageType) {
+        // Calculamos el número de días entre las fechas
+        long days = ChronoUnit.DAYS.between(startDate, endDate);
+
+        // Determinamos la tasa diaria de la cobertura según el tipo
+        double coverageRate;
+        if ("PREMIUM".equalsIgnoreCase(coverageType)) {
+            coverageRate = 45.0;
+        } else if ("TOTAL".equalsIgnoreCase(coverageType)) {
+            coverageRate = 85.0;
+        } else {
+            // STANDARD o cualquier valor desconocido → sin coste adicional
+            coverageRate = 0.0;
+        }
+
+        // Total = días × (precio del vehículo por día + tasa de cobertura)
+        return days * (vehicle.getPricePerDay() + coverageRate);
+    }
+
+    // --- 6. BORRAR RESERVA ---
     /**
      * Elimina definitivamente una reserva del sistema.
      *
