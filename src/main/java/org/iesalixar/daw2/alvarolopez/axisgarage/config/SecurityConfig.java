@@ -119,6 +119,9 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.PATCH, "/api/vehicles/**").hasAnyRole("MANAGER", "ADMIN")
 						.requestMatchers(HttpMethod.DELETE, "/api/vehicles/**").hasAnyRole("MANAGER", "ADMIN")
 
+						// La ruta base "/api/owners" (sin trailing slash) NO casa con "/**".
+						// Añadimos la regla explícita para el GET de listado paginado.
+						.requestMatchers(HttpMethod.GET, "/api/owners").hasAnyRole("MANAGER", "ADMIN")
 						.requestMatchers("/api/owners/**").hasAnyRole("MANAGER", "ADMIN")
 
 						// --- ESTADÍSTICAS (MANAGER+) ---
