@@ -1,6 +1,5 @@
 package org.iesalixar.daw2.alvarolopez.axisgarage.config;
 
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,14 +8,12 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.services.CustomUserDetailsServi
 import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Filtro que intercepta cada petición HTTP para comprobar si lleva un token JWT válido
@@ -84,23 +81,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 7. Validar el token
             if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
 
-                // 8. Extraer los claims
-                Claims claims = jwtUtil.extractAllClaims(jwt);
+                // 8. Usar los roles directamente de userDetails (leídos de BD en el paso 6).
+                //    NO usamos los roles del claim JWT porque ese token puede ser "stale":
+                //    fue generado antes de que el usuario tuviera roles asignados o antes
+                //    de un cambio de rol desde el panel de administración.
+                //    userDetails.getAuthorities() siempre refleja el estado actual de la BD.
 
-                // 9. Extraer roles y convertir (con protección null para JWTs sin claim "roles")
-                List<String> roles = claims.get("roles", List.class);
-                List<SimpleGrantedAuthority> authorities = (roles != null ? roles : List.of()).stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .toList();
-
-                // 10. Crear objeto de autenticación
+                // 9. Crear objeto de autenticación con las authorities frescas de BD
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                // 11. Configurar detalles
+                // 10. Configurar detalles de la petición (IP, session id, etc.)
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // 12. Establecer autenticación en el contexto
+                // 11. Inyectar la autenticación en el contexto de Spring Security
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
