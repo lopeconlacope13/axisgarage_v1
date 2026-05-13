@@ -87,9 +87,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 8. Extraer los claims
                 Claims claims = jwtUtil.extractAllClaims(jwt);
 
-                // 9. Extraer roles y convertir
+                // 9. Extraer roles y convertir (con protección null para JWTs sin claim "roles")
                 List<String> roles = claims.get("roles", List.class);
-                List<SimpleGrantedAuthority> authorities = roles.stream()
+                List<SimpleGrantedAuthority> authorities = (roles != null ? roles : List.of()).stream()
                         .map(SimpleGrantedAuthority::new)
                         .toList();
 
