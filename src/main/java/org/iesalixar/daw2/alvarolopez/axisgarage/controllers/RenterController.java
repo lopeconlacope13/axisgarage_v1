@@ -136,9 +136,16 @@ public class RenterController {
         try {
             String token = tokenHeader.replace(BEARER_PREFIX, "");
             Long userId = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido: falta el claim 'id'.");
+            }
             RenterDTO renter = renterService.ensureRenterFromUser(userId, dto);
             return ResponseEntity.ok(renter);
         } catch (IllegalArgumentException e) {
+            // Si el userId del JWT no corresponde a ningún usuario en BD → token obsoleto → 401
+            if (e.getMessage() != null && e.getMessage().contains("Usuario no encontrado")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sesión expirada. Vuelve a iniciar sesión.");
+            }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error en ensureRenter: {}", e.getMessage());
