@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
 
 /**
  * Configura la seguridad de la aplicación, definiendo autenticación y autorización
@@ -61,12 +62,26 @@ public class SecurityConfig {
 		http
 				.cors(Customizer.withDefaults())
 				.csrf(csrf -> csrf.disable())
-				// IMPORTANTE TFG: OAuth2 necesita guardar un parámetro "state" temporal en memoria (Session)
-				// durante el viaje a Google/Facebook para prevenir ataques CSRF. Por tanto, no podemos usar
-				// STATELESS estricto aquí o fallará al volver. Usamos IF_REQUIRED para que Spring solo
-				// levante la sesión para el Handshake OAuth, pero nuestra API sigue dependiendo de JWT.
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+				// IMPORTANTE TFG: Cambiamos a STATELESS para que Spring Security NO guarde el SecurityContext
+				// en la HttpSession entre peticiones. Con IF_REQUIRED ocurría un bug intermitente:
+				// una petición anterior (OPTIONS, preflight, o con JWT inválido) contaminaba la sesión
+				// con un contexto de autenticación anónimo. La siguiente petición legítima restauraba
+				// ese contexto sucio → el filtro JWT veía getAuthentication() != null → saltaba la
+				// re-autenticación → el usuario aparecía sin roles → 403 en /api/renters/ensure.
+				//
+				// El truco: OAuth2 necesita una sesión temporal para guardar el parámetro "state" durante
+				// el handshake con Google/Facebook (previene CSRF). Lo resolvemos configurando
+				// explícitamente HttpSessionOAuth2AuthorizationRequestRepository en el bloque oauth2Login.
+				// Así, OAuth2 puede usar la sesión para su handshake, pero el resto de la API queda
+				// completamente sin estado (cada petición se valida solo por JWT, sin sesión).
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.oauth2Login(oauth2 -> oauth2
+						// HttpSessionOAuth2AuthorizationRequestRepository permite que el parámetro "state"
+						// de OAuth2 se guarde en la sesión HTTP durante el redirecccionamiento a Google/Facebook,
+						// aunque la política general de la API sea STATELESS.
+						.authorizationEndpoint(endpoint -> endpoint
+								.authorizationRequestRepository(new HttpSessionOAuth2AuthorizationRequestRepository())
+						)
 						.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 						.successHandler(customOAuth2SuccessHandler)
 						.failureHandler(customOAuth2FailureHandler)
