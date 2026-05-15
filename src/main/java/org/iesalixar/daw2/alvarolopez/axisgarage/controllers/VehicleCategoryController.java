@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.VehicleCategoryDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.VehicleCategoryService;
+import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ public class VehicleCategoryController {
         if (dto.isPresent()) {
             return ResponseEntity.ok(dto.get());
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Categoría no encontrada.");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.CATEGORY_NOT_FOUND);
     }
 
     @Operation(summary = "Crear una nueva categoría")

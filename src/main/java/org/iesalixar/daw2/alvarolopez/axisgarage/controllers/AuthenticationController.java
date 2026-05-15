@@ -7,6 +7,7 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.RegisterRequestDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.UserDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.UserService;
 import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
+import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +64,7 @@ public class AuthenticationController {
     public ResponseEntity<AuthResponseDTO> authenticate(@Valid @RequestBody AuthRequestDTO authRequest) {
 		try {
 			if (authRequest.getEmail() == null || authRequest.getPassword() == null) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponseDTO(null, "Email and password are required."));
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponseDTO(null, MessageConstants.AUTH_CREDENTIALS_REQUIRED));
 			}
 
 			Authentication authentication = authenticationManager.authenticate(
@@ -79,13 +80,13 @@ public class AuthenticationController {
 
 			String token = jwtUtil.generateToken(email, roles, id);
 
-			return ResponseEntity.ok(new AuthResponseDTO(token, "Authentication successful."));
+			return ResponseEntity.ok(new AuthResponseDTO(token, MessageConstants.AUTH_SUCCESS));
 		} catch (BadCredentialsException e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body(new AuthResponseDTO(null, "Invalid credentials. Please check your email and password."));
+					.body(new AuthResponseDTO(null, MessageConstants.AUTH_INVALID_CREDENTIALS));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new AuthResponseDTO(null, "Unexpected error. Please try again later."));
+					.body(new AuthResponseDTO(null, MessageConstants.AUTH_UNEXPECTED_ERROR));
 		}
 	}
 
@@ -106,7 +107,7 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error registering user. Please try again.");
+                    .body(MessageConstants.AUTH_REGISTER_ERROR);
         }
     }
 
@@ -123,7 +124,7 @@ public class AuthenticationController {
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> body) {
         userService.forgotPassword(body.get("email"));
-        return ResponseEntity.ok("If an account exists with that email, you will receive a reset link shortly.");
+        return ResponseEntity.ok(MessageConstants.AUTH_FORGOT_PASSWORD_SENT);
     }
 
     /**
@@ -138,7 +139,7 @@ public class AuthenticationController {
     public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> body) {
         try {
             userService.resetPassword(body.get("token"), body.get("newPassword"));
-            return ResponseEntity.ok("Password updated successfully.");
+            return ResponseEntity.ok(MessageConstants.AUTH_PASSWORD_UPDATED);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

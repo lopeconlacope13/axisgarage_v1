@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.DamageReportDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.DamageReportService;
+import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +70,7 @@ public class DamageReportController {
         if (dto.isPresent()) {
             return ResponseEntity.ok(dto.get());
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Informe de daños no encontrado.");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.DAMAGE_REPORT_NOT_FOUND);
     }
 
     /**

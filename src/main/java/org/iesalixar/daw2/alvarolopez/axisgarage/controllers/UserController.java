@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.UserDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.UserService;
 import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
+import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +68,7 @@ public class UserController {
 
         } catch (Exception e) {
             logger.error("Error al obtener el usuario: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener la información del usuario.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.USER_FETCH_ERROR);
         }
     }
 
@@ -92,7 +93,7 @@ public class UserController {
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
             logger.error("Error al subir avatar: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir la imagen.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.USER_PHOTO_UPLOAD_ERROR);
         }
     }
 
@@ -114,13 +115,13 @@ public class UserController {
             Long id = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
             userService.changePassword(id, body.get("currentPassword"), body.get("newPassword"));
             logger.info("Contraseña actualizada para el usuario con ID {}", id);
-            return ResponseEntity.ok("Contraseña actualizada correctamente.");
+            return ResponseEntity.ok(MessageConstants.USER_PASSWORD_UPDATED);
         } catch (IllegalArgumentException e) {
             logger.warn("Intento fallido de cambio de contraseña: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al cambiar la contraseña: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al cambiar la contraseña.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.USER_PASSWORD_CHANGE_ERROR);
         }
     }
 

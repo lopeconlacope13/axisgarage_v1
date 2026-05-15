@@ -13,6 +13,7 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.entities.Renter;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.RenterRepository;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.ReservationService;
 import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
+import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,10 +92,10 @@ public class ReservationController {
                 return ResponseEntity.ok(dto.get());
             } else {
                 logger.warn("No se encontró la reserva con ID {}", id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("La reserva solicitada no existe.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.RESERVATION_NOT_FOUND);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al buscar la reserva.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.RESERVATION_FETCH_ERROR);
         }
     }
 
@@ -124,7 +125,7 @@ public class ReservationController {
             // es una acción deliberadamente no autorizada — el renterId del cuerpo
             // no coincide con el usuario que firmó el JWT.
             if (!renter.getId().equals(dto.getRenterId())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El renterId no coincide con el usuario autenticado");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, MessageConstants.RESERVATION_RENTER_MISMATCH);
             }
 
             ReservationDTO creada = reservationService.createReservation(dto);
@@ -133,7 +134,7 @@ public class ReservationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al crear reserva: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al crear la reserva.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.RESERVATION_CREATE_ERROR);
         }
     }
 
@@ -156,7 +157,7 @@ public class ReservationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error interno al actualizar la reserva.");
+                    .body(MessageConstants.RESERVATION_UPDATE_ERROR);
         }
     }
 
@@ -177,7 +178,7 @@ public class ReservationController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al borrar la reserva.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.RESERVATION_DELETE_ERROR);
         }
     }
 }

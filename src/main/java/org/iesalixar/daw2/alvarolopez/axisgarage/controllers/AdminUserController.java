@@ -3,6 +3,7 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.controllers;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.UserSummaryDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.UserService;
+import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,7 @@ public class AdminUserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error inesperado al cambiar rol del usuario {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al cambiar el rol.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.ADMIN_ROLE_CHANGE_ERROR);
         }
     }
 
@@ -105,7 +106,7 @@ public class AdminUserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al eliminar usuario con ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar el usuario.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.ADMIN_USER_DELETE_ERROR);
         }
     }
 }

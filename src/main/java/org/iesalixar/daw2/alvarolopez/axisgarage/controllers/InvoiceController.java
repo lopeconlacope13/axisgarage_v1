@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.InvoiceDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.InvoiceService;
+import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -50,7 +51,7 @@ public class InvoiceController {
         } catch (Exception e) {
             logger.error("Error al obtener las facturas", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al obtener las facturas.");
+                    .body(MessageConstants.INVOICE_LIST_ERROR);
         }
     }
 
@@ -70,7 +71,7 @@ public class InvoiceController {
         } catch (Exception e) {
             logger.error("Error al obtener la factura con ID: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al obtener la factura.");
+                    .body(MessageConstants.INVOICE_FETCH_ERROR);
         }
     }
 
@@ -91,7 +92,7 @@ public class InvoiceController {
         } catch (Exception e) {
             logger.error("Error al obtener la factura de la reserva con ID: {}", reservationId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al obtener la factura.");
+                    .body(MessageConstants.INVOICE_FETCH_ERROR);
         }
     }
 
@@ -113,7 +114,7 @@ public class InvoiceController {
         } catch (Exception e) {
             logger.error("Error al crear la factura", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al crear la factura.");
+                    .body(MessageConstants.INVOICE_CREATE_ERROR);
         }
     }
 
@@ -136,7 +137,7 @@ public class InvoiceController {
         } catch (Exception e) {
             logger.error("Error al actualizar la factura con ID: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al actualizar la factura.");
+                    .body(MessageConstants.INVOICE_UPDATE_ERROR);
         }
     }
 
@@ -166,7 +167,7 @@ public class InvoiceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al generar el PDF de la reserva {}: {}", reservationId, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al generar el PDF.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.INVOICE_PDF_ERROR);
         }
     }
 
@@ -188,7 +189,7 @@ public class InvoiceController {
         } catch (Exception e) {
             logger.error("Error al eliminar la factura con ID: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al eliminar la factura.");
+                    .body(MessageConstants.INVOICE_DELETE_ERROR);
         }
     }
 }

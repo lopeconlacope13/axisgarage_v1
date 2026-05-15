@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.VehicleDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.VehicleService;
+import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,11 +82,11 @@ public class VehicleController {
             if (vehicleDTO.isPresent()) {
                 return ResponseEntity.ok(vehicleDTO.get());
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El vehículo no existe.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.VEHICLE_NOT_FOUND);
             }
         } catch (Exception e) {
             logger.error("Error al buscar el vehículo con ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al buscar el vehículo.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.VEHICLE_FETCH_ERROR);
         }
     }
 
@@ -108,7 +109,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error inesperado al publicar el vehículo: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear el vehículo.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.VEHICLE_CREATE_ERROR);
         }
     }
 
@@ -132,7 +133,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error inesperado al actualizar el vehículo: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar el vehículo.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.VEHICLE_UPDATE_ERROR);
         }
     }
 
@@ -156,7 +157,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al subir imagen para vehículo {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir la imagen.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.VEHICLE_IMAGE_UPLOAD_ERROR);
         }
     }
 
@@ -178,7 +179,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al eliminar imagen {} del vehículo {}: {}", filename, id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la imagen.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.VEHICLE_IMAGE_DELETE_ERROR);
         }
     }
 
@@ -200,7 +201,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al reordenar imágenes del vehículo {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al reordenar imágenes.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.VEHICLE_IMAGE_REORDER_ERROR);
         }
     }
 
@@ -225,11 +226,11 @@ public class VehicleController {
         logger.info("Retirando vehículo con ID {}", id);
         try {
             vehicleService.deleteVehicle(id);
-            return ResponseEntity.ok("Vehículo retirado con éxito.");
+            return ResponseEntity.ok(MessageConstants.VEHICLE_RETIRED);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error crítico al eliminar.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.VEHICLE_DELETE_CRITICAL_ERROR);
         }
     }
 }

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.CoverageDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.CoverageService;
+import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class CoverageController {
         if (dto.isPresent()) {
             return ResponseEntity.ok(dto.get());
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cobertura no encontrada para esa reserva.");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.COVERAGE_RESERVATION_NOT_FOUND);
     }
 
     @Operation(summary = "Obtener cobertura por ID")
@@ -41,7 +42,7 @@ public class CoverageController {
         if (dto.isPresent()) {
             return ResponseEntity.ok(dto.get());
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cobertura no encontrada.");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.COVERAGE_NOT_FOUND);
     }
 
     @Operation(summary = "Actualizar cobertura (upgrade/downgrade)")

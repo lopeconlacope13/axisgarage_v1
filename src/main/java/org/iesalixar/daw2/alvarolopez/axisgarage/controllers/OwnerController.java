@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.OwnerDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.OwnerService;
+import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,12 +92,12 @@ public class OwnerController {
                 return ResponseEntity.ok(ownerDTO.get());
             } else {
                 logger.info("No se encontró Propietario por ID {}", id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("El propietario no existe.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.OWNER_NOT_FOUND);
             }
         } catch (Exception e) {
             logger.error("Error al obtener Propietario por ID {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al buscar el propietario con ID " + id);
+                    .body(MessageConstants.OWNER_FETCH_ERROR_PREFIX + id);
         }
     }
 
@@ -125,7 +126,7 @@ public class OwnerController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error interno al crear el propietario");
+                    .body(MessageConstants.OWNER_CREATE_ERROR);
         }
     }
 
@@ -155,7 +156,7 @@ public class OwnerController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error interno al actualizar el propietario");
+                    .body(MessageConstants.OWNER_UPDATE_ERROR);
         }
     }
 
@@ -184,7 +185,7 @@ public class OwnerController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error interno al borrar el propietario");
+                    .body(MessageConstants.OWNER_DELETE_ERROR);
         }
     }
 }
