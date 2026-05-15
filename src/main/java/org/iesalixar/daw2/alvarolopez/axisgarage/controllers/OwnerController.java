@@ -13,8 +13,6 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.services.OwnerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -26,11 +24,9 @@ import java.util.Optional;
 
 /**
  * Controlador REST que gestiona el CRUD de propietarios (Owners) en Axis Garage.
- * <p>
  * Un Owner es el socio inversor o particular que pone sus vehículos a disposición
  * de la plataforma. Cada vehículo de la flota tiene un propietario asignado.
  * Acceso restringido a usuarios con rol MANAGER o ADMIN.
- * </p>
  */
 @RestController
 @RequestMapping("/api/owners")
@@ -41,10 +37,6 @@ public class OwnerController {
 
     @Autowired
     private OwnerService ownerService;
-
-    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
-    @Autowired
-    private MessageSource messageSource;
 
     // --- 1. LISTAR (PAGINADO) ---
 
@@ -97,14 +89,11 @@ public class OwnerController {
                 return ResponseEntity.ok(ownerDTO.get());
             } else {
                 logger.info("No se encontró Propietario por ID {}", id);
-                String msg = messageSource.getMessage("msg.owner-controller.notFound", null, LocaleContextHolder.getLocale());
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Propietario no encontrado.");
             }
         } catch (Exception e) {
             logger.error("Error al obtener Propietario por ID {}", e.getMessage());
-            // Incluimos el ID en el mensaje para mayor trazabilidad en el log
-            String msgBase = messageSource.getMessage("msg.owner-controller.fetch.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msgBase + " ID: " + id);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al buscar el propietario. ID: " + id);
         }
     }
 
@@ -132,8 +121,7 @@ public class OwnerController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.owner-controller.insert.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al insertar el propietario.");
         }
     }
 
@@ -162,8 +150,7 @@ public class OwnerController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.owner-controller.update.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar el propietario.");
         }
     }
 
@@ -191,8 +178,7 @@ public class OwnerController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.owner-controller.delete.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar el propietario.");
         }
     }
 }

@@ -16,8 +16,6 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -57,10 +55,6 @@ public class RenterController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
-    @Autowired
-    private MessageSource messageSource;
-
     // --- 1. LISTAR (PAGINADO) ---
 
     @Operation(summary = "Obtener lista de huéspedes", description = "Devuelve una lista paginada de huéspedes. Permite filtrar opcionalmente por nombre o DNI.")
@@ -96,12 +90,10 @@ public class RenterController {
                 return ResponseEntity.ok(renterDTO.get());
             } else {
                 logger.warn("REST: No se encontró el huésped con ID {}", id);
-                String msg = messageSource.getMessage("msg.renter-controller.notFound", null, LocaleContextHolder.getLocale());
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente no encontrado.");
             }
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.renter-controller.fetch.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al buscar el cliente.");
         }
     }
 
@@ -121,12 +113,10 @@ public class RenterController {
                 return ResponseEntity.ok(renterDTO.get());
             } else {
                 logger.warn("REST: No se encontró ningún huésped con email {}", email);
-                String msg = messageSource.getMessage("msg.renter-controller.email.notFound", null, LocaleContextHolder.getLocale());
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No existe ningún cliente con ese email.");
             }
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.renter-controller.fetch.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al buscar el cliente.");
         }
     }
 
@@ -147,22 +137,19 @@ public class RenterController {
             String token = tokenHeader.replace(BEARER_PREFIX, "");
             Long userId = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
             if (userId == null) {
-                String msg = messageSource.getMessage("msg.renter-controller.token.missing", null, LocaleContextHolder.getLocale());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(msg);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido: falta el claim 'id'.");
             }
             RenterDTO renter = renterService.ensureRenterFromUser(userId, dto);
             return ResponseEntity.ok(renter);
         } catch (IllegalArgumentException e) {
             // Si el userId del JWT no corresponde a ningún usuario en BD → token obsoleto → 401
             if (e.getMessage() != null && e.getMessage().contains("Usuario no encontrado")) {
-                String msg = messageSource.getMessage("msg.renter-controller.session.expired", null, LocaleContextHolder.getLocale());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(msg);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sesión expirada. Vuelve a iniciar sesión.");
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error en ensureRenter: {}", e.getMessage());
-            String msg = messageSource.getMessage("msg.renter-controller.ensure.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al asegurar el perfil de cliente.");
         }
     }
 
@@ -183,8 +170,7 @@ public class RenterController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.renter-controller.insert.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al insertar el cliente.");
         }
     }
 
@@ -206,8 +192,7 @@ public class RenterController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.renter-controller.update.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar el cliente.");
         }
     }
 
@@ -228,8 +213,7 @@ public class RenterController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.renter-controller.delete.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar el cliente.");
         }
     }
 }

@@ -13,8 +13,6 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.services.VehicleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -36,11 +34,6 @@ public class VehicleController {
 
     @Autowired
     private VehicleService vehicleService;
-
-    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
-    // según el idioma detectado en la petición HTTP
-    @Autowired
-    private MessageSource messageSource;
 
     // --- 1. LISTAR ---
 
@@ -88,14 +81,11 @@ public class VehicleController {
             if (vehicleDTO.isPresent()) {
                 return ResponseEntity.ok(vehicleDTO.get());
             } else {
-                // Recuperamos el mensaje del fichero properties según el idioma de la petición
-                String msg = messageSource.getMessage("msg.vehicle-controller.notFound", null, LocaleContextHolder.getLocale());
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehículo no encontrado.");
             }
         } catch (Exception e) {
             logger.error("Error al buscar el vehículo con ID {}: {}", id, e.getMessage());
-            String msg = messageSource.getMessage("msg.vehicle-controller.fetch.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al buscar el vehículo.");
         }
     }
 
@@ -118,8 +108,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error inesperado al publicar el vehículo: {}", e.getMessage());
-            String msg = messageSource.getMessage("msg.vehicle-controller.insert.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al insertar el vehículo.");
         }
     }
 
@@ -143,8 +132,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error inesperado al actualizar el vehículo: {}", e.getMessage());
-            String msg = messageSource.getMessage("msg.vehicle-controller.update.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar el vehículo.");
         }
     }
 
@@ -168,8 +156,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al subir imagen para vehículo {}: {}", id, e.getMessage());
-            String msg = messageSource.getMessage("msg.vehicle-controller.image.upload.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir la imagen.");
         }
     }
 
@@ -191,8 +178,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al eliminar imagen {} del vehículo {}: {}", filename, id, e.getMessage());
-            String msg = messageSource.getMessage("msg.vehicle-controller.image.delete.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la imagen.");
         }
     }
 
@@ -214,8 +200,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al reordenar imágenes del vehículo {}: {}", id, e.getMessage());
-            String msg = messageSource.getMessage("msg.vehicle-controller.image.reorder.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al reordenar imágenes.");
         }
     }
 
@@ -240,13 +225,11 @@ public class VehicleController {
         logger.info("Retirando vehículo con ID {}", id);
         try {
             vehicleService.deleteVehicle(id);
-            String msg = messageSource.getMessage("msg.vehicle-controller.retired", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.ok(msg);
+            return ResponseEntity.ok("Vehículo retirado con éxito.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.vehicle-controller.delete.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar el vehículo.");
         }
     }
 }

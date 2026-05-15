@@ -8,8 +8,6 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.UserDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.UserService;
 import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -47,10 +45,6 @@ public class AuthenticationController {
     @Autowired
     private UserService userService;
 
-    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
-    @Autowired
-    private MessageSource messageSource;
-
     /**
      * Autentica a un usuario con email y contraseña y devuelve un token JWT firmado.
      * <p>
@@ -69,8 +63,7 @@ public class AuthenticationController {
     public ResponseEntity<AuthResponseDTO> authenticate(@Valid @RequestBody AuthRequestDTO authRequest) {
         try {
             if (authRequest.getEmail() == null || authRequest.getPassword() == null) {
-                String msg = messageSource.getMessage("msg.auth-controller.credentials.required", null, LocaleContextHolder.getLocale());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponseDTO(null, msg));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new AuthResponseDTO(null, "El email y la contraseña son obligatorios."));
             }
 
             Authentication authentication = authenticationManager.authenticate(
@@ -86,16 +79,13 @@ public class AuthenticationController {
 
             String token = jwtUtil.generateToken(email, roles, id);
 
-            String successMsg = messageSource.getMessage("msg.auth-controller.success", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.ok(new AuthResponseDTO(token, successMsg));
+            return ResponseEntity.ok(new AuthResponseDTO(token, "Autenticación correcta."));
         } catch (BadCredentialsException e) {
-            String msg = messageSource.getMessage("msg.auth-controller.credentials.invalid", null, LocaleContextHolder.getLocale());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new AuthResponseDTO(null, msg));
+                    .body(new AuthResponseDTO(null, "Credenciales inválidas."));
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.auth-controller.unexpected.error", null, LocaleContextHolder.getLocale());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new AuthResponseDTO(null, msg));
+                    .body(new AuthResponseDTO(null, "Error inesperado. Inténtelo de nuevo más tarde."));
         }
     }
 
@@ -115,8 +105,7 @@ public class AuthenticationController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.auth-controller.register.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al registrar el usuario. Inténtelo de nuevo.");
         }
     }
 
@@ -133,8 +122,7 @@ public class AuthenticationController {
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> body) {
         userService.forgotPassword(body.get("email"));
-        String msg = messageSource.getMessage("msg.auth-controller.forgot-password.sent", null, LocaleContextHolder.getLocale());
-        return ResponseEntity.ok(msg);
+        return ResponseEntity.ok("Si existe una cuenta con ese email, recibirá un enlace de recuperación en breve.");
     }
 
     /**
@@ -149,8 +137,7 @@ public class AuthenticationController {
     public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> body) {
         try {
             userService.resetPassword(body.get("token"), body.get("newPassword"));
-            String msg = messageSource.getMessage("msg.auth-controller.password.updated", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.ok(msg);
+            return ResponseEntity.ok("Contraseña actualizada correctamente.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

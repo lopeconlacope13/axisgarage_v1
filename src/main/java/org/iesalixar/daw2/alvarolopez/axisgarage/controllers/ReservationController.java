@@ -16,8 +16,6 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -54,10 +52,6 @@ public class ReservationController {
 
     @Autowired
     private RenterRepository renterRepository;
-
-    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
-    @Autowired
-    private MessageSource messageSource;
 
     // --- 1. LISTAR (PAGINADO) ---
 
@@ -97,12 +91,10 @@ public class ReservationController {
                 return ResponseEntity.ok(dto.get());
             } else {
                 logger.warn("No se encontró la reserva con ID {}", id);
-                String msg = messageSource.getMessage("msg.reservation-controller.notFound", null, LocaleContextHolder.getLocale());
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Reserva no encontrada.");
             }
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.reservation-controller.fetch.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al buscar la reserva.");
         }
     }
 
@@ -132,8 +124,7 @@ public class ReservationController {
             // es una acción deliberadamente no autorizada — el renterId del cuerpo
             // no coincide con el usuario que firmó el JWT.
             if (!renter.getId().equals(dto.getRenterId())) {
-                String mismatch = messageSource.getMessage("msg.reservation-controller.renter.mismatch", null, LocaleContextHolder.getLocale());
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, mismatch);
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El renterId no coincide con el usuario autenticado.");
             }
 
             ReservationDTO creada = reservationService.createReservation(dto);
@@ -142,8 +133,7 @@ public class ReservationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al crear reserva: {}", e.getMessage());
-            String msg = messageSource.getMessage("msg.reservation-controller.insert.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear la reserva.");
         }
     }
 
@@ -165,8 +155,7 @@ public class ReservationController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.reservation-controller.update.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la reserva.");
         }
     }
 
@@ -187,8 +176,7 @@ public class ReservationController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            String msg = messageSource.getMessage("msg.reservation-controller.delete.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al cancelar la reserva.");
         }
     }
 }

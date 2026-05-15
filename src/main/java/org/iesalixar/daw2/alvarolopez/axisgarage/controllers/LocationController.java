@@ -8,8 +8,6 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.services.LocationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +25,6 @@ public class LocationController {
     @Autowired
     private LocationService locationService;
 
-    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
-    @Autowired
-    private MessageSource messageSource;
-
     @Operation(summary = "Listar todas las sedes")
     @GetMapping
     public ResponseEntity<List<LocationDTO>> getAllLocations() {
@@ -44,8 +38,7 @@ public class LocationController {
         if (dto.isPresent()) {
             return ResponseEntity.ok(dto.get());
         }
-        String msg = messageSource.getMessage("msg.location-controller.notFound", null, LocaleContextHolder.getLocale());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Sede no encontrada.");
     }
 
     @Operation(summary = "Crear una nueva sede")

@@ -6,8 +6,6 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,10 +16,8 @@ import java.util.Map;
 
 /**
  * Controlador REST para la gestión de usuarios desde el panel de administración.
- * <p>
  * Todos los endpoints de esta clase son exclusivos del rol ADMIN.
  * Permiten listar usuarios, cambiar su rol y eliminarlos.
- * <p>
  * La separación de este controlador respecto a UserController es intencional:
  * UserController gestiona el perfil del usuario autenticado (GET /api/user),
  * mientras que este controlador gestiona la lista global de usuarios (GET /api/users).
@@ -36,13 +32,8 @@ public class AdminUserController {
     @Autowired
     private UserService userService;
 
-    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
-    @Autowired
-    private MessageSource messageSource;
-
     /**
      * Devuelve la lista completa de todos los usuarios registrados en el sistema.
-     * <p>
      * Solo accesible para administradores (ROLE_ADMIN).
      * Cada usuario se representa como UserSummaryDTO para no exponer datos sensibles
      * como contraseñas hasheadas ni tokens de recuperación.
@@ -59,11 +50,9 @@ public class AdminUserController {
 
     /**
      * Cambia el rol de un usuario específico identificado por su ID.
-     * <p>
      * Solo accesible para administradores (ROLE_ADMIN).
      * El body JSON debe incluir el campo "role" con el nombre del nuevo rol.
      * Ejemplo de body: { "role": "ROLE_MANAGER" }
-     * <p>
      * Este endpoint elimina todos los roles actuales del usuario y asigna únicamente
      * el nuevo rol indicado. Un usuario solo puede tener un rol activo a la vez.
      *
@@ -84,14 +73,12 @@ public class AdminUserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error inesperado al cambiar rol del usuario {}: {}", id, e.getMessage());
-            String msg = messageSource.getMessage("msg.admin-controller.role.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al cambiar el rol del usuario.");
         }
     }
 
     /**
      * Elimina un usuario del sistema de forma permanente.
-     * <p>
      * Solo accesible para administradores (ROLE_ADMIN).
      * El usuario con ID=1 (administrador principal) está protegido y no puede eliminarse.
      * Esta operación es irreversible.
@@ -112,8 +99,7 @@ public class AdminUserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al eliminar usuario con ID {}: {}", id, e.getMessage());
-            String msg = messageSource.getMessage("msg.admin-controller.delete.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar el usuario.");
         }
     }
 }

@@ -6,8 +6,7 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.InvoiceDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.InvoiceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,11 +17,9 @@ import java.util.List;
 
 /**
  * Controlador REST que gestiona el ciclo de vida de las facturas generadas en Axis Garage.
- * <p>
  * Permite crear, consultar, actualizar y eliminar facturas, así como generar el PDF
  * descargable de cada una. Las facturas se generan automáticamente al confirmar una reserva
  * y se numeran con el formato AG-YYYY-NNNN para facilitar su identificación contable.
- * </p>
  */
 @RestController
 @RequestMapping("/api/invoices")
@@ -31,15 +28,8 @@ public class InvoiceController {
 
     private static final Logger logger = LoggerFactory.getLogger(InvoiceController.class);
 
-    private final InvoiceService invoiceService;
-
-    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
-    private final MessageSource messageSource;
-
-    public InvoiceController(InvoiceService invoiceService, MessageSource messageSource) {
-        this.invoiceService = invoiceService;
-        this.messageSource = messageSource;
-    }
+    @Autowired
+    private InvoiceService invoiceService;
 
     /**
      * Devuelve el listado completo de facturas del sistema.
@@ -55,8 +45,7 @@ public class InvoiceController {
             return ResponseEntity.ok(facturas);
         } catch (Exception e) {
             logger.error("Error al obtener las facturas", e);
-            String msg = messageSource.getMessage("msg.invoice-controller.list.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener las facturas.");
         }
     }
 
@@ -75,8 +64,7 @@ public class InvoiceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al obtener la factura con ID: {}", id, e);
-            String msg = messageSource.getMessage("msg.invoice-controller.fetch.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener la factura.");
         }
     }
 
@@ -96,8 +84,7 @@ public class InvoiceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al obtener la factura de la reserva con ID: {}", reservationId, e);
-            String msg = messageSource.getMessage("msg.invoice-controller.fetch.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener la factura.");
         }
     }
 
@@ -118,8 +105,7 @@ public class InvoiceController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al crear la factura", e);
-            String msg = messageSource.getMessage("msg.invoice-controller.insert.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al emitir la factura.");
         }
     }
 
@@ -141,8 +127,7 @@ public class InvoiceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al actualizar la factura con ID: {}", id, e);
-            String msg = messageSource.getMessage("msg.invoice-controller.update.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la factura.");
         }
     }
 
@@ -172,8 +157,7 @@ public class InvoiceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al generar el PDF de la reserva {}: {}", reservationId, e.getMessage());
-            String msg = messageSource.getMessage("msg.invoice-controller.pdf.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al generar el PDF.");
         }
     }
 
@@ -194,8 +178,7 @@ public class InvoiceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al eliminar la factura con ID: {}", id, e);
-            String msg = messageSource.getMessage("msg.invoice-controller.delete.error", null, LocaleContextHolder.getLocale());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la factura.");
         }
     }
 }

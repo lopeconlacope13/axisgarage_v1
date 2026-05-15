@@ -8,8 +8,6 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.services.DamageReportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,11 +17,9 @@ import java.util.Optional;
 
 /**
  * Controlador REST para la gestión de informes de daños vinculados a las reservas de Axis Garage.
- * <p>
  * Permite registrar el estado del vehículo antes y después de cada alquiler (PRE/POST).
  * Cada informe queda asociado a una reserva concreta y puede incluir descripciones
  * y fotografías de los desperfectos detectados. Solo accesible para MANAGER y ADMIN.
- * </p>
  */
 @RestController
 @RequestMapping("/api/damage-reports")
@@ -34,10 +30,6 @@ public class DamageReportController {
 
     @Autowired
     private DamageReportService damageReportService;
-
-    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
-    @Autowired
-    private MessageSource messageSource;
 
     /**
      * Devuelve todos los informes de daños registrados en el sistema.
@@ -75,8 +67,7 @@ public class DamageReportController {
         if (dto.isPresent()) {
             return ResponseEntity.ok(dto.get());
         }
-        String msg = messageSource.getMessage("msg.damageReport-controller.notFound", null, LocaleContextHolder.getLocale());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Informe de daños no encontrado.");
     }
 
     /**
