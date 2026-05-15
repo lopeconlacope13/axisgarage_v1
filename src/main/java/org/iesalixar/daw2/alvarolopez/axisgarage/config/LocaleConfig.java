@@ -3,12 +3,20 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
-public class LocaleConfig {
+/**
+ * Configuración de internacionalización (i18n) de la aplicación.
+ * Registra el resolvedor de idioma y el interceptor que permite
+ * cambiar el locale mediante el parámetro ?lang=es o ?lang=en en la URL.
+ */
+@Configuration
+public class LocaleConfig implements WebMvcConfigurer {
     // Logger para registrar eventos en esta clase
     private static final Logger logger =
             LoggerFactory.getLogger(LocaleConfig.class);
@@ -52,6 +60,7 @@ public class LocaleConfig {
      * @param registry el registro de interceptores de Spring.
      */
 
+    @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(localeChangeInterceptor());
         logger.info("LocaleChangeInterceptor registrado en el InterceptorRegistry");

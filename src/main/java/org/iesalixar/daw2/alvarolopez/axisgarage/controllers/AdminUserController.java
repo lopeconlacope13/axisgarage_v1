@@ -3,10 +3,11 @@ package org.iesalixar.daw2.alvarolopez.axisgarage.controllers;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.UserSummaryDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.UserService;
-import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,6 +35,10 @@ public class AdminUserController {
 
     @Autowired
     private UserService userService;
+
+    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
+    @Autowired
+    private MessageSource messageSource;
 
     /**
      * Devuelve la lista completa de todos los usuarios registrados en el sistema.
@@ -79,7 +84,8 @@ public class AdminUserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error inesperado al cambiar rol del usuario {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.ADMIN_ROLE_CHANGE_ERROR);
+            String msg = messageSource.getMessage("msg.admin-controller.role.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -106,7 +112,8 @@ public class AdminUserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al eliminar usuario con ID {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.ADMIN_USER_DELETE_ERROR);
+            String msg = messageSource.getMessage("msg.admin-controller.delete.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 }

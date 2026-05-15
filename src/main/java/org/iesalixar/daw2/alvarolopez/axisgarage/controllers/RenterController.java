@@ -13,10 +13,11 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.mappers.RenterMapper;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.RenterRepository;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.RenterService;
 import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
-import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -56,6 +57,10 @@ public class RenterController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
+    @Autowired
+    private MessageSource messageSource;
+
     // --- 1. LISTAR (PAGINADO) ---
 
     @Operation(summary = "Obtener lista de huéspedes", description = "Devuelve una lista paginada de huéspedes. Permite filtrar opcionalmente por nombre o DNI.")
@@ -91,10 +96,12 @@ public class RenterController {
                 return ResponseEntity.ok(renterDTO.get());
             } else {
                 logger.warn("REST: No se encontró el huésped con ID {}", id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.RENTER_NOT_FOUND);
+                String msg = messageSource.getMessage("msg.renter-controller.notFound", null, LocaleContextHolder.getLocale());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.RENTER_FETCH_ERROR);
+            String msg = messageSource.getMessage("msg.renter-controller.fetch.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -114,10 +121,12 @@ public class RenterController {
                 return ResponseEntity.ok(renterDTO.get());
             } else {
                 logger.warn("REST: No se encontró ningún huésped con email {}", email);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.RENTER_EMAIL_NOT_FOUND);
+                String msg = messageSource.getMessage("msg.renter-controller.email.notFound", null, LocaleContextHolder.getLocale());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.RENTER_FETCH_ERROR);
+            String msg = messageSource.getMessage("msg.renter-controller.fetch.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -138,19 +147,22 @@ public class RenterController {
             String token = tokenHeader.replace(BEARER_PREFIX, "");
             Long userId = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
             if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(MessageConstants.RENTER_TOKEN_MISSING_ID);
+                String msg = messageSource.getMessage("msg.renter-controller.token.missing", null, LocaleContextHolder.getLocale());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(msg);
             }
             RenterDTO renter = renterService.ensureRenterFromUser(userId, dto);
             return ResponseEntity.ok(renter);
         } catch (IllegalArgumentException e) {
             // Si el userId del JWT no corresponde a ningún usuario en BD → token obsoleto → 401
             if (e.getMessage() != null && e.getMessage().contains("Usuario no encontrado")) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(MessageConstants.RENTER_SESSION_EXPIRED);
+                String msg = messageSource.getMessage("msg.renter-controller.session.expired", null, LocaleContextHolder.getLocale());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(msg);
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error en ensureRenter: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.RENTER_ENSURE_ERROR);
+            String msg = messageSource.getMessage("msg.renter-controller.ensure.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -171,7 +183,8 @@ public class RenterController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.RENTER_CREATE_ERROR);
+            String msg = messageSource.getMessage("msg.renter-controller.insert.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -193,8 +206,8 @@ public class RenterController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(MessageConstants.RENTER_UPDATE_ERROR);
+            String msg = messageSource.getMessage("msg.renter-controller.update.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -215,7 +228,8 @@ public class RenterController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.RENTER_DELETE_ERROR);
+            String msg = messageSource.getMessage("msg.renter-controller.delete.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 }

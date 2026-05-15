@@ -9,10 +9,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.UserDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.UserService;
 import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
-import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +45,10 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
+    @Autowired
+    private MessageSource messageSource;
+
     @Operation(summary = "Obtener perfil del usuario", description = "Devuelve los datos del usuario logueado extrayendo su ID desde el token JWT proporcionado en la cabecera.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Información del usuario recuperada con éxito",
@@ -68,7 +73,8 @@ public class UserController {
 
         } catch (Exception e) {
             logger.error("Error al obtener el usuario: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.USER_FETCH_ERROR);
+            String msg = messageSource.getMessage("msg.user-controller.fetch.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -93,7 +99,8 @@ public class UserController {
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
             logger.error("Error al subir avatar: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.USER_PHOTO_UPLOAD_ERROR);
+            String msg = messageSource.getMessage("msg.user-controller.photo.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -115,14 +122,15 @@ public class UserController {
             Long id = jwtUtil.extractClaim(token, claims -> claims.get("id", Long.class));
             userService.changePassword(id, body.get("currentPassword"), body.get("newPassword"));
             logger.info("Contraseña actualizada para el usuario con ID {}", id);
-            return ResponseEntity.ok(MessageConstants.USER_PASSWORD_UPDATED);
+            String msg = messageSource.getMessage("msg.user-controller.password.updated", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.ok(msg);
         } catch (IllegalArgumentException e) {
             logger.warn("Intento fallido de cambio de contraseña: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al cambiar la contraseña: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.USER_PASSWORD_CHANGE_ERROR);
+            String msg = messageSource.getMessage("msg.user-controller.password.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
-
 }

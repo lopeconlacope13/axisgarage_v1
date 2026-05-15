@@ -10,10 +10,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.ReviewDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.ReviewService;
-import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -33,6 +34,10 @@ public class ReviewController {
 
     @Autowired
     private ReviewService reviewService;
+
+    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
+    @Autowired
+    private MessageSource messageSource;
 
     // --- 1. LISTAR (PAGINADO) ---
 
@@ -73,11 +78,13 @@ public class ReviewController {
                 return ResponseEntity.ok(dto.get());
             } else {
                 logger.warn("No se encontró la opinión con ID {}", id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.REVIEW_NOT_FOUND);
+                String msg = messageSource.getMessage("msg.review-controller.notFound", null, LocaleContextHolder.getLocale());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
             }
         } catch (Exception e) {
             logger.error("Error al buscar la opinión: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.REVIEW_FETCH_ERROR);
+            String msg = messageSource.getMessage("msg.review-controller.fetch.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -100,8 +107,8 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al obtener opiniones: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(MessageConstants.REVIEW_LIST_ERROR);
+            String msg = messageSource.getMessage("msg.review-controller.list.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -120,8 +127,8 @@ public class ReviewController {
             return ResponseEntity.ok(reviews);
         } catch (Exception e) {
             logger.error("Error al obtener opiniones del vehículo: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(MessageConstants.REVIEW_VEHICLE_FETCH_ERROR);
+            String msg = messageSource.getMessage("msg.review-controller.vehicle.fetch.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -144,7 +151,8 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al crear la opinión: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.REVIEW_CREATE_ERROR);
+            String msg = messageSource.getMessage("msg.review-controller.insert.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -171,8 +179,8 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al actualizar la opinión: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(MessageConstants.REVIEW_UPDATE_ERROR);
+            String msg = messageSource.getMessage("msg.review-controller.update.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -195,7 +203,8 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al borrar la opinión: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.REVIEW_DELETE_ERROR);
+            String msg = messageSource.getMessage("msg.review-controller.delete.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 }

@@ -13,10 +13,11 @@ import org.iesalixar.daw2.alvarolopez.axisgarage.entities.Renter;
 import org.iesalixar.daw2.alvarolopez.axisgarage.repositories.RenterRepository;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.ReservationService;
 import org.iesalixar.daw2.alvarolopez.axisgarage.utils.JwtUtil;
-import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -53,6 +54,10 @@ public class ReservationController {
 
     @Autowired
     private RenterRepository renterRepository;
+
+    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
+    @Autowired
+    private MessageSource messageSource;
 
     // --- 1. LISTAR (PAGINADO) ---
 
@@ -92,10 +97,12 @@ public class ReservationController {
                 return ResponseEntity.ok(dto.get());
             } else {
                 logger.warn("No se encontró la reserva con ID {}", id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.RESERVATION_NOT_FOUND);
+                String msg = messageSource.getMessage("msg.reservation-controller.notFound", null, LocaleContextHolder.getLocale());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.RESERVATION_FETCH_ERROR);
+            String msg = messageSource.getMessage("msg.reservation-controller.fetch.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -125,7 +132,8 @@ public class ReservationController {
             // es una acción deliberadamente no autorizada — el renterId del cuerpo
             // no coincide con el usuario que firmó el JWT.
             if (!renter.getId().equals(dto.getRenterId())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, MessageConstants.RESERVATION_RENTER_MISMATCH);
+                String mismatch = messageSource.getMessage("msg.reservation-controller.renter.mismatch", null, LocaleContextHolder.getLocale());
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, mismatch);
             }
 
             ReservationDTO creada = reservationService.createReservation(dto);
@@ -134,7 +142,8 @@ public class ReservationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Error al crear reserva: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.RESERVATION_CREATE_ERROR);
+            String msg = messageSource.getMessage("msg.reservation-controller.insert.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -156,8 +165,8 @@ public class ReservationController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(MessageConstants.RESERVATION_UPDATE_ERROR);
+            String msg = messageSource.getMessage("msg.reservation-controller.update.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -178,7 +187,8 @@ public class ReservationController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageConstants.RESERVATION_DELETE_ERROR);
+            String msg = messageSource.getMessage("msg.reservation-controller.delete.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 }

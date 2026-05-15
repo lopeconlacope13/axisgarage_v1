@@ -10,10 +10,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.OwnerDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.OwnerService;
-import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -40,6 +41,10 @@ public class OwnerController {
 
     @Autowired
     private OwnerService ownerService;
+
+    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
+    @Autowired
+    private MessageSource messageSource;
 
     // --- 1. LISTAR (PAGINADO) ---
 
@@ -92,12 +97,14 @@ public class OwnerController {
                 return ResponseEntity.ok(ownerDTO.get());
             } else {
                 logger.info("No se encontró Propietario por ID {}", id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.OWNER_NOT_FOUND);
+                String msg = messageSource.getMessage("msg.owner-controller.notFound", null, LocaleContextHolder.getLocale());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
             }
         } catch (Exception e) {
             logger.error("Error al obtener Propietario por ID {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(MessageConstants.OWNER_FETCH_ERROR_PREFIX + id);
+            // Incluimos el ID en el mensaje para mayor trazabilidad en el log
+            String msgBase = messageSource.getMessage("msg.owner-controller.fetch.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msgBase + " ID: " + id);
         }
     }
 
@@ -125,8 +132,8 @@ public class OwnerController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(MessageConstants.OWNER_CREATE_ERROR);
+            String msg = messageSource.getMessage("msg.owner-controller.insert.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -155,8 +162,8 @@ public class OwnerController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(MessageConstants.OWNER_UPDATE_ERROR);
+            String msg = messageSource.getMessage("msg.owner-controller.update.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 
@@ -184,8 +191,8 @@ public class OwnerController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(MessageConstants.OWNER_DELETE_ERROR);
+            String msg = messageSource.getMessage("msg.owner-controller.delete.error", null, LocaleContextHolder.getLocale());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
         }
     }
 }

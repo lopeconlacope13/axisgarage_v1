@@ -5,10 +5,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.CoverageDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.CoverageService;
-import org.iesalixar.daw2.alvarolopez.axisgarage.utils.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,10 @@ public class CoverageController {
     @Autowired
     private CoverageService coverageService;
 
+    // Fuente de mensajes i18n — lee de messages_en.properties o messages_es.properties
+    @Autowired
+    private MessageSource messageSource;
+
     @Operation(summary = "Obtener cobertura por ID de reserva")
     @GetMapping("/reservation/{reservationId}")
     public ResponseEntity<?> getCoverageByReservationId(@PathVariable Long reservationId) {
@@ -32,7 +37,8 @@ public class CoverageController {
         if (dto.isPresent()) {
             return ResponseEntity.ok(dto.get());
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.COVERAGE_RESERVATION_NOT_FOUND);
+        String msg = messageSource.getMessage("msg.coverage-controller.reservation.notFound", null, LocaleContextHolder.getLocale());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
     }
 
     @Operation(summary = "Obtener cobertura por ID")
@@ -42,7 +48,8 @@ public class CoverageController {
         if (dto.isPresent()) {
             return ResponseEntity.ok(dto.get());
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageConstants.COVERAGE_NOT_FOUND);
+        String msg = messageSource.getMessage("msg.coverage-controller.notFound", null, LocaleContextHolder.getLocale());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
     }
 
     @Operation(summary = "Actualizar cobertura (upgrade/downgrade)")
