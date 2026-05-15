@@ -1,5 +1,7 @@
 package org.iesalixar.daw2.alvarolopez.axisgarage.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.iesalixar.daw2.alvarolopez.axisgarage.dtos.InvoiceDTO;
 import org.iesalixar.daw2.alvarolopez.axisgarage.services.InvoiceService;
 import org.slf4j.Logger;
@@ -13,11 +15,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controlador REST para la gestión de facturas de Axis Garage.
- * Expone los endpoints bajo /api/invoices.
+ * Controlador REST que gestiona el ciclo de vida de las facturas generadas en Axis Garage.
+ * <p>
+ * Permite crear, consultar, actualizar y eliminar facturas, así como generar el PDF
+ * descargable de cada una. Las facturas se generan automáticamente al confirmar una reserva
+ * y se numeran con el formato AG-YYYY-NNNN para facilitar su identificación contable.
+ * </p>
  */
 @RestController
 @RequestMapping("/api/invoices")
+@Tag(name = "Facturas", description = "Gestión de facturas y descarga de PDF para las reservas de Axis Garage")
 public class InvoiceController {
 
     private static final Logger logger = LoggerFactory.getLogger(InvoiceController.class);
@@ -34,6 +41,7 @@ public class InvoiceController {
      *
      * @return ResponseEntity con la lista de InvoiceDTO o error interno.
      */
+    @Operation(summary = "Listar todas las facturas", description = "Devuelve todas las facturas registradas. Restringido a MANAGER y ADMIN.")
     @GetMapping
     public ResponseEntity<?> listarFacturas() {
         try {
@@ -52,6 +60,7 @@ public class InvoiceController {
      * @param id Identificador de la factura.
      * @return ResponseEntity con el InvoiceDTO o 404 si no existe.
      */
+    @Operation(summary = "Obtener factura por ID", description = "Devuelve los detalles de una factura específica. Devuelve 404 si no existe.")
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerFacturaPorId(@PathVariable Long id) {
         try {
@@ -72,6 +81,7 @@ public class InvoiceController {
      * @param reservationId ID de la reserva.
      * @return ResponseEntity con el InvoiceDTO o 404 si no existe.
      */
+    @Operation(summary = "Obtener factura por ID de reserva", description = "Devuelve la factura vinculada a una reserva concreta. El cliente solo puede ver la suya.")
     @GetMapping("/reservation/{reservationId}")
     public ResponseEntity<?> obtenerFacturaPorReserva(@PathVariable Long reservationId) {
         try {
@@ -92,6 +102,7 @@ public class InvoiceController {
      * @param dto DTO con los datos de la factura (reservationId obligatorio).
      * @return ResponseEntity 201 con el InvoiceDTO creado o error.
      */
+    @Operation(summary = "Crear nueva factura", description = "Genera una factura para la reserva indicada. El número se calcula automáticamente en formato AG-YYYY-NNNN con IVA al 21%.")
     @PostMapping
     public ResponseEntity<?> crearFactura(@RequestBody InvoiceDTO dto) {
         try {
@@ -114,6 +125,7 @@ public class InvoiceController {
      * @param dto DTO con los nuevos datos (paymentMethod, notes).
      * @return ResponseEntity con el InvoiceDTO actualizado o error.
      */
+    @Operation(summary = "Actualizar factura", description = "Permite modificar el método de pago y las notas. Los importes y la reserva asociada son inmutables.")
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizarFactura(@PathVariable Long id, @RequestBody InvoiceDTO dto) {
         try {
@@ -136,6 +148,8 @@ public class InvoiceController {
      * @param reservationId ID de la reserva para la que se quiere el PDF.
      * @return ResponseEntity con los bytes del PDF y las cabeceras de descarga.
      */
+    @Operation(summary = "Descargar PDF de factura por reserva",
+               description = "Genera el PDF de la factura. Si aún no existe, la crea en el momento. El cliente recibe el archivo como descarga directa (Content-Disposition: attachment).")
     @GetMapping("/reservation/{reservationId}/pdf")
     public ResponseEntity<?> descargarPdfPorReserva(@PathVariable Long reservationId) {
         try {
@@ -163,6 +177,7 @@ public class InvoiceController {
      * @param id ID de la factura a eliminar.
      * @return ResponseEntity 204 sin contenido o 404 si no existe.
      */
+    @Operation(summary = "Eliminar factura", description = "Borra permanentemente una factura del sistema. Solo accesible para el rol ADMIN.")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminarFactura(@PathVariable Long id) {
         try {

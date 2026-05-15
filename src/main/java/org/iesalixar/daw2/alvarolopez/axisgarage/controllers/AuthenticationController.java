@@ -17,18 +17,22 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*; // Importamos todo para incluir RequestMapping
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Controlador responsable de gestionar las solicitudes relacionadas con la autenticación.
+ * Controlador REST encargado de gestionar el ciclo completo de autenticación de usuarios.
  * <p>
  * Expone los endpoints de login (JWT), registro, recuperación y reset de contraseña.
- * Todas las rutas de este controlador son públicas (sin autenticación previa requerida).
+ * Todas las rutas de este controlador son públicas (sin autenticación previa requerida),
+ * tal y como se configura en {@link org.iesalixar.daw2.alvarolopez.axisgarage.config.SecurityConfig}.
  * </p>
  */
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Autenticación", description = "Endpoints públicos para login, registro y recuperación de contraseña")
 public class AuthenticationController {
 
     // ── Dependencias ─────────────────────────────────────────────────────────
@@ -53,6 +57,8 @@ public class AuthenticationController {
      * @return {@link AuthResponseDTO} con el token JWT si las credenciales son correctas,
      *         o un mensaje de error si son inválidas.
      */
+    @Operation(summary = "Iniciar sesión con email y contraseña",
+               description = "Valida las credenciales y devuelve un token JWT firmado con roles e ID del usuario.")
     @PostMapping("/authenticate")
     public ResponseEntity<AuthResponseDTO> authenticate(@Valid @RequestBody AuthRequestDTO authRequest) {
 		try {
@@ -89,6 +95,8 @@ public class AuthenticationController {
      * @param dto DTO con nombre, apellido, email y contraseña.
      * @return ResponseEntity con el UserDTO creado o error.
      */
+    @Operation(summary = "Registrar nuevo usuario",
+               description = "Crea una nueva cuenta de usuario con rol USER. Lanza error 400 si el email ya existe.")
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDTO dto) {
         try {
@@ -110,6 +118,8 @@ public class AuthenticationController {
      * @param body JSON con la clave "email".
      * @return 200 OK con mensaje informativo.
      */
+    @Operation(summary = "Solicitar enlace de recuperación de contraseña",
+               description = "Envía un email con enlace de reset al usuario. Siempre devuelve 200 para no exponer qué emails están registrados.")
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> body) {
         userService.forgotPassword(body.get("email"));
@@ -122,6 +132,8 @@ public class AuthenticationController {
      * @param body JSON con "token" y "newPassword".
      * @return 200 OK si el token es válido, 400 si ha caducado o no existe.
      */
+    @Operation(summary = "Resetear contraseña con token",
+               description = "Establece una nueva contraseña si el token de recuperación es válido y no ha expirado.")
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> body) {
         try {
