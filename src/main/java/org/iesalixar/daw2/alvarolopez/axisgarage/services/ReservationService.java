@@ -105,6 +105,10 @@ public class ReservationService {
             logger.info("Iniciando creación de reserva para Vehículo {} y Huésped {}", dto.getVehicleId(),
                     dto.getRenterId());
 
+            if (dto.getStartDate().isBefore(LocalDate.now())) {
+                throw new IllegalArgumentException("La fecha de inicio no puede ser anterior a hoy.");
+            }
+
             if (!dto.getEndDate().isAfter(dto.getStartDate())) {
                 throw new IllegalArgumentException("La fecha de salida debe ser posterior a la de entrada.");
             }
@@ -189,6 +193,10 @@ public class ReservationService {
             logger.info("Actualizando reserva con ID {}", id);
             Reservation existente = reservationRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Reserva no encontrada con ID: " + id));
+
+            if (dto.getStartDate().isBefore(LocalDate.now())) {
+                throw new IllegalArgumentException("La fecha de inicio no puede ser anterior a hoy.");
+            }
 
             if (!dto.getEndDate().isAfter(dto.getStartDate())) {
                 throw new IllegalArgumentException("La fecha de salida debe ser posterior a la de entrada.");
