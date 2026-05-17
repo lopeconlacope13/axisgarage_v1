@@ -35,3 +35,6 @@ build/
 CLAUDE.md
 .env
 backups/
+/process/
+/.claude/
+/scripts/
