@@ -157,11 +157,9 @@ public class InvoiceService {
      * Genera el PDF de una factura buscándola por el ID de la reserva.
      * Si la factura no existe, la crea automáticamente antes de generar el PDF.
      * Devuelve los bytes del PDF para que el controlador los envíe como descarga.
-     * <p>
      * Diseño visual premium coherente con la identidad de Axis Garage:
      * banda oscura en cabecera, borde dorado exterior, tabla de detalles
      * con fila de cabecera oscura y total en dorado.
-     * <p>
      * Es transaccional porque necesitamos acceder a las relaciones LAZY
      * (Renter y Vehicle de la reserva) sin que JPA cierre el EntityManager.
      *

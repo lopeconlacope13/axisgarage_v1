@@ -22,7 +22,6 @@ import java.util.Optional;
 
 /**
  * Servicio responsable del módulo de valoraciones de Axis Garage.
- * <p>
  * Gestiona el CRUD de reseñas aplicando la regla de negocio principal:
  * un mismo huésped no puede dejar más de una valoración por reserva.
  * Valida la integridad referencial contra los repositorios de reservas

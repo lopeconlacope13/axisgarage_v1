@@ -18,7 +18,6 @@ import java.util.Optional;
 
 /**
  * Servicio que gestiona el ciclo de vida de los huéspedes (clientes que realizan reservas).
- * <p>
  * Implementa las operaciones CRUD con paginación, garantizando la unicidad del DNI,
  * email y teléfono de cada cliente. Lanza excepciones descriptivas ante cualquier
  * conflicto de datos para que el controlador pueda devolver respuestas HTTP claras.
@@ -220,14 +219,12 @@ public class RenterService {
 
     /**
      * Garantiza la existencia de un perfil de Renter asociado al usuario indicado.
-     * <p>
      * Si ya existe un Renter con el email del User, lo devuelve (y opcionalmente
      * actualiza con los datos del DTO si éste no es null).
      * Si no existe, crea uno nuevo automáticamente reutilizando el nombre,
      * apellidos y email del User. Los campos obligatorios DNI y teléfono se
      * rellenan con valores placeholder únicos derivados del ID del usuario
      * a menos que el DTO traiga valores reales.
-     * <p>
      * Este método se llama desde el flujo de checkout para que cualquier
      * usuario registrado pueda reservar. Si el checkout envía DNI/address,
      * se validan y guardan en el mismo paso.

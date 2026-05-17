@@ -13,11 +13,9 @@ import org.springframework.stereotype.Service;
 
 /**
  * Servicio de correo electrónico de Axis Garage.
- * <p>
  * Se apoya en Spring Mail (JavaMailSender) para comunicarse con el servidor SMTP de Gmail.
  * Está diseñado para enviar notificaciones automáticas cuando se produce una acción
  * relevante en el sistema, como la confirmación de una reserva.
- * <p>
  * IMPORTANTE: todos los métodos capturan sus excepciones internamente.
  * Esto garantiza que un fallo en el servidor de correo no cancele la operación
  * de negocio (p.ej. la creación de una reserva) que lo invocó.

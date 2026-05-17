@@ -16,12 +16,10 @@ import java.util.Optional;
 
 /**
  * Servicio que gestiona la lógica de negocio de los propietarios de vehículos.
- * <p>
  * En Axis Garage, un {@link Owner} es la persona física o jurídica titular de
  * uno o varios vehículos de la flota. Este servicio garantiza la unicidad de
  * email y teléfono antes de cualquier alta o modificación, evitando registros
  * duplicados en la base de datos.
- * </p>
  */
 @Service
 public class OwnerService {

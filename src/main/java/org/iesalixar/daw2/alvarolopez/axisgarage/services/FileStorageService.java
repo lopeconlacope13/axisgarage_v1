@@ -19,7 +19,6 @@ import java.util.UUID;
 
 /**
  * Servicio de almacenamiento de ficheros en disco para Axis Garage.
- * <p>
  * Guarda y elimina las imágenes de los vehículos en el servidor.
  * La ruta base se configura mediante la variable de entorno UPLOAD_PATH,
  * evitando credenciales o rutas absolutas hardcodeadas en el código.

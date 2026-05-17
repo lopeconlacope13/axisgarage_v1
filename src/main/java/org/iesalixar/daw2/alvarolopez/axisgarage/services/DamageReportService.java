@@ -17,11 +17,9 @@ import java.util.stream.Collectors;
 
 /**
  * Servicio que gestiona los informes de daños (partes) vinculados a reservas.
- * <p>
  * Un parte de daños se registra cuando el vehículo es devuelto con algún desperfecto.
  * Cada informe queda ligado a la reserva que lo originó, proporcionando trazabilidad
  * completa del historial de averías de cada unidad de la flota.
- * </p>
  */
 @Service
 public class DamageReportService {

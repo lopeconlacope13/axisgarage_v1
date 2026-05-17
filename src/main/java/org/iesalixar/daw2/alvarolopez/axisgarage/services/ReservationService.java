@@ -23,12 +23,10 @@ import java.util.Optional;
 
 /**
  * Servicio que orquesta el ciclo de vida completo de una reserva en Axis Garage.
- * <p>
  * Cubre la creación (con detección de solapamiento de fechas), la consulta filtrada
  * por vehículo o cliente, la actualización y el borrado. Al confirmar una reserva nueva,
  * este servicio dispara automáticamente dos acciones adicionales: la creación de una
  * cobertura STANDARD asociada y el envío de un correo de confirmación al cliente.
- * </p>
  */
 @Service
 public class ReservationService {
@@ -248,12 +246,10 @@ public class ReservationService {
     /**
      * Calcula el precio total de la reserva sumando el precio base del vehículo
      * más el coste adicional de la cobertura elegida, multiplicado por los días.
-     * <p>
      * Tasas de cobertura por día (fijas de negocio):
      *   - STANDARD: 0 €/día (incluida sin coste)
      *   - PREMIUM:  45 €/día
      *   - TOTAL:    85 €/día
-     * </p>
      *
      * @param vehicle     Vehículo reservado (para obtener su precio por día).
      * @param startDate   Fecha de inicio de la reserva.

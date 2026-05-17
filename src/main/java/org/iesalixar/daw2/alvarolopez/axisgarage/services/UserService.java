@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 
 /**
  * Servicio central de gestión de usuarios en Axis Garage.
- * <p>
  * Cubre el registro de nuevos usuarios, la consulta por ID o email,
  * el cambio de contraseña autenticado y el flujo completo de recuperación
  * de contraseña por email (forgot-password / reset-password).
@@ -164,10 +163,8 @@ public class UserService {
 	 * Inicia el flujo de recuperación de contraseña.
 	 * Genera un token UUID único, lo persiste con expiración de 1 hora
 	 * y envía el enlace de recuperación al correo del usuario.
-	 * <p>
 	 * Si el email no existe, el método termina sin error para no revelar
 	 * si una dirección está registrada (buena práctica de seguridad básica).
-	 *
 	 * @param email Correo del usuario que solicita recuperar su contraseña.
 	 */
 	public void forgotPassword(String email) {
@@ -246,11 +243,9 @@ public class UserService {
 
 	/**
 	 * Devuelve la lista completa de todos los usuarios registrados en el sistema.
-	 * <p>
 	 * Cada usuario se transforma a UserSummaryDTO para exponer solo los campos
 	 * necesarios para la gestión desde el panel de administración.
 	 * Los roles se mapean a sus nombres (String) para simplificar el JSON.
-	 *
 	 * @return Lista de UserSummaryDTO con todos los usuarios del sistema.
 	 */
 	public List<UserSummaryDTO> getAllUsers() {
@@ -265,10 +260,8 @@ public class UserService {
 
 	/**
 	 * Cambia el rol de un usuario: elimina todos los roles actuales y asigna el nuevo.
-	 * <p>
 	 * Solo acepta roles que existan en la tabla 'roles' de la base de datos.
 	 * Si el nombre del rol no existe, lanza una excepción para informar al administrador.
-	 *
 	 * @param id       ID del usuario al que se cambia el rol.
 	 * @param roleName Nombre del nuevo rol, por ejemplo "ROLE_USER" o "ROLE_MANAGER".
 	 * @return UserSummaryDTO actualizado con el nuevo rol asignado.
@@ -296,7 +289,6 @@ public class UserService {
 
 	/**
 	 * Elimina un usuario del sistema de forma permanente.
-	 * <p>
 	 * El usuario con ID=1 (administrador principal) está protegido y no puede
 	 * eliminarse para evitar que el sistema quede sin administrador.
 	 *
@@ -320,10 +312,8 @@ public class UserService {
 
 	/**
 	 * Convierte una entidad User a UserSummaryDTO.
-	 * <p>
 	 * Método privado de apoyo que extrae solo los campos necesarios para el panel
 	 * de administración. Los roles se transforman a sus nombres (String) en un Set.
-	 *
 	 * @param user Entidad User de JPA.
 	 * @return UserSummaryDTO con los datos resumidos del usuario.
 	 */

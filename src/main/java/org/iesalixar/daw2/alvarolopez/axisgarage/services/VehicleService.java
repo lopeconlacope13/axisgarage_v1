@@ -26,12 +26,10 @@ import java.util.Optional;
 
 /**
  * Servicio que gestiona toda la lógica de negocio relacionada con los vehículos de la flota.
- * <p>
  * Actúa como intermediario entre el controlador REST y el repositorio JPA, aplicando
  * las validaciones necesarias (duplicados de modelo por propietario, existencia de
  * relaciones) antes de persistir los datos. El almacenamiento físico de imágenes
  * se delega a {@link FileStorageService}.
- * </p>
  */
 @Service
 public class VehicleService {
