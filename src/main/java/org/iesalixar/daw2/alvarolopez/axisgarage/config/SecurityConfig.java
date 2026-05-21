@@ -99,7 +99,7 @@ public class SecurityConfig {
 						// (/login/oauth2/code/{provider}) deben figurar en la lista blanca explícita.
 						.requestMatchers("/oauth2/authorization/**", "/login/oauth2/code/**").permitAll()
 						
-						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/vehicles", "/api/vehicles/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/locations", "/api/locations/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()

@@ -24,6 +24,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      * error.
      */
     @Query("SELECT r FROM Reservation r WHERE r.vehicle.id = :vehicleId " +
+            "AND r.status <> 'CANCELLED' " +
             "AND :startDate < r.endDate " +
             "AND :endDate > r.startDate")
     List<Reservation> findReservasConflictivas(
@@ -37,6 +38,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
      */
     @Query("SELECT r FROM Reservation r WHERE r.vehicle.id = :vehicleId " +
             "AND r.id != :reservationId " +
+            "AND r.status <> 'CANCELLED' " +
             "AND :startDate < r.endDate " +
             "AND :endDate > r.startDate")
     List<Reservation> findReservasConflictivasExcludingId(
